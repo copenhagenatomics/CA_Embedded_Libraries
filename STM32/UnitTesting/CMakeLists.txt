@@ -14,6 +14,8 @@ include_directories(../ADCMonitor/Inc
                     ../FLASH_readwrite/Inc
                     Inc )
 
+add_compile_definitions(STM32F401xC)
+
 enable_testing()
 add_executable(CA_UnitTesting ../ADCMonitor/Src/ADCmonitor.c ../Util/Src/CAProtocol.c src/stubs.cpp)
 target_link_libraries(CA_UnitTesting PRIVATE m)
