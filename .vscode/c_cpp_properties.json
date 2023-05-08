@@ -8,7 +8,8 @@
             "defines": [
                 "_DEBUG",
                 "UNICODE",
-                "_UNICODE"
+                "_UNICODE",
+                "USE_HAL_DRIVER"
             ],
             "compilerPath": "/usr/bin/arm-none-eabi-gcc",
             "cStandard": "c17",
@@ -27,7 +28,8 @@
             "defines": [
                 "_DEBUG",
                 "UNICODE",
-                "_UNICODE"
+                "_UNICODE",
+                "USE_HAL_DRIVER"
             ],
             "compilerPath": "${env:ARMGCC_DIR}/arm-none-eabi-gcc.exe",
             "cStandard": "c17",
