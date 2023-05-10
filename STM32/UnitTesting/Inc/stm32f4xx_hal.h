@@ -21,6 +21,8 @@ void HAL_Delay(uint32_t);
 int USBnprintf(const char * format, ... );
 void JumpToBootloader();
 
+void HAL_ADC_ConvHalfCpltCallback(ADC_HandleTypeDef* hadc);
+
 #ifdef __cplusplus
 }
 #endif

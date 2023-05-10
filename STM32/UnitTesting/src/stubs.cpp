@@ -28,6 +28,12 @@ static void generate4Sine(int16_t* pData, int length, int offset, int freq)
     }
 }
 
+static void generateSine(int16_t* pData, int noOfChannels, int noOfSamples, int channel,  int amplitudeOffset, int amplitude, int freq)
+{
+    const float Ts = 1.0/10000.0;
+    for (int i = 0; i<noOfSamples; i++)
+        pData[noOfChannels*i + channel] = amplitudeOffset + (amplitude * sin( 2*M_PI*(i*Ts)*freq ));
+}
 
 // Helper function to be used during debug.
 static void debugPData(const int16_t* pData, int length, int channel)
@@ -66,6 +72,154 @@ int testSine()
     return 0;
 }
 
+int testADCrms()
+{
+    const float tol = 0.0001;
+    const int noOfSamples = 1000;
+    const int noOfChannels = 2;
+    int16_t pData[noOfSamples*noOfChannels*2];
+
+    generateSine(pData, noOfChannels, noOfSamples, 0, 2047, 2047, 1000);
+    generateSine(pData, noOfChannels, noOfSamples, 1, 2047, 1023, 1000);
+
+    ADC_HandleTypeDef dummy = { { noOfChannels } };
+    ADCMonitorInit(&dummy, pData, noOfSamples*noOfChannels*2);
+    HAL_ADC_ConvHalfCpltCallback(&dummy); 
+
+    if ((ADCrms(pData,0) - 2506.606445) > tol)
+        return __LINE__;
+    if ((ADCrms(pData,1) - 2170.527588) > tol)
+        return __LINE__;
+    return 0;
+}
+
+int testADCMean()
+{
+    const int noOfSamples = 100;
+    const int noOfChannels = 2;
+    int16_t pData[noOfSamples*noOfChannels*2];
+
+    for (int i = 0; i<noOfSamples; i++)
+    {
+        pData[noOfChannels*i] = i*1;
+        pData[noOfChannels*i+1] = i*2;
+    }
+
+    ADC_HandleTypeDef dummy = { { 2 } };
+    ADCMonitorInit(&dummy, pData, noOfSamples*noOfChannels*2);
+    HAL_ADC_ConvHalfCpltCallback(&dummy); 
+
+    if (ADCMean(pData,0) != 49.50)
+        return __LINE__;
+    if (ADCMean(pData,1) != 99)
+        return __LINE__;
+    return 0;
+}
+
+int testADCMeanBitShift()
+{
+    const int noOfSamples = 256;
+    const int noOfChannels = 2;
+    int16_t pData[noOfSamples*noOfChannels*2];
+
+    for (int i = 0; i<noOfSamples; i++)
+    {
+        pData[noOfChannels*i] = i;
+        pData[noOfChannels*i+1] = i*2;
+    }
+
+    ADC_HandleTypeDef dummy = { { 2 } };
+    ADCMonitorInit(&dummy, pData, noOfSamples*noOfChannels*2);
+    HAL_ADC_ConvHalfCpltCallback(&dummy); 
+
+    if (ADCMeanBitShift(pData,0,8) != 127)
+        return __LINE__;
+    if (ADCMeanBitShift(pData,1,8) != 255)
+        return __LINE__;
+    return 0;
+}
+
+// TODO: Implementation
+int testADCAbsMean()
+{
+    const int noOfSamples = 1000;
+    const int noOfChannels = 2;
+    int16_t pData[noOfSamples*noOfChannels*2] = {0};
+
+    generateSine(pData, noOfChannels, noOfSamples, 0, 0, 2047, 1000);
+    generateSine(pData, noOfChannels, noOfSamples, 1, 0, 1023, 1000);
+
+    ADC_HandleTypeDef dummy = { { noOfChannels } };
+    ADCMonitorInit(&dummy, pData, noOfSamples*noOfChannels*2);
+    HAL_ADC_ConvHalfCpltCallback(&dummy); 
+
+    if (ADCAbsMean(pData,0) != 1259.60)
+        return __LINE__;
+    if (ADCAbsMean(pData,1) != 629.20)
+        return __LINE__;
+
+    return 0;
+}
+
+int testADCmax()
+{
+    const int noOfSamples = 1000;
+    const int noOfChannels = 3;
+    int16_t pData[noOfSamples*noOfChannels*2] = {0};
+
+    for (int i = 0; i<noOfSamples; i++)
+    {
+        pData[noOfChannels*i] = i*1;
+        pData[noOfChannels*i+1] = i*2;
+    }
+
+    const int amplitude = 2047; 
+    const int offset = 2047;
+    generateSine(pData, noOfChannels, noOfSamples, 2, offset, amplitude, 1000);
+
+    ADC_HandleTypeDef dummy = { { noOfChannels } };
+    ADCMonitorInit(&dummy, pData, noOfSamples*noOfChannels*2);
+    HAL_ADC_ConvHalfCpltCallback(&dummy); 
+
+    if (ADCmax(pData,0) != noOfSamples-1)
+        return __LINE__;
+    if (ADCmax(pData,1) != (noOfSamples-1)*2)
+        return __LINE__;
+    if (ADCmax(pData,2) != 3993)
+        return __LINE__;
+    return 0;
+}
+
+int testADCSetOffset()
+{
+    const int noOfSamples = 1000;
+    const int noOfChannels = 3;
+    int16_t pData[noOfSamples*noOfChannels*2] = {0};
+
+    int16_t dcValues[3] = {2055, 4085, 16};
+    for (int i = 0; i < noOfSamples; i++)
+    {
+        pData[noOfChannels*i] = dcValues[0];
+        pData[noOfChannels*i+1] = dcValues[1];
+        pData[noOfChannels*i+2] = dcValues[2];
+    }
+
+    ADC_HandleTypeDef dummy = { { noOfChannels } };
+    ADCMonitorInit(&dummy, pData, noOfSamples*noOfChannels*2);
+    HAL_ADC_ConvHalfCpltCallback(&dummy); 
+
+    ADCSetOffset(pData, -dcValues[0], 0);
+    ADCSetOffset(pData, -dcValues[1], 1);
+    ADCSetOffset(pData, -dcValues[2], 2);
+
+    for (int i = 0; i < noOfChannels*noOfSamples; i++)
+    {
+        if (pData[i] != 0)
+            return __LINE__;
+    }
+    return 0;
+}
+
 int testCMAverage()
 {
     const int noOfSamples = 10;
@@ -75,8 +229,8 @@ int testCMAverage()
     {
         pData[4*i] = (i % 10) * 20;
     }
-    ADC_HandleTypeDef dommy = { { 4 } };
-    ADCMonitorInit(&dommy, pData, noOfSamples*4*2);
+    ADC_HandleTypeDef dummy = { { 4 } };
+    ADCMonitorInit(&dummy, pData, noOfSamples*4*2);
 
     if (cmaAvarage(pData, 0, 85, 5) != 112)
         return __LINE__;
@@ -242,8 +396,14 @@ int testPortCtrl()
 int main(int argc, char *argv[])
 {
     int line = 0;
-    if (line = testSine()) { printf("TestSine failed at line %d\n", line); }
-    if (line = testCMAverage()) { printf("TestSine failed at line %d\n", line); }
+    if (line = testSine()) { printf("testSine failed at line %d\n", line); }
+    if (line = testADCMean()) { printf("testADCMean failed at line %d\n", line); }
+    if (line = testADCrms()) { printf("testADCrms failed at line %d\n", line); }
+    if (line = testADCMeanBitShift()) { printf("testADCMeanBitShift failed at line %d\n", line); }
+    if (line = testADCAbsMean()) { printf("testADCAbsMean failed at line %d\n", line); }
+    if (line = testADCmax()) { printf("testADCmax failed at line %d\n", line); }
+    if (line = testADCSetOffset()) { printf("testADCSetOffset failed at line %d\n", line); }
+    if (line = testCMAverage()) { printf("testCMAverage failed at line %d\n", line); }
     if (line = testCalibration()) { printf("testCAProtocol failed at line %d\n", line); }
     if (line = testPortCtrl()) { printf("testPortCtrl failed at line %d\n", line); }
     if (line == 0) { printf("All tests run successfully\n"); }
