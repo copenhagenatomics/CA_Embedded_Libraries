@@ -100,7 +100,9 @@ double ADCMean(const int16_t *pData, uint16_t channel)
     return (((double) sum) / ((double) ADCMonitorData.noOfSamples));
 }
 
-inline float ADCMeanBitShift(const int16_t *pData, uint16_t channel, uint8_t shiftIdx)
+// NOTE: Bit shifting is only possible on integral values meaning the returned
+// value does not have a fractional part. 
+float ADCMeanBitShift(const int16_t *pData, uint16_t channel, uint8_t shiftIdx)
 {
 	if (ADCMonitorData.activeBuffer == NotAvailable ||
 	        pData == NULL ||
@@ -132,7 +134,7 @@ double ADCAbsMean(const int16_t *pData, uint16_t channel)
         sum += abs(pData[sampleId*ADCMonitorData.noOfChannels + channel]);
     }
 
-    return (sum / ADCMonitorData.noOfSamples);
+    return ( ((double) sum) / ((double) ADCMonitorData.noOfSamples) );
 }
 
 uint16_t ADCmax(const int16_t *pData, uint16_t channel)
