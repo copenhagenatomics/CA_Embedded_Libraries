@@ -26,12 +26,10 @@ typedef struct Goertzel {
     // The following 3 parameters are used to transform the input from ADC to
     // the volts - the magnitudes will be smaller and the computations lighter.
     // The parameters are PCB/MCU dependent.
-    float resolution;       // Resolution of the ADC
-    float Vrange;           // The voltage range of the ADC
-    float gain;             // Any gain factor from PCB specific design.
+    float inputScaling;
 } Goertzel;
 
-void GoertzelInit();
+void GoertzelInit(int targetFrequency, int sampleRate, float samplesPerOutput, float adcres, float vRange, float gain);
 int computeSignalPower(int32_t *pData, int noOfChannels, int noOfSamples, float * magnitude);
 
 #endif
