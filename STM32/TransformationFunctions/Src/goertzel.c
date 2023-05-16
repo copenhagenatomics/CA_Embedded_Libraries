@@ -10,7 +10,7 @@ static Goertzel hGoertzel;
 	targetFrequency: 	The frequency [Hz] of which the magnitude should be computed
 	samplerate:			The samplerate [Hz] of pData
 	samplesPerOutput:	Total number of samples before the magnitude is computed
-	adcres:				The maximum ADC value 12-bit: 4095, 16-bit: 65535
+	adcres:				The maximum ADC value 12-bit: 4096, 16-bit: 65536
 	vRange:				Voltage range of the ADC typically 3.3V
 	gain:				Any PCB specific gain from schematic. 
 */ 
