@@ -21,6 +21,11 @@ typedef void (*ADCCallBack)(int32_t *pBuffer, int noOfChannels, int noOfSamples)
 // Must only be called once.
 void ADCMonitorInit(ADC_HandleTypeDef* hadc, int32_t *pData, uint32_t Length);
 
+// Function for calibrating offset and linearity of ADC. Must be done upon startup to ensure
+// precise measurements.
+// Must be run while ADC is not running i.e. before ADCMonitorInit.
+int ADCCalibrationInit(ADC_HandleTypeDef* hadc, uint32_t CalibrationMode, uint32_t SingleDiff);
+
 // must be called from from while(1) loop to get info about new buffer via
 // ADCCallBack function. If new buffer, callback is called, else nothing is done.
 void ADCMonitorLoop(ADCCallBack cb);
