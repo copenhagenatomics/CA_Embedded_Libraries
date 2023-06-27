@@ -17,7 +17,7 @@ int USBnprintf(const char * format, ... ) {
 }
 void JumpToBootloader() {};
 
-static void generate4Sine(int16_t* pData, int length, int offset, int freq)
+static void generate4Sines(int16_t* pData, int length, int offset, int freq)
 {
     for (int i = 0; i<length; i++)
     {
@@ -54,7 +54,7 @@ int testSine()
     // Create an array used for buffer data.
     const int noOfSamples = 120;
     int16_t pData[noOfSamples*4*2];
-    generate4Sine(pData, noOfSamples, 0, 10);
+    generate4Sines(pData, noOfSamples, 0, 10);
 
     ADC_HandleTypeDef dommy = { { 4 } };
     ADCMonitorInit(&dommy, pData, noOfSamples*4*2);
