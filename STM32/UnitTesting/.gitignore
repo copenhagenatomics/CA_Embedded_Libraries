@@ -1,7 +1,8 @@
 /build/
 .cproject
 .project
-CA_UnitTesting
+ADC_TEST
+GOERTZEL_TEST
 CMakeCache.txt
 CMakeFiles
 CTestTestfile.cmake
