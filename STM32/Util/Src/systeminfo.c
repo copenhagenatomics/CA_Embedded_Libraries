@@ -131,25 +131,25 @@ const char* statusInfo()
     } 
     len += snprintf(&buf[len], sizeof(buf) - len, "Board Status: ");
 
-    if ((BS.boardStatus & BS_OVER_TEMPERATURE_Msk))
+    if (BS.boardStatus & BS_OVER_TEMPERATURE_Msk)
     {
         len += snprintf(&buf[len], sizeof(buf) - len, 
                         "Over temperature. The board temperature is %.2fC.\r\n", BS.temp);
     }
 
-    if ((BS.boardStatus & BS_UNDER_VOLTAGE_Msk))
+    if (BS.boardStatus & BS_UNDER_VOLTAGE_Msk)
     {
         len += snprintf(&buf[len], sizeof(buf) - len, 
                         "Under voltage. The board operates at too low voltage of %.2fV. Check power supply.\r\n", BS.underVoltage);
     }
 
-    if ((BS.boardStatus & BS_OVER_VOLTAGE_Msk))
+    if (BS.boardStatus & BS_OVER_VOLTAGE_Msk)
     {
         len += snprintf(&buf[len], sizeof(buf) - len, 
                         "Over voltage. One of the ports has reached its voltage limit of %.2fV. \r\n", BS.overVoltage);
     }
 
-    if ((BS.boardStatus & BS_OVER_CURRENT_Msk))
+    if (BS.boardStatus & BS_OVER_CURRENT_Msk)
     {
         len += snprintf(&buf[len], sizeof(buf) - len, 
                         "Over current. One of the ports has reached its current limit of %.2fA.\r\n", BS.overCurrent);
