@@ -2,19 +2,19 @@
 #define SYSTEM_INFO_H
 
 /* General Board Status register definitions */
-#define BS_ERROR_Pos                        0U
+#define BS_ERROR_Pos                        31U
 #define BS_ERROR_Msk                        (1UL << BS_ERROR_Pos)
 
-#define BS_OVER_TEMPERATURE_Pos             1U
+#define BS_OVER_TEMPERATURE_Pos             30U
 #define BS_OVER_TEMPERATURE_Msk             (1UL << BS_OVER_TEMPERATURE_Pos)
 
-#define BS_UNDER_VOLTAGE_Pos                2U
+#define BS_UNDER_VOLTAGE_Pos                29U
 #define BS_UNDER_VOLTAGE_Msk                (1UL << BS_UNDER_VOLTAGE_Pos)
 
-#define BS_OVER_VOLTAGE_Pos                 3U
+#define BS_OVER_VOLTAGE_Pos                 28U
 #define BS_OVER_VOLTAGE_Msk                 (1UL << BS_OVER_VOLTAGE_Pos)
 
-#define BS_OVER_CURRENT_Pos                 4U
+#define BS_OVER_CURRENT_Pos                 27U
 #define BS_OVER_CURRENT_Msk                 (1UL << BS_OVER_CURRENT_Pos)
 
 

@@ -5,6 +5,7 @@
  *      Author: agp
  */
 #include <stdio.h>
+#include <stdint.h>
 #include <string.h>
 #include <strings.h>
 #include <stdlib.h>
