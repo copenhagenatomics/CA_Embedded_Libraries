@@ -4,6 +4,7 @@
 void HALundefined(const char *input);
 void HALJumpToBootloader();
 void CAPrintHeader();
+void CAPrintStatus();
 void CAotpRead();
 
 // analyse reason for boot and in case of SW reset jump to DFU SW update.

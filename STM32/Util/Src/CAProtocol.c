@@ -191,6 +191,11 @@ void inputCAProtocol(CAProtocolCtx* ctx)
         if (ctx->printHeader)
             ctx->printHeader();
     }
+    else if(strncmp(input, "Status", 6) == 0)
+    {
+        if (ctx->printStatus)
+            ctx->printStatus();
+    }
     else if(strncmp(input, "DFU", 3) == 0)
     {
         if (ctx->jumpToBootLoader)

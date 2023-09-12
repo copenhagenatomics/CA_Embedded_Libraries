@@ -31,6 +31,9 @@ typedef struct
 
     // system info request using "Serial". These should be overwritten
     void (*printHeader)();
+    // system info request using "Status". These should be overwritten with additional 
+    // board specific status codes.
+    void (*printStatus)();
     void (*jumpToBootLoader)();
 
     // Calibration request.

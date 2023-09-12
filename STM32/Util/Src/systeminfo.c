@@ -14,6 +14,15 @@
 #include "systemInfo.h"
 #include "githash.h"
 
+static struct BS
+{
+    uint32_t boardStatus;
+    float temp;
+    float underVoltage;
+    float overVoltage;
+    float overCurrent;
+} BS = {0, 0, 0, 0};
+
 // F4xx UID
 #define ID1 *((unsigned long *) (UID_BASE))
 #define ID2 *((unsigned long *) (UID_BASE + 4U))
@@ -111,6 +120,43 @@ const char* systemInfo()
     return buf;
 }
 
+const char* statusInfo()
+{
+    static char buf[600] = { 0 };
+    int len = 0;
+    if (!(BS.boardStatus & BS_ERROR_Msk))
+    {
+        len += snprintf(&buf[len], sizeof(buf) - len, "Board Status: The board is operating normally.\r\n");
+        return buf;
+    } 
+    len += snprintf(&buf[len], sizeof(buf) - len, "Board Status: ");
+
+    if ((BS.boardStatus & BS_OVER_TEMPERATURE_Msk))
+    {
+        len += snprintf(&buf[len], sizeof(buf) - len, 
+                        "Over temperature. The board temperature is %.2fC.\r\n", BS.temp);
+    }
+
+    if ((BS.boardStatus & BS_UNDER_VOLTAGE_Msk))
+    {
+        len += snprintf(&buf[len], sizeof(buf) - len, 
+                        "Under voltage. The board operates at too low voltage of %.2fV. Check power supply.\r\n", BS.underVoltage);
+    }
+
+    if ((BS.boardStatus & BS_OVER_VOLTAGE_Msk))
+    {
+        len += snprintf(&buf[len], sizeof(buf) - len, 
+                        "Over voltage. One of the ports has reached its voltage limit of %.2fV. \r\n", BS.overVoltage);
+    }
+
+    if ((BS.boardStatus & BS_OVER_CURRENT_Msk))
+    {
+        len += snprintf(&buf[len], sizeof(buf) - len, 
+                        "Over current. One of the ports has reached its current limit of %.2fA.\r\n", BS.overCurrent);
+    }
+    return buf;
+}
+
 int getBoardInfo(BoardType *bdt, SubBoardType *sbdt)
 {
     BoardInfo info = { 0 };
@@ -156,3 +202,12 @@ int getPcbVersion(pcbVersion* ver)
 
     return -1; // New OTP version. i.e. this SW is to old.
 }
+
+// Functions updating board status
+void bsSetField(uint32_t field){ BS.boardStatus |= field; }
+void bsClearField(uint32_t field){ BS.boardStatus &= ~field; }
+uint32_t bsGetStatus(){ return BS.boardStatus; }
+void setBoardTemp(float temp){ BS.temp = temp; }
+void setBoardUnderVoltage(float voltage){ BS.underVoltage = voltage; }
+void setBoardOverVoltage(float voltage){ BS.overVoltage = voltage; }
+void setBoardOverCurrent(float current){ BS.overCurrent = current; }
