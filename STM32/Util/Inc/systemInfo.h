@@ -1,6 +1,25 @@
 #ifndef SYSTEM_INFO_H
 #define SYSTEM_INFO_H
 
+#include <stdbool.h>
+
+/* General Board Status register definitions */
+#define BS_ERROR_Pos                        31U
+#define BS_ERROR_Msk                        (1UL << BS_ERROR_Pos)
+
+#define BS_OVER_TEMPERATURE_Pos             30U
+#define BS_OVER_TEMPERATURE_Msk             (1UL << BS_OVER_TEMPERATURE_Pos)
+
+#define BS_UNDER_VOLTAGE_Pos                29U
+#define BS_UNDER_VOLTAGE_Msk                (1UL << BS_UNDER_VOLTAGE_Pos)
+
+#define BS_OVER_VOLTAGE_Pos                 28U
+#define BS_OVER_VOLTAGE_Msk                 (1UL << BS_OVER_VOLTAGE_Pos)
+
+#define BS_OVER_CURRENT_Pos                 27U
+#define BS_OVER_CURRENT_Msk                 (1UL << BS_OVER_CURRENT_Pos)
+
+
 // NOTE!! Do not change order or values since this list must match ALL OTP programmers.
 typedef enum {
     AC_Board          = 1,
@@ -32,6 +51,10 @@ typedef struct pcbVersion {
  * @return info about system in null terminated string. */
 const char* systemInfo();
 
+/* Generic info about system status.
+ * @return info about system in null terminated string. */
+const char* statusInfo(bool printStart);
+
 // Description: Get Boardinfo. If input values are NULL these are ignored.
 // @param bdt:  Boardtype used in the SW running
 // @param sbdt: SubBoardtype used in the SW running, if 0xFF value is ignore in compare
@@ -42,5 +65,27 @@ int getBoardInfo(BoardType* bdt, SubBoardType* sbdt);
 // @param ver: Pointer to struct pcbVersion
 // Return 0 if data is valid, else negative value.
 int getPcbVersion(pcbVersion* ver);
+
+// Description: set a board status field.
+// @param field: a 1 bit shifted to the field index to be set in addition to
+// the error bit also being set.
+void bsSetError(uint32_t field);
+
+// Description: set a board status field.
+// @param field: a 1 bit shifted to the field index to be set.
+void bsSetField(uint32_t field);
+
+// Description: set a board status field.
+// @param field: a 1 bit shifted to the field index to be cleared.
+void bsClearField(uint32_t field);
+
+// Description: Get the board status registry.
+// Return a uint32_t containing the board status.
+uint32_t bsGetStatus();
+
+void setBoardTemp(float temp);
+void setBoardUnderVoltage(float voltage);
+void setBoardOverVoltage(float voltage);
+void setBoardCurrent(float current);
 
 #endif // SYSTEM_INFO_H

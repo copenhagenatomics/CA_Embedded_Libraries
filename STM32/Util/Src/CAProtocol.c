@@ -5,9 +5,11 @@
  *      Author: agp
  */
 #include <stdio.h>
+#include <stdint.h>
 #include <string.h>
 #include <strings.h>
 #include <stdlib.h>
+#include "CAProtocolStm.h"
 #include "CAProtocol.h"
 
 typedef struct CAProtocolData {
@@ -190,6 +192,13 @@ void inputCAProtocol(CAProtocolCtx* ctx)
     {
         if (ctx->printHeader)
             ctx->printHeader();
+    }
+    else if(strncmp(input, "Status", 6) == 0)
+    {
+        CAPrintStatus(true); // Print start of status message
+        if (ctx->printStatus)
+            ctx->printStatus(); // Print board specific part of status message
+        CAPrintStatus(false); // Print end of status message
     }
     else if(strncmp(input, "DFU", 3) == 0)
     {
