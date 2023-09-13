@@ -9,8 +9,8 @@
 #include <string.h>
 #include <strings.h>
 #include <stdlib.h>
-#include "CAProtocol.h"
 #include "CAProtocolStm.h"
+#include "CAProtocol.h"
 
 typedef struct CAProtocolData {
     size_t len;         // Length of current data.

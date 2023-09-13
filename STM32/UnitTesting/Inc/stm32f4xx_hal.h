@@ -20,7 +20,7 @@ void HAL_ADC_Start_DMA(ADC_HandleTypeDef* hadc, uint32_t* pData, uint32_t Length
 void HAL_Delay(uint32_t);
 int USBnprintf(const char * format, ... );
 void JumpToBootloader();
-
+void CAPrintStatus(bool printStart);
 void HAL_ADC_ConvHalfCpltCallback(ADC_HandleTypeDef* hadc);
 
 #ifdef __cplusplus

@@ -16,6 +16,8 @@ int USBnprintf(const char * format, ... ) {
     return 0;
 }
 void JumpToBootloader() {};
+void CAPrintStatus(bool printStart) {};
+
 
 static void generate4Sines(int16_t* pData, int length, int offset, int freq)
 {
