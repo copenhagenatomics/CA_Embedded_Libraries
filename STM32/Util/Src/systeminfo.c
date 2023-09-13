@@ -28,6 +28,9 @@ static struct BS
     float overCurrent;
 } BS = {0, 0, 0, 0};
 
+// Print buffer for systemInfo & statusInfo
+static char buf[600] = { 0 };
+
 // F4xx UID
 #define ID1 *((unsigned long *) (UID_BASE))
 #define ID2 *((unsigned long *) (UID_BASE + 4U))
@@ -81,7 +84,6 @@ static char* productType(uint8_t id)
 
 const char* systemInfo()
 {
-    static char buf[600] = { 0 };
     BoardInfo info = { 0 };
 
     if (HAL_otpRead(&info) != OTP_SUCCESS)
@@ -127,7 +129,6 @@ const char* systemInfo()
 
 const char* statusInfo(bool printStart)
 {
-    static char buf[600] = { 0 };
     int len = 0;
 
     // Print end of message and return
