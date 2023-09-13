@@ -51,6 +51,10 @@ typedef struct pcbVersion {
  * @return info about system in null terminated string. */
 const char* systemInfo();
 
+/* Generic info about system status.
+ * @return info about system in null terminated string. */
+const char* statusInfo(bool printStart);
+
 // Description: Get Boardinfo. If input values are NULL these are ignored.
 // @param bdt:  Boardtype used in the SW running
 // @param sbdt: SubBoardtype used in the SW running, if 0xFF value is ignore in compare
