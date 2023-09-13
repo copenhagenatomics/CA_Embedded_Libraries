@@ -194,8 +194,10 @@ void inputCAProtocol(CAProtocolCtx* ctx)
     }
     else if(strncmp(input, "Status", 6) == 0)
     {
+        CAPrintStatus(true); // Print start of status message
         if (ctx->printStatus)
-            ctx->printStatus();
+            ctx->printStatus(); // Print board specific part of status message
+        CAPrintStatus(false); // Print end of status message
     }
     else if(strncmp(input, "DFU", 3) == 0)
     {

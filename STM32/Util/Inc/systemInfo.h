@@ -1,6 +1,8 @@
 #ifndef SYSTEM_INFO_H
 #define SYSTEM_INFO_H
 
+#include <stdbool.h>
+
 /* General Board Status register definitions */
 #define BS_ERROR_Pos                        31U
 #define BS_ERROR_Msk                        (1UL << BS_ERROR_Pos)
@@ -59,6 +61,11 @@ int getBoardInfo(BoardType* bdt, SubBoardType* sbdt);
 // @param ver: Pointer to struct pcbVersion
 // Return 0 if data is valid, else negative value.
 int getPcbVersion(pcbVersion* ver);
+
+// Description: set a board status field.
+// @param field: a 1 bit shifted to the field index to be set in addition to
+// the error bit also being set.
+void bsSetError(uint32_t field);
 
 // Description: set a board status field.
 // @param field: a 1 bit shifted to the field index to be set.

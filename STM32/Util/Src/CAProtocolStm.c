@@ -41,9 +41,9 @@ void CAPrintHeader()
     USBnprintf(systemInfo());
 }
 
-void CAPrintStatus()
+void CAPrintStatus(bool printStart)
 {
-    USBnprintf(statusInfo());
+    USBnprintf(statusInfo(printStart));
 }
 
 void CAotpRead()

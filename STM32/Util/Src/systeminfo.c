@@ -14,6 +14,11 @@
 #include "systemInfo.h"
 #include "githash.h"
 
+
+// Struct containing the board status sw registry
+// as well as some of the general values.
+// A board should update the values in this struct using the
+// functions defined below for updating the board status.
 static struct BS
 {
     uint32_t boardStatus;
@@ -120,16 +125,24 @@ const char* systemInfo()
     return buf;
 }
 
-const char* statusInfo()
+const char* statusInfo(bool printStart)
 {
     static char buf[600] = { 0 };
     int len = 0;
+
+    // Print end of message and return
+    if (!printStart)
+    {
+        len += snprintf(&buf[len], sizeof(buf) - len, "End of board status. \r\n");
+        return buf;
+    }
+
     if (!(BS.boardStatus & BS_ERROR_Msk))
     {
-        len += snprintf(&buf[len], sizeof(buf) - len, "Board Status: The board is operating normally.\r\n");
+        len += snprintf(&buf[len], sizeof(buf) - len, "Board Status:\r\nThe board is operating normally.\r\n");
         return buf;
     } 
-    len += snprintf(&buf[len], sizeof(buf) - len, "Board Status: ");
+    len += snprintf(&buf[len], sizeof(buf) - len, "Board Status:\r\n");
 
     if (BS.boardStatus & BS_OVER_TEMPERATURE_Msk)
     {
@@ -146,13 +159,13 @@ const char* statusInfo()
     if (BS.boardStatus & BS_OVER_VOLTAGE_Msk)
     {
         len += snprintf(&buf[len], sizeof(buf) - len, 
-                        "Over voltage. One of the ports has reached its voltage limit of %.2fV. \r\n", BS.overVoltage);
+                        "Over voltage. One of the ports has reached a voltage out of its measurement range at %.2fV. \r\n", BS.overVoltage);
     }
 
     if (BS.boardStatus & BS_OVER_CURRENT_Msk)
     {
         len += snprintf(&buf[len], sizeof(buf) - len, 
-                        "Over current. One of the ports has reached its current limit of %.2fA.\r\n", BS.overCurrent);
+                        "Over current. One of the ports has reached a current out of its measurement range at %.2fA.\r\n", BS.overCurrent);
     }
     return buf;
 }
@@ -204,6 +217,7 @@ int getPcbVersion(pcbVersion* ver)
 }
 
 // Functions updating board status
+void bsSetError(uint32_t field) { BS.boardStatus |= (BS_ERROR_Msk | field); }
 void bsSetField(uint32_t field){ BS.boardStatus |= field; }
 void bsClearField(uint32_t field){ BS.boardStatus &= ~field; }
 uint32_t bsGetStatus(){ return BS.boardStatus; }
