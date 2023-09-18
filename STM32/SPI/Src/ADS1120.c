@@ -197,7 +197,7 @@ static HAL_StatusTypeDef writeRegister(ADS1120Device *dev, const ADS1120_RegConf
     return HAL_OK;
 }
 
-static int setInput(ADS1120Device *dev, ADS1120_input selectedInput, bool verify)
+static int setInput(ADS1120Device *dev, ADS1120_input selectedInput)
 {
     // A default configuration
     ADS1120_RegConfig cfg =
@@ -269,7 +269,7 @@ int ADS1120Init(ADS1120Device *dev)
         HAL_Delay(1); // wait 50µs+32*t(CLK) < 1mSec after reset
 
         // Check that the configuration can be set.
-        ret = setInput(dev, INPUT_CALIBRATE, true);
+        ret = setInput(dev, INPUT_CALIBRATE);
         if (ret != 0) {
             ret = 2;
         }
@@ -291,7 +291,7 @@ void ADS1120Loop(ADS1120Device *dev, float *type_calibration)
     {
         // Something is wrong. Restart from calibrate
         stmSetGpio(dev->cs, false);
-        setInput(dev, INPUT_CALIBRATE, false);
+        setInput(dev, INPUT_CALIBRATE);
         ADCSync(dev); // If no change in SPI flags a new ADC acquire is not started.
         stmSetGpio(dev->cs, true);
 
@@ -312,7 +312,7 @@ void ADS1120Loop(ADS1120Device *dev, float *type_calibration)
     if (readADC(dev, &adcValue) != HAL_OK)
     {
         // Something is wrong. Restart from calibrate
-        setInput(dev, INPUT_CALIBRATE, false);
+        setInput(dev, INPUT_CALIBRATE);
         ADCSync(dev); // If no change in SPI flags a new ADC acquire is not started.
     }
     else
@@ -346,7 +346,7 @@ void ADS1120Loop(ADS1120Device *dev, float *type_calibration)
             data->calibration += (((int16_t) adcValue) - data->calibration) / mAvgTime;
             break;
         }
-        setInput(dev, nextInput(data->currentInput), false);
+        setInput(dev, nextInput(data->currentInput));
     }
 
     stmSetGpio(dev->cs, true);
