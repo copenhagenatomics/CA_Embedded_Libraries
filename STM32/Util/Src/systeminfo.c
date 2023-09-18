@@ -218,6 +218,25 @@ int getPcbVersion(pcbVersion* ver)
 }
 
 // Functions updating board status
+void bsSetErrorRange(uint32_t field, uint32_t range)
+{
+    // For ranges of bits where only a subset of them are being set,
+    // then setting a new subset will result in the union of the two subset.
+    // Since, for a range it is assumed that the bits in the range
+    // are related i.e. each combination meaning a unique state, then
+    // we need to reset previous state before setting the new state.
+    BS.boardStatus &= ~range;
+    BS.boardStatus |= (BS_ERROR_Msk | field);
+}
+
+void bsSetFieldRange(uint32_t field, uint32_t range)
+{
+    // Reset bits before setting the new value of the range for the same
+    // reason as described in the bsSetErrorRange function.
+    BS.boardStatus &= ~range;
+    BS.boardStatus |= field;
+}
+
 void bsSetError(uint32_t field) { BS.boardStatus |= (BS_ERROR_Msk | field); }
 void bsSetField(uint32_t field){ BS.boardStatus |= field; }
 void bsClearField(uint32_t field){ BS.boardStatus &= ~field; }

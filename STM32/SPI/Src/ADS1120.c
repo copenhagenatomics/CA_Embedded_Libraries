@@ -96,13 +96,56 @@ static bool isDataReady(ADS1120Device *dev)
     return !stmGetGpio(dev->drdy);
 }
 
-//static void powerDown(SPI_HandleTypeDef *hspi);     // Enter power-down mode (not implemented)
+// it is possible to a single register but to simplify stuff, just read it all.
+static HAL_StatusTypeDef readRegisters(ADS1120Device *dev, ADS1120_RegConfig* regs)
+{
+    ADS1120Cmd cmd = { .byte = 0b00100011 };
+
+    HAL_StatusTypeDef ret = HAL_SPI_Transmit(dev->hspi, &cmd.byte, 1, ADS_TIMEOUT);
+    if (ret != HAL_OK)
+        return ret;
+    return HAL_SPI_Receive(dev->hspi, regs->regs, sizeof(regs->regs), ADS_TIMEOUT);
+}
+
+static HAL_StatusTypeDef verifyTransmission(ADS1120Device *dev, ADS1120_RegConfig *result)
+{
+    // Read the current registry setup
+    ADS1120_RegConfig currentReg;
+    bzero(&currentReg, sizeof(currentReg));
+    if (readRegisters(dev, &currentReg) != HAL_OK)
+    {
+        return HAL_ERROR;
+    }
+
+    // Compare the current registries with what the registries were updated to.
+    // If they are not the same then return and error.
+    if (memcmp(currentReg.regs, result->regs, 4) != 0) 
+    {
+        return HAL_ERROR;
+    }
+    return HAL_OK;
+}
+
 // Reset the device
 static HAL_StatusTypeDef reset(ADS1120Device *dev)
 {
+    // Reset device
     ADS1120Cmd cmd = { .byte = 0b00000110 };
+    if (HAL_SPI_Transmit(dev->hspi, &cmd.byte, 1, ADS_TIMEOUT) != HAL_OK)
+    {
+        return HAL_ERROR;
+    }
 
-    return HAL_SPI_Transmit(dev->hspi, &cmd.byte, 1, ADS_TIMEOUT);
+    // Verify that all of the registers are reset
+    ADS1120_RegConfig resetRegs;
+    bzero(&resetRegs, sizeof(resetRegs)); // Upon reset all registers should be 0
+    if (verifyTransmission(dev, &resetRegs) != HAL_OK)
+    {
+        return HAL_ERROR;
+    }
+
+    // Device has been reset
+    return HAL_OK;
 }
 
 // Start or restart conversions.
@@ -130,17 +173,6 @@ static HAL_StatusTypeDef readADC(ADS1120Device *dev, uint16_t* value)
     return HAL_OK;
 }
 
-// it is possible to a single register but to simplify stuff, just read it all.
-static HAL_StatusTypeDef readRegisters(ADS1120Device *dev, ADS1120_RegConfig* regs)
-{
-    ADS1120Cmd cmd = { .byte = 0b00100011 };
-
-    HAL_StatusTypeDef ret = HAL_SPI_Transmit(dev->hspi, &cmd.byte, 1, ADS_TIMEOUT);
-    if (ret != HAL_OK)
-        return ret;
-    return HAL_SPI_Receive(dev->hspi, regs->regs, sizeof(regs->regs), ADS_TIMEOUT);
-}
-
 // Write nn registers starting at address rr
 static HAL_StatusTypeDef writeRegister(ADS1120Device *dev, const ADS1120_RegConfig* regs, uint8_t count, uint8_t offset)
 {
@@ -150,7 +182,19 @@ static HAL_StatusTypeDef writeRegister(ADS1120Device *dev, const ADS1120_RegConf
     ADS1120Cmd cmd = { .count = (count - 1), .regBegin = offset,  .rwcmd = 4 };
     uint8_t spiReq[1 + 4] = { cmd.byte, 0 };
     memcpy(&spiReq[1], &regs->regs[offset], count);
-    return HAL_SPI_Transmit(dev->hspi, spiReq, 1 + count, ADS_TIMEOUT);
+    if (HAL_SPI_Transmit(dev->hspi, spiReq, 1 + count, ADS_TIMEOUT) != HAL_OK)
+    {
+        return HAL_ERROR;
+    }
+
+    // Check that the registry update was finished correctly.
+    ADS1120_RegConfig regUpdate;
+    memcpy(&regUpdate, &spiReq[1], count);
+    if (verifyTransmission(dev, &regUpdate) != HAL_OK)
+    {
+        return HAL_ERROR;
+    }
+    return HAL_OK;
 }
 
 static int setInput(ADS1120Device *dev, ADS1120_input selectedInput, bool verify)
@@ -204,24 +248,8 @@ static int setInput(ADS1120Device *dev, ADS1120_input selectedInput, bool verify
         return -1;
     }
 
-    if (!verify) {
-        dev->data.readStart = HAL_GetTick();
-        dev->data.currentInput = selectedInput;
-        return 0;
-    }
-
-    // Do not set the internal settings since reading registers will stop the reading.
-    // Read back the configuration.
-    ADS1120_RegConfig test;
-    bzero(&test, sizeof(test));
-    if (readRegisters(dev, &test) != HAL_OK) {
-        return -2;
-    }
-
-    if (memcmp(test.regs, cfg.regs, 4) != 0) {
-        return -3;
-    }
-
+    dev->data.readStart = HAL_GetTick();
+    dev->data.currentInput = selectedInput;
     return 0;
 }
 
