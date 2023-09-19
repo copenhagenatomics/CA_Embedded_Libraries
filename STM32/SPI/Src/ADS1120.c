@@ -280,8 +280,9 @@ int ADS1120Init(ADS1120Device *dev)
     return ret;
 }
 
-void ADS1120Loop(ADS1120Device *dev, float *type_calibration)
+int ADS1120Loop(ADS1120Device *dev, float *type_calibration)
 {
+    int ret = 0;
     const int mAvgTime = 6; // Moving average time, see https://en.wikipedia.org/wiki/Moving_average.
 
     ADS1120Data* data = &dev->data;
@@ -291,18 +292,18 @@ void ADS1120Loop(ADS1120Device *dev, float *type_calibration)
     {
         // Something is wrong. Restart from calibrate
         stmSetGpio(dev->cs, false);
-        setInput(dev, INPUT_CALIBRATE);
+        ret = setInput(dev, INPUT_CALIBRATE);
         ADCSync(dev); // If no change in SPI flags a new ADC acquire is not started.
         stmSetGpio(dev->cs, true);
 
         // TODO: How to invalidate?
-        return;
+        return ret;
     }
 
     if (!isDataReady(dev))
     {
         // Data is not ready. This is OK since SPI device needs to acquire the data
-        return;
+        return ret;
     }
 
     // Get the new value present in the SPI device.
@@ -312,7 +313,7 @@ void ADS1120Loop(ADS1120Device *dev, float *type_calibration)
     if (readADC(dev, &adcValue) != HAL_OK)
     {
         // Something is wrong. Restart from calibrate
-        setInput(dev, INPUT_CALIBRATE);
+        ret = setInput(dev, INPUT_CALIBRATE);
         ADCSync(dev); // If no change in SPI flags a new ADC acquire is not started.
     }
     else
@@ -346,8 +347,9 @@ void ADS1120Loop(ADS1120Device *dev, float *type_calibration)
             data->calibration += (((int16_t) adcValue) - data->calibration) / mAvgTime;
             break;
         }
-        setInput(dev, nextInput(data->currentInput));
+        ret = setInput(dev, nextInput(data->currentInput));
     }
 
     stmSetGpio(dev->cs, true);
+    return ret;
 }
