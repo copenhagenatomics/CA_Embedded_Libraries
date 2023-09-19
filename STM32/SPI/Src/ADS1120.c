@@ -59,6 +59,9 @@ typedef union ADS1120Cmd {
     uint8_t byte;
 } ADS1120Cmd;
 
+// Function prototypes
+static HAL_StatusTypeDef readRegisters(ADS1120Device *dev, ADS1120_RegConfig* regs);
+
 static ADS1120_input nextInput(ADS1120_input current)
 {
     switch(current)
@@ -96,22 +99,11 @@ static bool isDataReady(ADS1120Device *dev)
     return !stmGetGpio(dev->drdy);
 }
 
-// it is possible to a single register but to simplify stuff, just read it all.
-static HAL_StatusTypeDef readRegisters(ADS1120Device *dev, ADS1120_RegConfig* regs)
-{
-    ADS1120Cmd cmd = { .byte = 0b00100011 };
-
-    HAL_StatusTypeDef ret = HAL_SPI_Transmit(dev->hspi, &cmd.byte, 1, ADS_TIMEOUT);
-    if (ret != HAL_OK)
-        return ret;
-    return HAL_SPI_Receive(dev->hspi, regs->regs, sizeof(regs->regs), ADS_TIMEOUT);
-}
-
-static HAL_StatusTypeDef verifyTransmission(ADS1120Device *dev, ADS1120_RegConfig *result)
+static HAL_StatusTypeDef verifyTransmission(ADS1120Device *dev, const ADS1120_RegConfig *result)
 {
     // Read the current registry setup
     ADS1120_RegConfig currentReg;
-    bzero(&currentReg, sizeof(currentReg));
+    memset(&currentReg, 0, sizeof(currentReg));
     if (readRegisters(dev, &currentReg) != HAL_OK)
     {
         return HAL_ERROR;
@@ -138,7 +130,7 @@ static HAL_StatusTypeDef reset(ADS1120Device *dev)
 
     // Verify that all of the registers are reset
     ADS1120_RegConfig resetRegs;
-    bzero(&resetRegs, sizeof(resetRegs)); // Upon reset all registers should be 0
+    memset(&resetRegs, 0, sizeof(resetRegs)); // Upon reset all registers should be 0
     if (verifyTransmission(dev, &resetRegs) != HAL_OK)
     {
         return HAL_ERROR;
@@ -173,6 +165,17 @@ static HAL_StatusTypeDef readADC(ADS1120Device *dev, uint16_t* value)
     return HAL_OK;
 }
 
+// it is possible to a single register but to simplify stuff, just read it all.
+static HAL_StatusTypeDef readRegisters(ADS1120Device *dev, ADS1120_RegConfig* regs)
+{
+    ADS1120Cmd cmd = { .byte = 0b00100011 };
+
+    HAL_StatusTypeDef ret = HAL_SPI_Transmit(dev->hspi, &cmd.byte, 1, ADS_TIMEOUT);
+    if (ret != HAL_OK)
+        return ret;
+    return HAL_SPI_Receive(dev->hspi, regs->regs, sizeof(regs->regs), ADS_TIMEOUT);
+}
+
 // Write nn registers starting at address rr
 static HAL_StatusTypeDef writeRegister(ADS1120Device *dev, const ADS1120_RegConfig* regs, uint8_t count, uint8_t offset)
 {
@@ -188,9 +191,7 @@ static HAL_StatusTypeDef writeRegister(ADS1120Device *dev, const ADS1120_RegConf
     }
 
     // Check that the registry update was finished correctly.
-    ADS1120_RegConfig regUpdate;
-    memcpy(&regUpdate, &spiReq[1], count);
-    if (verifyTransmission(dev, &regUpdate) != HAL_OK)
+    if (verifyTransmission(dev, regs) != HAL_OK)
     {
         return HAL_ERROR;
     }
@@ -240,9 +241,6 @@ static int setInput(ADS1120Device *dev, ADS1120_input selectedInput)
         cfg.mux = 0x0E;
         break;
     }
-
-    dev->data.readStart = 0;
-    dev->data.currentInput = selectedInput;
 
     if (writeRegister(dev, &cfg, 4, 0) != HAL_OK) {
         return -1;
