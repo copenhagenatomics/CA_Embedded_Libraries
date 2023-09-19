@@ -59,6 +59,9 @@ typedef union ADS1120Cmd {
     uint8_t byte;
 } ADS1120Cmd;
 
+// Function prototypes
+static HAL_StatusTypeDef readRegisters(ADS1120Device *dev, ADS1120_RegConfig* regs);
+
 static ADS1120_input nextInput(ADS1120_input current)
 {
     switch(current)
@@ -96,13 +99,45 @@ static bool isDataReady(ADS1120Device *dev)
     return !stmGetGpio(dev->drdy);
 }
 
-//static void powerDown(SPI_HandleTypeDef *hspi);     // Enter power-down mode (not implemented)
+static HAL_StatusTypeDef verifyTransmission(ADS1120Device *dev, const ADS1120_RegConfig *result)
+{
+    // Read the current registry setup
+    ADS1120_RegConfig currentReg;
+    memset(&currentReg, 0, sizeof(currentReg));
+    if (readRegisters(dev, &currentReg) != HAL_OK)
+    {
+        return HAL_ERROR;
+    }
+
+    // Compare the current registries with what the registries were updated to.
+    // If they are not the same then return and error.
+    if (memcmp(currentReg.regs, result->regs, 4) != 0) 
+    {
+        return HAL_ERROR;
+    }
+    return HAL_OK;
+}
+
 // Reset the device
 static HAL_StatusTypeDef reset(ADS1120Device *dev)
 {
+    // Reset device
     ADS1120Cmd cmd = { .byte = 0b00000110 };
+    if (HAL_SPI_Transmit(dev->hspi, &cmd.byte, 1, ADS_TIMEOUT) != HAL_OK)
+    {
+        return HAL_ERROR;
+    }
 
-    return HAL_SPI_Transmit(dev->hspi, &cmd.byte, 1, ADS_TIMEOUT);
+    // Verify that all of the registers are reset
+    ADS1120_RegConfig resetRegs;
+    memset(&resetRegs, 0, sizeof(resetRegs)); // Upon reset all registers should be 0
+    if (verifyTransmission(dev, &resetRegs) != HAL_OK)
+    {
+        return HAL_ERROR;
+    }
+
+    // Device has been reset
+    return HAL_OK;
 }
 
 // Start or restart conversions.
@@ -150,10 +185,20 @@ static HAL_StatusTypeDef writeRegister(ADS1120Device *dev, const ADS1120_RegConf
     ADS1120Cmd cmd = { .count = (count - 1), .regBegin = offset,  .rwcmd = 4 };
     uint8_t spiReq[1 + 4] = { cmd.byte, 0 };
     memcpy(&spiReq[1], &regs->regs[offset], count);
-    return HAL_SPI_Transmit(dev->hspi, spiReq, 1 + count, ADS_TIMEOUT);
+    if (HAL_SPI_Transmit(dev->hspi, spiReq, 1 + count, ADS_TIMEOUT) != HAL_OK)
+    {
+        return HAL_ERROR;
+    }
+
+    // Check that the registry update was finished correctly.
+    if (verifyTransmission(dev, regs) != HAL_OK)
+    {
+        return HAL_ERROR;
+    }
+    return HAL_OK;
 }
 
-static int setInput(ADS1120Device *dev, ADS1120_input selectedInput, bool verify)
+static int setInput(ADS1120Device *dev, ADS1120_input selectedInput)
 {
     // A default configuration
     ADS1120_RegConfig cfg =
@@ -197,31 +242,12 @@ static int setInput(ADS1120Device *dev, ADS1120_input selectedInput, bool verify
         break;
     }
 
-    dev->data.readStart = 0;
-    dev->data.currentInput = selectedInput;
-
     if (writeRegister(dev, &cfg, 4, 0) != HAL_OK) {
         return -1;
     }
 
-    if (!verify) {
-        dev->data.readStart = HAL_GetTick();
-        dev->data.currentInput = selectedInput;
-        return 0;
-    }
-
-    // Do not set the internal settings since reading registers will stop the reading.
-    // Read back the configuration.
-    ADS1120_RegConfig test;
-    bzero(&test, sizeof(test));
-    if (readRegisters(dev, &test) != HAL_OK) {
-        return -2;
-    }
-
-    if (memcmp(test.regs, cfg.regs, 4) != 0) {
-        return -3;
-    }
-
+    dev->data.readStart = HAL_GetTick();
+    dev->data.currentInput = selectedInput;
     return 0;
 }
 
@@ -241,7 +267,7 @@ int ADS1120Init(ADS1120Device *dev)
         HAL_Delay(1); // wait 50µs+32*t(CLK) < 1mSec after reset
 
         // Check that the configuration can be set.
-        ret = setInput(dev, INPUT_CALIBRATE, true);
+        ret = setInput(dev, INPUT_CALIBRATE);
         if (ret != 0) {
             ret = 2;
         }
@@ -252,8 +278,9 @@ int ADS1120Init(ADS1120Device *dev)
     return ret;
 }
 
-void ADS1120Loop(ADS1120Device *dev, float *type_calibration)
+int ADS1120Loop(ADS1120Device *dev, float *type_calibration)
 {
+    int ret = 0;
     const int mAvgTime = 6; // Moving average time, see https://en.wikipedia.org/wiki/Moving_average.
 
     ADS1120Data* data = &dev->data;
@@ -263,18 +290,18 @@ void ADS1120Loop(ADS1120Device *dev, float *type_calibration)
     {
         // Something is wrong. Restart from calibrate
         stmSetGpio(dev->cs, false);
-        setInput(dev, INPUT_CALIBRATE, false);
+        ret = setInput(dev, INPUT_CALIBRATE);
         ADCSync(dev); // If no change in SPI flags a new ADC acquire is not started.
         stmSetGpio(dev->cs, true);
 
         // TODO: How to invalidate?
-        return;
+        return ret;
     }
 
     if (!isDataReady(dev))
     {
         // Data is not ready. This is OK since SPI device needs to acquire the data
-        return;
+        return ret;
     }
 
     // Get the new value present in the SPI device.
@@ -284,7 +311,7 @@ void ADS1120Loop(ADS1120Device *dev, float *type_calibration)
     if (readADC(dev, &adcValue) != HAL_OK)
     {
         // Something is wrong. Restart from calibrate
-        setInput(dev, INPUT_CALIBRATE, false);
+        ret = setInput(dev, INPUT_CALIBRATE);
         ADCSync(dev); // If no change in SPI flags a new ADC acquire is not started.
     }
     else
@@ -318,8 +345,9 @@ void ADS1120Loop(ADS1120Device *dev, float *type_calibration)
             data->calibration += (((int16_t) adcValue) - data->calibration) / mAvgTime;
             break;
         }
-        setInput(dev, nextInput(data->currentInput), false);
+        ret = setInput(dev, nextInput(data->currentInput));
     }
 
     stmSetGpio(dev->cs, true);
+    return ret;
 }

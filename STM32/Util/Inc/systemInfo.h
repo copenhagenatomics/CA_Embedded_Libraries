@@ -69,6 +69,19 @@ int getPcbVersion(pcbVersion* ver);
 // Description: set a board status field.
 // @param field: a 1 bit shifted to the field index to be set in addition to
 // the error bit also being set.
+// @param range: the bits in the range parameter is reset prior to setting the
+// bits in the field parameter.
+void bsSetErrorRange(uint32_t field, uint32_t range);
+
+// Description: set a board status field.
+// @param field: a 1 bit shifted to the field index to be set.
+// @param range: the bits in the range parameter is reset prior to setting the
+// bits in the field parameter.
+void bsSetFieldRange(uint32_t field, uint32_t range);
+
+// Description: set a board status field.
+// @param field: a 1 bit shifted to the field index to be set in addition to
+// the error bit also being set.
 void bsSetError(uint32_t field);
 
 // Description: set a board status field.
