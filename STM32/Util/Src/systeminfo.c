@@ -173,12 +173,12 @@ const char* statusInfo(bool printStart)
 
     if (BS.boardStatus & BS_VERSION_ERROR_Msk)
     {
-        BoardType bt;
-        pcbVersion pv;
+        BoardType bt = {0};
+        pcbVersion pv = {0};
         (void) getBoardInfo(&bt, NULL);
         (void) getPcbVersion(&pv);
         len += snprintf(&buf[len], sizeof(buf) - len, 
-            "Error: Incorrent Version.\r\n"
+            "Error: Incorrect Version.\r\n"
             "   Board is: %d.\r\n"
             "   Board should be: %d.\r\n"
             "   PCB Version is: %d.%d.\r\n"

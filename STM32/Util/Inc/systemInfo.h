@@ -24,7 +24,7 @@
 
 /* Used for defining which bits are errors, and which are statuses */
 #define BS_SYSTEM_ERRORS_Msk                (BS_OVER_TEMPERATURE_Msk | BS_UNDER_VOLTAGE_Msk | \
-                                             BS_OVER_VOLTAGE_Msk \ BS_OVER_CURRENT_Msk | \
+                                             BS_OVER_VOLTAGE_Msk | BS_OVER_CURRENT_Msk | \
                                              BS_VERSION_ERROR_Msk)
 
 // NOTE!! Do not change order or values since this list must match ALL OTP programmers.
