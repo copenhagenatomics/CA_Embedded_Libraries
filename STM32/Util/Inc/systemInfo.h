@@ -19,6 +19,13 @@
 #define BS_OVER_CURRENT_Pos                 27U
 #define BS_OVER_CURRENT_Msk                 (1UL << BS_OVER_CURRENT_Pos)
 
+#define BS_VERSION_ERROR_Pos                26U
+#define BS_VERSION_ERROR_Msk                (1UL << BS_VERSION_ERROR_Pos)
+
+/* Used for defining which bits are errors, and which are statuses */
+#define BS_SYSTEM_ERRORS_Msk                (BS_OVER_TEMPERATURE_Msk | BS_UNDER_VOLTAGE_Msk | \
+                                             BS_OVER_VOLTAGE_Msk \ BS_OVER_CURRENT_Msk | \
+                                             BS_VERSION_ERROR_Msk)
 
 // NOTE!! Do not change order or values since this list must match ALL OTP programmers.
 typedef enum {
@@ -79,13 +86,16 @@ void bsSetErrorRange(uint32_t field, uint32_t range);
 // bits in the field parameter.
 void bsSetFieldRange(uint32_t field, uint32_t range);
 
-// Description: set a board status field.
-// @param field: a 1 bit shifted to the field index to be set in addition to
-// the error bit also being set.
+// Description: Set a board status field, and the error bit
+// @param field: a 1 bit shifted to the field index. Can be OR'd together
 void bsSetError(uint32_t field);
 
-// Description: set a board status field.
-// @param field: a 1 bit shifted to the field index to be set.
+// Description: Clear the error bit, if none of the bits in "field" are set
+// @param field: a 1 bit shifted to the field index. Can be OR'd together
+void bsClearError(uint32_t field);
+
+// Description: Set a board status field.
+// @param field: a 1 bit shifted to the field index to be set. Can be OR'd together
 void bsSetField(uint32_t field);
 
 // Description: set a board status field.

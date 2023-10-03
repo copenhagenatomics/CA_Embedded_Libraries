@@ -237,6 +237,16 @@ void bsSetFieldRange(uint32_t field, uint32_t range)
     BS.boardStatus |= field;
 }
 
+/*!
+** @brief Clears the error bit, if none of the bits in the field are set
+*/
+void bsClearError(uint32_t field) {     
+    if (!(BS.boardStatus & field))
+    {
+        bsClearField(BS_ERROR_Msk);
+    } 
+}
+
 void bsSetError(uint32_t field) { BS.boardStatus |= (BS_ERROR_Msk | field); }
 void bsSetField(uint32_t field){ BS.boardStatus |= field; }
 void bsClearField(uint32_t field){ BS.boardStatus &= ~field; }
