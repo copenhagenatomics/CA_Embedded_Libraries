@@ -28,7 +28,7 @@ static struct BS
     float overCurrent;
     BoardType boardType;
     pcbVersion pcbVersion;
-} BS = {0, 0, 0, 0};
+} BS = {0};
 
 // Print buffer for systemInfo & statusInfo
 static char buf[600] = { 0 };
