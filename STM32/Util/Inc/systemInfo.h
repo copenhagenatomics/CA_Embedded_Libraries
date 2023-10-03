@@ -111,4 +111,14 @@ void setBoardUnderVoltage(float voltage);
 void setBoardOverVoltage(float voltage);
 void setBoardCurrent(float current);
 
+/*!
+** @brief Sets the board type, the firmware is expecting to be used with
+*/
+void setFirmwareBoardType(BoardType type);
+
+/*!
+** @brief Sets the board version, the firmware is expecting to be used with
+*/
+void setFirmwareBoardVersion(pcbVersion version);
+
 #endif // SYSTEM_INFO_H

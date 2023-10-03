@@ -26,6 +26,8 @@ static struct BS
     float underVoltage;
     float overVoltage;
     float overCurrent;
+    BoardType boardType;
+    pcbVersion pcbVersion;
 } BS = {0, 0, 0, 0};
 
 // Print buffer for systemInfo & statusInfo
@@ -168,6 +170,22 @@ const char* statusInfo(bool printStart)
         len += snprintf(&buf[len], sizeof(buf) - len, 
                         "Over current. One of the ports has reached a current out of its measurement range at %.2fA.\r\n", BS.overCurrent);
     }
+
+    if (BS.boardStatus & BS_VERSION_ERROR_Msk)
+    {
+        BoardType bt;
+        pcbVersion pv;
+        (void) getBoardInfo(&bt, NULL);
+        (void) getPcbVersion(&pv);
+        len += snprintf(&buf[len], sizeof(buf) - len, 
+            "Error: Incorrent Version.\r\n"
+            "   Board is: %d.\r\n"
+            "   Board should be: %d.\r\n"
+            "   PCB Version is: %d.%d.\r\n"
+            "   PCB Version should be > %d.%d.\r\n", 
+            (int)bt, (int)BS.boardType, pv.major, pv.minor, BS.pcbVersion.major, BS.pcbVersion.minor);
+    }
+
     return buf;
 }
 
@@ -255,3 +273,5 @@ void setBoardTemp(float temp){ BS.temp = temp; }
 void setBoardUnderVoltage(float voltage){ BS.underVoltage = voltage; }
 void setBoardOverVoltage(float voltage){ BS.overVoltage = voltage; }
 void setBoardOverCurrent(float current){ BS.overCurrent = current; }
+void setFirmwareBoardType(BoardType type){ BS.boardType = type; }
+void setFirmwareBoardVersion(pcbVersion version){ BS.pcbVersion = version; }
