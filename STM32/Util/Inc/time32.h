@@ -9,7 +9,15 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // Finds the time difference tDiff = head - tail and assume head >= tail.
 // If head < tail it is assumed that head is overflow and time difference is then
 // (head + 2^32) - tail
 uint32_t tdiff_u32(uint32_t head, uint32_t tail);
+
+#ifdef __cplusplus
+}
+#endif
