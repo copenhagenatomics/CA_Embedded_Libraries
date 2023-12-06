@@ -74,9 +74,6 @@ void JumpToBootloader(void)
 #if defined(STM32F0)
     SYSCFG->CFGR1 = 0x01;
 #endif
-#if defined(STM32H7)
-    SYSCFG->UR3 = 0x1FF0 & SYSCFG_UR3_BOOT_ADD1_Msk;
-#endif
     //} ...or if you use HAL drivers
     //__HAL_SYSCFG_REMAPMEMORY_SYSTEMFLASH();    //Call HAL macro to do this for you
 
