@@ -12,13 +12,36 @@
 #include "CAProtocolStm.h"
 #include "CAProtocol.h"
 
+/***************************************************************************************************
+** TYPEDEFS
+***************************************************************************************************/
+
+#define MAX_NO_CALIBRATION 12
+
+/***************************************************************************************************
+** TYPEDEFS
+***************************************************************************************************/
+
 typedef struct CAProtocolData {
     size_t len;         // Length of current data.
     uint8_t buf[512];   // Buffer for the string fetched from the circular buffer.
     ReaderFn rxReader;  // Reader for the buffer
 } CAProtocolData;
 
-#define MAX_NO_CALIBRATION 12
+/***************************************************************************************************
+** PRIVATE FUNCTION DECLARATIONS
+***************************************************************************************************/
+
+static void calibration(CAProtocolCtx* ctx, const char* input);
+static void logging(CAProtocolCtx* ctx, const char *input);
+static void otp_write(CAProtocolCtx* ctx, const char *input);
+static int CAgetMsg(CAProtocolCtx* ctx);
+static int getArgs(const char * input, char delim, char ** args, int max_len);
+
+/***************************************************************************************************
+** FUNCTION DEFINITIONS
+***************************************************************************************************/
+
 static void calibration(CAProtocolCtx* ctx, const char* input)
 {
     char* idx = index(input, ' ');
@@ -178,6 +201,31 @@ static int CAgetMsg(CAProtocolCtx* ctx)
     return msgLen;
 }
 
+/*!
+** @brief Extracts arguments from a give input string
+**
+** @param[in]  input   Input string
+** @param[in]  delim   Delimiter used to separate arguments
+** @param[out] argv    Pointer to a list of arguments
+** @param[in]  max_len Maximum number of arguments that can be stored in args
+*/
+static int getArgs(const char * input, char delim, char ** argv, int max_len)
+{
+    char *tok = strtok((char*)input, &delim);
+    int count = 0;
+    for (; count < max_len && tok; count++)
+    {
+        argv[count] = tok;
+        tok = strtok(NULL, &delim);
+        if (tok)
+        {
+            *(tok-1) = 0; // Zero terminate previous string.
+        }
+    }
+
+    return count;
+}
+
 void inputCAProtocol(CAProtocolCtx* ctx)
 {
     int msgLen = CAgetMsg(ctx);
@@ -228,11 +276,34 @@ void inputCAProtocol(CAProtocolCtx* ctx)
     }
     else if (strncmp(input, "all on", 6) == 0)
     {
-        if (ctx->allOn) ctx->allOn(true);
+        /* There could be an extra argument after "on" (required for AC board, optional for DC board
+        ** at time of writing) */
+        char *argv[3] = { 0 }; // There should not be more then 3 args.
+        int count = getArgs(input, ' ', argv, 4);
+
+        if (count == 3)
+        {
+            char percent = 0;
+            int argc = sscanf(argv[2], "%d%c", &count, &percent);
+
+            if (argc == 2 && percent == '%')
+            {
+                ctx->allOn(true, count);
+            }
+            else
+            {
+                ctx->undefined(input);
+            }
+        }
+        else
+        {
+            if (ctx->allOn) ctx->allOn(true, -1);
+        }
+        
     }
     else if (strncmp(input, "all off", 7) == 0)
     {
-        if (ctx->allOn) ctx->allOn(false);
+        if (ctx->allOn) ctx->allOn(false, -1);
     }
     else if (input[0] == 'p' && strnlen(input, 13) <= 13) // 13 since that is length of pX on YY ZZZ%
     {
@@ -256,38 +327,34 @@ void inputCAProtocol(CAProtocolCtx* ctx)
         else if (strncmp(cmd, "on", 2) == 0)
         {
             char *argv[4] = { 0 }; // There should not be more then 4 args.
-            const char delim = ' ';
-            char *tok = strtok(input, &delim), percent = 0;
-            int count=0, tmp;
-            for (; count < 4 && tok; count++)
-            {
-                argv[count] = tok;
-                tok = strtok(NULL, &delim);
-                if (tok)
-                    *(tok-1) = 0; // Zero terminate previous string.
-            }
+            int count = getArgs(input, ' ', argv, 4);
+            char percent = 0;
+
             switch(count)
             {
-            case 2: // pX on
-                ctx->portState(port, true, 100, -1);
-                break;
-            case 3: // pX on ZZZ% or YY
+                case 2: // pX on
+                    ctx->portState(port, true, 100, -1);
+                    break;
+                case 3: // pX on ZZZ% or YY
                 {
-                int argc = sscanf(argv[2], "%d%c", &count, &percent);
-                if (argc == 2 && percent == '%')
-                    ctx->portState(port, true, count, -1);
-                else if (argc == 1)
-                    ctx->portState(port, true, 100, count);
-                else
-                    ctx->undefined(input);
-                break;
+                    int argc = sscanf(argv[2], "%d%c", &count, &percent);
+                    if (argc == 2 && percent == '%')
+                        ctx->portState(port, true, count, -1);
+                    else if (argc == 1)
+                        ctx->portState(port, true, 100, count);
+                    else
+                        ctx->undefined(input);
+                    break;
                 }
-            case 4: // pX on YY ZZZ%
-                if (sscanf(argv[2], "%d", &tmp) == 1 && sscanf(argv[3], "%d%c", &count, &percent) == 2 && percent == '%')
-                    ctx->portState(port, true, count, tmp);
-                else
-                    ctx->undefined(input);
-                break;
+                case 4: // pX on YY ZZZ%
+                {
+                    int tmp;
+                    if (sscanf(argv[2], "%d", &tmp) == 1 && sscanf(argv[3], "%d%c", &count, &percent) == 2 && percent == '%')
+                        ctx->portState(port, true, count, tmp);
+                    else
+                        ctx->undefined(input);
+                    break;
+                }
             }
         }
     }
