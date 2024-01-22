@@ -297,7 +297,10 @@ void inputCAProtocol(CAProtocolCtx* ctx)
         }
         else
         {
-            if (ctx->allOn) ctx->allOn(true, -1);
+            if (ctx->allOn) 
+            {
+                ctx->allOn(true, -1);
+            }
         }
         
     }
