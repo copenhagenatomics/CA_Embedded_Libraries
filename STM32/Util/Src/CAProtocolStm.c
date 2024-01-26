@@ -1,19 +1,16 @@
 #include <string.h>
+
 #include "CAProtocolStm.h"
-#include "usb_device.h"
 #include "USBprint.h"
-#include "usb_cdc_fops.h"
 #include "jumpToBootloader.h"
 #include "systemInfo.h"
-#include "time32.h"
 
 #if defined(STM32F401xC)
 #include "stm32f4xx_hal.h"
-#include "HAL_otp.h"
 #elif defined(STM32H753xx)
 #include "stm32h7xx_hal.h"
-#include "HAL_H7_otp.h"
 #endif
+#include "HAL_otp.h"
 
 #if defined(STM32H753xx)
 #define RCC_FLAG_WWDGRST RCC_FLAG_WWDG1RST
@@ -84,14 +81,14 @@ void CAotpRead()
 void CAhandleUserInputs(CAProtocolCtx* ctx, const char* startMsg)
 {
     static bool isFirstWrite = true;
-    if (isComPortOpen())
+    if (isUsbPortOpen())
     {
         // Upon first write print line and reset circular buffer to ensure no faulty misreads occurs.
         if (isFirstWrite)
         {
             USBnprintf(startMsg);
             flushCAProtocol(ctx);
-            usb_cdc_rx_flush();
+            usbFlush();
             isFirstWrite = false;
         }
     }

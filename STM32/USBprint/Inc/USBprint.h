@@ -28,4 +28,6 @@ bool isUsbPortOpen();
 
 int usbRx(uint8_t* buf);
 
+void usbFlush();
+
 #endif /* INC_USBPRINT_H_ */
