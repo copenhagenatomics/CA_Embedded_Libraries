@@ -182,7 +182,7 @@ const char* statusInfo(bool printStart)
             "   Board should be: %d.\r\n"
             "   PCB Version is: %d.%d.\r\n"
             "   PCB Version should be > %d.%d.\r\n", 
-            (int)bt, (int)BS.boardType, pv.major, pv.minor, BS.pcbVersion.major, BS.pcb_version.minor);
+            (int)bt, (int)BS.boardType, pv.major, pv.minor, BS.pcb_version.major, BS.pcb_version.minor);
     }
 
     return buf;
@@ -273,4 +273,4 @@ void setBoardUnderVoltage(float voltage){ BS.underVoltage = voltage; }
 void setBoardOverVoltage(float voltage){ BS.overVoltage = voltage; }
 void setBoardOverCurrent(float current){ BS.overCurrent = current; }
 void setFirmwareBoardType(BoardType type){ BS.boardType = type; }
-void setFirmwareBoardVersion(pcbVersion version){ BS.pcbVersion = version; }
+void setFirmwareBoardVersion(pcbVersion version){ BS.pcb_version = version; }
