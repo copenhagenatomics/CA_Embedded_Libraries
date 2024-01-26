@@ -26,7 +26,7 @@ static struct BS
     float overVoltage;
     float overCurrent;
     BoardType boardType;
-    pcbVersion_t pcb_version;
+    pcbVersion pcb_version;
 } BS = {0};
 
 // Print buffer for systemInfo & statusInfo
@@ -273,4 +273,4 @@ void setBoardUnderVoltage(float voltage){ BS.underVoltage = voltage; }
 void setBoardOverVoltage(float voltage){ BS.overVoltage = voltage; }
 void setBoardOverCurrent(float current){ BS.overCurrent = current; }
 void setFirmwareBoardType(BoardType type){ BS.boardType = type; }
-void setFirmwareBoardVersion(pcbVersion_t version){ BS.pcbVersion = version; }
+void setFirmwareBoardVersion(pcbVersion version){ BS.pcbVersion = version; }

@@ -57,7 +57,7 @@ typedef uint8_t SubBoardType; // SubBoardType needed for some boards.
 typedef struct {
     uint8_t major;
     uint8_t minor;
-} pcbVersion_t;
+} pcbVersion;
 
 /* Generic info about PCB and git build system/data.
  * @return info about system in null terminated string. */
@@ -76,7 +76,7 @@ int getBoardInfo(BoardType* bdt, SubBoardType* sbdt);
 // Description: get the PCB version of the board.
 // @param ver: Pointer to struct pcbVersion
 // Return 0 if data is valid, else negative value.
-int getPcbVersion(pcbVersion_t * ver);
+int getPcbVersion(pcbVersion * ver);
 
 // Description: set a board status field.
 // @param field: a 1 bit shifted to the field index to be set in addition to
@@ -124,7 +124,7 @@ void setFirmwareBoardType(BoardType type);
 /*!
 ** @brief Sets the board version, the firmware is expecting to be used with
 */
-void setFirmwareBoardVersion(pcbVersion_t version);
+void setFirmwareBoardVersion(pcbVersion version);
 
 #ifdef __cplusplus
 }
