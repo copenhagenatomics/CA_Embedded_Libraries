@@ -44,7 +44,7 @@ static int getArgs(const char * input, char delim, char ** args, int max_len);
 
 static void calibration(CAProtocolCtx* ctx, const char* input)
 {
-    char* idx = index(input, ' ');
+    char* idx = index((char*)input, ' ');
     CACalibration cal[MAX_NO_CALIBRATION];
     int noOfCalibrations = 0;
 
@@ -87,7 +87,7 @@ static void calibration(CAProtocolCtx* ctx, const char* input)
 
 static void logging(CAProtocolCtx* ctx, const char *input)
 {
-    char* idx = index(input, ' ');
+    char* idx = index((char*)input, ' ');
     int port;
 
     if (!idx) {
@@ -369,7 +369,7 @@ void inputCAProtocol(CAProtocolCtx* ctx)
 
 void initCAProtocol(CAProtocolCtx* ctx, ReaderFn fn)
 {
-    ctx->data = malloc(sizeof(CAProtocolData));
+    ctx->data = (CAProtocolData*) malloc(sizeof(CAProtocolData));
     memset(ctx->data->buf, 0, sizeof(ctx->data->buf));
     ctx->data->len = 0;
     ctx->data->rxReader = fn;

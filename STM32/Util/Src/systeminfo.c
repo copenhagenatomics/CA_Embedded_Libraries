@@ -6,11 +6,10 @@
 
 #if defined(STM32F401xC)
 #include "stm32f4xx_hal.h"
-#include "HAL_otp.h"
 #elif defined(STM32H753xx)
 #include "stm32h7xx_hal.h"
-#include "HAL_H7_otp.h"
 #endif
+#include "HAL_otp.h"
 #include "systemInfo.h"
 #include "githash.h"
 
@@ -27,7 +26,7 @@ static struct BS
     float overVoltage;
     float overCurrent;
     BoardType boardType;
-    pcbVersion pcbVersion;
+    pcbVersion_t pcb_version;
 } BS = {0};
 
 // Print buffer for systemInfo & statusInfo
@@ -183,7 +182,7 @@ const char* statusInfo(bool printStart)
             "   Board should be: %d.\r\n"
             "   PCB Version is: %d.%d.\r\n"
             "   PCB Version should be > %d.%d.\r\n", 
-            (int)bt, (int)BS.boardType, pv.major, pv.minor, BS.pcbVersion.major, BS.pcbVersion.minor);
+            (int)bt, (int)BS.boardType, pv.major, pv.minor, BS.pcbVersion.major, BS.pcb_version.minor);
     }
 
     return buf;
@@ -274,4 +273,4 @@ void setBoardUnderVoltage(float voltage){ BS.underVoltage = voltage; }
 void setBoardOverVoltage(float voltage){ BS.overVoltage = voltage; }
 void setBoardOverCurrent(float current){ BS.overCurrent = current; }
 void setFirmwareBoardType(BoardType type){ BS.boardType = type; }
-void setFirmwareBoardVersion(pcbVersion version){ BS.pcbVersion = version; }
+void setFirmwareBoardVersion(pcbVersion_t version){ BS.pcbVersion = version; }
