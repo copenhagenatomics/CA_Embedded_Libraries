@@ -279,21 +279,12 @@ void inputCAProtocol(CAProtocolCtx* ctx)
         /* There could be an extra argument after "on" (required for AC board, optional for DC board
         ** at time of writing) */
         char *argv[3] = { 0 }; // There should not be more then 3 args.
-        int count = getArgs(input, ' ', argv, 4);
+        int count = getArgs(input, ' ', argv, 3);
 
         if (count == 3)
         {
-            char percent = 0;
-            int argc = sscanf(argv[2], "%d%c", &count, &percent);
-
-            if (argc == 2 && percent == '%')
-            {
-                ctx->allOn(true, count);
-            }
-            else
-            {
-                ctx->undefined(input);
-            }
+            (void) sscanf(argv[2], "%d", &count);
+            ctx->allOn(true, count);
         }
         else
         {
@@ -302,7 +293,6 @@ void inputCAProtocol(CAProtocolCtx* ctx)
                 ctx->allOn(true, -1);
             }
         }
-        
     }
     else if (strncmp(input, "all off", 7) == 0)
     {
