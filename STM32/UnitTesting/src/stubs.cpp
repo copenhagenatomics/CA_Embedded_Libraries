@@ -331,7 +331,7 @@ private:
         testString.pop();
         return 0;
     }
-    static void allOn(bool state) {
+    static void allOn(bool state, int duration_ms) {
         portCtrl.allOn++;
     }
     static void portState(int port, bool state, int percent, int duration)
