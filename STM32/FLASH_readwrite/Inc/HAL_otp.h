@@ -2,6 +2,10 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // Only defined formats will be supported. If code/version is bumped, it MUST be possible to read
 // old data in the OTP area since this is fixed (for ever).
 #define OTP_VERSION_1   0x01 // First version of the production data.
@@ -53,3 +57,7 @@ int HAL_otpRead(BoardInfo *boardInfo);
 // @param boardInfo pointer to struct BoardInfo.
 // Return 0 on success else OTP_WRITE_FAIL.
 int HAL_otpWrite(const BoardInfo *boardInfo);
+
+#ifdef __cplusplus
+}
+#endif
