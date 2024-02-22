@@ -2,6 +2,11 @@
 #define SYSTEM_INFO_H
 
 #include <stdbool.h>
+#include <stdint.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* General Board Status register definitions */
 #define BS_ERROR_Pos                        31U
@@ -49,7 +54,7 @@ typedef enum {
 } BoardType;
 typedef uint8_t SubBoardType; // SubBoardType needed for some boards.
 
-typedef struct pcbVersion {
+typedef struct {
     uint8_t major;
     uint8_t minor;
 } pcbVersion;
@@ -71,7 +76,7 @@ int getBoardInfo(BoardType* bdt, SubBoardType* sbdt);
 // Description: get the PCB version of the board.
 // @param ver: Pointer to struct pcbVersion
 // Return 0 if data is valid, else negative value.
-int getPcbVersion(pcbVersion* ver);
+int getPcbVersion(pcbVersion * ver);
 
 // Description: set a board status field.
 // @param field: a 1 bit shifted to the field index to be set in addition to
@@ -120,5 +125,9 @@ void setFirmwareBoardType(BoardType type);
 ** @brief Sets the board version, the firmware is expecting to be used with
 */
 void setFirmwareBoardVersion(pcbVersion version);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif // SYSTEM_INFO_H

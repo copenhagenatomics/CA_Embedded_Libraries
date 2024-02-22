@@ -3,16 +3,19 @@
  */
 
 #include <stdio.h>
-
-#if defined(STM32F401xC)
-#include "stm32f4xx_hal.h"
 #include "HAL_otp.h"
-#elif defined(STM32H753xx)
-#include "stm32h7xx_hal.h"
-#include "HAL_H7_otp.h"
-#endif
 #include "systemInfo.h"
-#include "githash.h"
+
+#ifndef UNIT_TESTING
+    #if defined(STM32F401xC)
+    #include "stm32f4xx_hal.h"
+    #elif defined(STM32H753xx)
+    #include "stm32h7xx_hal.h"
+    #endif
+    #include "githash.h"
+#else
+
+#endif
 
 
 // Struct containing the board status sw registry
@@ -27,25 +30,40 @@ static struct BS
     float overVoltage;
     float overCurrent;
     BoardType boardType;
-    pcbVersion pcbVersion;
+    pcbVersion pcb_version;
 } BS = {0};
 
 // Print buffer for systemInfo & statusInfo
 static char buf[600] = { 0 };
 
 // F4xx UID
-#define ID1 *((unsigned long *) (UID_BASE))
-#define ID2 *((unsigned long *) (UID_BASE + 4U))
-#define ID3 *((unsigned long *) (UID_BASE + 8U))
+#ifndef UNIT_TESTING
+    #define ID1 *((unsigned long *) (UID_BASE))
+    #define ID2 *((unsigned long *) (UID_BASE + 4U))
+    #define ID3 *((unsigned long *) (UID_BASE + 8U))
+#else
+    #define ID1 0
+    #define ID2 0
+    #define ID3 0
+
+    #define GIT_VERSION 0
+    #define GIT_DATE    0
+    #define GIT_SHA     0
+#endif
 
 static const char* mcuType()
 {
     static char mcu[50] = { 0 }; // static to prevent allocate on stack.
     int len = 0;
 
+#ifndef UNIT_TESTING
     const DBGMCU_TypeDef* mcuType = DBGMCU;
     const uint16_t idCode = 0x00000FFF & mcuType->IDCODE;
     const uint16_t revCode = 0xFFFF & (mcuType->IDCODE >> 16);
+#else
+    const uint16_t idCode = 0;
+    const uint16_t revCode = 0;
+#endif
 
     switch(idCode)
     {
@@ -183,7 +201,7 @@ const char* statusInfo(bool printStart)
             "   Board should be: %d.\r\n"
             "   PCB Version is: %d.%d.\r\n"
             "   PCB Version should be > %d.%d.\r\n", 
-            (int)bt, (int)BS.boardType, pv.major, pv.minor, BS.pcbVersion.major, BS.pcbVersion.minor);
+            (int)bt, (int)BS.boardType, pv.major, pv.minor, BS.pcb_version.major, BS.pcb_version.minor);
     }
 
     return buf;
@@ -274,4 +292,4 @@ void setBoardUnderVoltage(float voltage){ BS.underVoltage = voltage; }
 void setBoardOverVoltage(float voltage){ BS.overVoltage = voltage; }
 void setBoardOverCurrent(float current){ BS.overCurrent = current; }
 void setFirmwareBoardType(BoardType type){ BS.boardType = type; }
-void setFirmwareBoardVersion(pcbVersion version){ BS.pcbVersion = version; }
+void setFirmwareBoardVersion(pcbVersion version){ BS.pcb_version = version; }

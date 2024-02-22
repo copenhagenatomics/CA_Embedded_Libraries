@@ -35,3 +35,27 @@ size_t txAvailable()
 {
     return usb_cdc_tx_available();
 }
+
+/*!
+** @brief Returns whether the port is active or not
+*/
+bool isUsbPortOpen()
+{
+    return isComPortOpen();
+}
+
+/*!
+** @brief Function to get data from the USB receive buffer
+*/
+int usbRx(uint8_t* buf)
+{
+    return usb_cdc_rx(buf);
+}
+
+/*!
+** @brief Function to flush USB buffers
+*/
+void usbFlush()
+{
+    usb_cdc_rx_flush();
+}

@@ -13,17 +13,19 @@
 #include <math.h>
 #include <ADCMonitor.h>
 
+typedef enum {
+    NotAvailable,
+    First,
+    Second
+} activeBuffer_t;
+
 static struct {
     uint32_t   length;
     int16_t   *pData;        // DMA buffer
     uint32_t   noOfChannels; // No of channels for each sample
     uint32_t   noOfSamples;  // No of Samples in each channel per interrupt, half buffer.
 
-    enum {
-        NotAvailable,
-        First,
-        Second
-    } activeBuffer;
+    activeBuffer_t activeBuffer;
 } ADCMonitorData;
 
 void ADCMonitorInit(ADC_HandleTypeDef* hadc, int16_t *pData, uint32_t length)

@@ -11,7 +11,7 @@
 #include <string.h>
 #include <stdbool.h>
 
-#include "HAL_H7_otp.h"
+#include "HAL_otp.h"
 #include "stm32h7xx_hal.h"
 #include "stm32h7xx.h"
 #include "FLASH_H7_interface.h"
