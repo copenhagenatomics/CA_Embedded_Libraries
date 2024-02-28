@@ -1,4 +1,5 @@
 #include <string.h>
+#include <stdio.h>
 #include "CAProtocolStm.h"
 #include "usb_device.h"
 #include "USBprint.h"
