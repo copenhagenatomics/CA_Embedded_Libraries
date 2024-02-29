@@ -114,7 +114,7 @@ uint32_t bsGetStatus();
 void setBoardTemp(float temp);
 void setBoardUnderVoltage(float voltage);
 void setBoardOverVoltage(float voltage);
-void setBoardCurrent(float current);
+void setBoardOverCurrent(float current);
 
 /*!
 ** @brief Sets the board type, the firmware is expecting to be used with
