@@ -113,12 +113,11 @@ uint32_t bsGetStatus();
 
 // Description: get a board status field.
 // @param field: a 1 bit shifted to the field index.
-bool bsGetField(uint32_t field);
+uint32_t bsGetField(uint32_t field);
 
 void setBoardTemp(float temp);
-void setBoardUnderVoltage(float voltage);
-void setBoardOverVoltage(float voltage);
-void setBoardOverCurrent(float current);
+void setBoardVoltage(float voltage);
+void setBoardCurrent(float current);
 
 /*!
 ** @brief Sets the board type, the firmware is expecting to be used with
