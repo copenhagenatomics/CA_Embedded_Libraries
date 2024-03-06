@@ -287,6 +287,7 @@ void bsSetError(uint32_t field) { BS.boardStatus |= (BS_ERROR_Msk | field); }
 void bsSetField(uint32_t field){ BS.boardStatus |= field; }
 void bsClearField(uint32_t field){ BS.boardStatus &= ~field; }
 uint32_t bsGetStatus(){ return BS.boardStatus; }
+bool bsGetField(uint32_t field){ return BS.boardStatus & field; }
 void setBoardTemp(float temp){ BS.temp = temp; }
 void setBoardUnderVoltage(float voltage){ BS.underVoltage = voltage; }
 void setBoardOverVoltage(float voltage){ BS.overVoltage = voltage; }
