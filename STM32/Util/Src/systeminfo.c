@@ -26,9 +26,8 @@ static struct BS
 {
     uint32_t boardStatus;
     float temp;
-    float underVoltage;
-    float overVoltage;
-    float overCurrent;
+    float voltage;
+    float current;
     BoardType boardType;
     pcbVersion pcb_version;
 } BS = {0};
@@ -174,19 +173,19 @@ const char* statusInfo(bool printStart)
     if (BS.boardStatus & BS_UNDER_VOLTAGE_Msk)
     {
         len += snprintf(&buf[len], sizeof(buf) - len, 
-                        "Under voltage. The board operates at too low voltage of %.2fV. Check power supply.\r\n", BS.underVoltage);
+                        "Under voltage. The board operates at too low voltage of %.2fV. Check power supply.\r\n", BS.voltage);
     }
 
     if (BS.boardStatus & BS_OVER_VOLTAGE_Msk)
     {
         len += snprintf(&buf[len], sizeof(buf) - len, 
-                        "Over voltage. One of the ports has reached a voltage out of its measurement range at %.2fV. \r\n", BS.overVoltage);
+                        "Over voltage. One of the ports has reached a voltage out of its measurement range at %.2fV. \r\n", BS.voltage);
     }
 
     if (BS.boardStatus & BS_OVER_CURRENT_Msk)
     {
         len += snprintf(&buf[len], sizeof(buf) - len, 
-                        "Over current. One of the ports has reached a current out of its measurement range at %.2fA.\r\n", BS.overCurrent);
+                        "Over current. One of the ports has reached a current out of its measurement range at %.2fA.\r\n", BS.current);
     }
 
     if (BS.boardStatus & BS_VERSION_ERROR_Msk)
@@ -287,9 +286,9 @@ void bsSetError(uint32_t field) { BS.boardStatus |= (BS_ERROR_Msk | field); }
 void bsSetField(uint32_t field){ BS.boardStatus |= field; }
 void bsClearField(uint32_t field){ BS.boardStatus &= ~field; }
 uint32_t bsGetStatus(){ return BS.boardStatus; }
+uint32_t bsGetField(uint32_t field){ return BS.boardStatus & field; }
 void setBoardTemp(float temp){ BS.temp = temp; }
-void setBoardUnderVoltage(float voltage){ BS.underVoltage = voltage; }
-void setBoardOverVoltage(float voltage){ BS.overVoltage = voltage; }
-void setBoardOverCurrent(float current){ BS.overCurrent = current; }
+void setBoardVoltage(float voltage){ BS.voltage = voltage; }
+void setBoardCurrent(float current){ BS.current = current; }
 void setFirmwareBoardType(BoardType type){ BS.boardType = type; }
 void setFirmwareBoardVersion(pcbVersion version){ BS.pcb_version = version; }
