@@ -111,9 +111,12 @@ void bsClearField(uint32_t field);
 // Return a uint32_t containing the board status.
 uint32_t bsGetStatus();
 
+// Description: get a board status field.
+// @param field: a 1 bit shifted to the field index.
+uint32_t bsGetField(uint32_t field);
+
 void setBoardTemp(float temp);
-void setBoardUnderVoltage(float voltage);
-void setBoardOverVoltage(float voltage);
+void setBoardVoltage(float voltage);
 void setBoardCurrent(float current);
 
 /*!
