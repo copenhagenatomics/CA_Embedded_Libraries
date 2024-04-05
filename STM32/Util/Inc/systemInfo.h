@@ -50,7 +50,9 @@ typedef enum {
 	AirCondition 	= 14,
 	LightController = 15,
     LiquidLevel     = 16,
-    ER              = 17
+    ER              = 17,
+    ERHC            = 18,
+    VFD             = 19
 } BoardType;
 typedef uint8_t SubBoardType; // SubBoardType needed for some boards.
 
