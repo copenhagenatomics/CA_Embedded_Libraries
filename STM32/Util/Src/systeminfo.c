@@ -97,6 +97,8 @@ static char* productType(uint8_t id)
     case LightController  :  return "LightController"; 	 break;
     case LiquidLevel      :  return "LiquidLevel";   	 break;
     case ER               :  return "ER";            	 break;
+    case ERHC             :  return "ERHC";            	 break;
+    case VFD              :  return "VFD";            	 break;
     }
     return "NA";
 }
