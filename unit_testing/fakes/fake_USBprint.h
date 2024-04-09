@@ -28,6 +28,9 @@
     delete ss; \
 }
 
+/***************************************************************************************************
+** PUBLIC FUNCTION DECLARATIONS
+***************************************************************************************************/
 
 void hostUSBprintf(const char * format, ...);
 std::vector<std::string>* hostUSBread(bool flush=false);
