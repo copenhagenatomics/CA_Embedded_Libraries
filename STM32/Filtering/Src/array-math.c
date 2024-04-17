@@ -83,6 +83,10 @@ int cbMean(double_cbuf_handle_t p_cb, int elements, double* result) {
     else if(elements == p_cb->len) {
         return mean_element(p_cb->buffer, p_cb->len, result);
     }
+    else if(0 == p_cb->idx) {
+        /* The current index is un-occupied, so start from the previous one */
+        return mean_element(&p_cb->buffer[p_cb->len - elements], elements, result);
+    }
     else if(elements <= p_cb->idx) {
         /* The current index is un-occupied, so start from the previous one */
         return mean_element(&p_cb->buffer[p_cb->idx - elements], elements, result);
@@ -112,6 +116,10 @@ int cbMax(double_cbuf_handle_t p_cb, int elements, double* result) {
     }
     else if(elements == p_cb->len) {
         return max_element(p_cb->buffer, p_cb->len, result);
+    }
+    else if(0 == p_cb->idx) {
+        /* The current index is un-occupied, so start from the previous one */
+        return max_element(&p_cb->buffer[p_cb->len - elements], elements, result);
     }
     else if(elements <= p_cb->idx) {
         /* The current index is un-occupied, so start from the previous one */
