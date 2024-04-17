@@ -37,6 +37,7 @@ int mean_element(double arr[], unsigned len, double* result) {
             ret_val += arr[i];
         }
         *result = ret_val / len;
+        return 0;
     }
 
     return -1;

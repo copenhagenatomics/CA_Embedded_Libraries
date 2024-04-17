@@ -24,6 +24,10 @@ typedef double_cbuf_t * double_cbuf_handle_t;
 ** PUBLIC FUNCTION DECLARATIONS
 ***************************************************************************************************/
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /* Note: Function nomenclature loosely chosen to fit with C++ algorithm.h library */
 int max_element(double arr[], unsigned len, double* result);
 int mean_element(double arr[], unsigned len, double* result);
@@ -33,5 +37,9 @@ int cbInit(double_cbuf_handle_t p_cb, double* buf, unsigned len);
 void cbPush(double_cbuf_handle_t p_cb, double new_val);
 int cbMean(double_cbuf_handle_t p_cb, int elements, double* result);
 int cbMax(double_cbuf_handle_t p_cb, int elements, double* result);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* ARRAY_MATH_H_ */
