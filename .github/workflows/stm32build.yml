@@ -4,20 +4,24 @@ on:
   push:
     branches: [ 'main' ]
     paths: ['STM32/**', '.github/workflows/stm32build.yml']
-  pull_request: 
+  pull_request:
     branches: [ 'main' ]
     paths: ['STM32/**', '.github/workflows/stm32build.yml']
 
-jobs: 
+jobs:
   # Run unittest
   run_tests:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3   
+    - uses: actions/checkout@v4
     # Build and run unittests. If the unittest fails the line number is output.
     - name: Run unittests
       run: |
-        cd "STM32/UnitTesting"
+        cd unit_testing
+        ./unitTests.py
+
+        # Also run the old unit tests - to be refactored in the new framework at a later date
+        cd "../STM32/UnitTesting"
         cmake CMakeLists.txt
         make
         # Extract the values assigned to the TARGET_NAMES variable
@@ -30,8 +34,12 @@ jobs:
         while IFS= read -r target_name; do
           output=$(./$target_name)
           echo $output
-          if [[ $output =~ "failed" ]]; then 
+          if [[ $output =~ "failed" ]]; then
             echo "Test failed"
             exit 1
           fi
         done <<< "$TARGET_NAMES"
+
+
+
+
