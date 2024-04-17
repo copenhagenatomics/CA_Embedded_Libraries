@@ -18,7 +18,7 @@ jobs:
     - name: Run unittests
       run: |
         cd unit_testing
-        ./unit_tests.py
+        ./unitTests.py
 
         # Also run the old unit tests - to be refactored in the new framework at a later date
         cd "../STM32/UnitTesting"
