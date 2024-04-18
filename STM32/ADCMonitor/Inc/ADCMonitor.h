@@ -2,7 +2,12 @@
 #define _ADCMONITOR_H_
 
 #include <stdint.h>
-#include "stm32f4xx_hal.h"
+
+#ifndef UNIT_TESTING
+    #include "stm32f4xx_hal.h"
+#else
+    #include "fake_stm32xxxx_hal.h"
+#endif
 
 #ifdef __cplusplus
 extern "C" {

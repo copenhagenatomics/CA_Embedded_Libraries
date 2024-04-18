@@ -1,1 +1,10 @@
-unit_testing/array-math/build
+/build/
+.cproject
+.project
+ADC_TEST
+GOERTZEL_TEST
+CMakeCache.txt
+CMakeFiles
+CTestTestfile.cmake
+Makefile
+cmake_install.cmake
