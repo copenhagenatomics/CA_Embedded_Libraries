@@ -176,7 +176,6 @@ void ADCSetOffset(int16_t* pData, int16_t offset, uint16_t channel)
 
 static uint32_t sinePeakIdx(const int16_t* pData, uint32_t noOfChannels, uint32_t noOfSamples, uint16_t channel, bool reverse)
 {
-    
     uint32_t begin = channel;
     uint32_t end = channel + (noOfSamples-1)* noOfChannels;
 
