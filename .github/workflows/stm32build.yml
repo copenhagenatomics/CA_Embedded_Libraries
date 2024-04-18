@@ -9,37 +9,60 @@ on:
     paths: ['STM32/**', '.github/workflows/stm32build.yml']
 
 jobs:
-  # Run unittest
-  run_tests:
+  # Job to run change detection
+  changes:
     runs-on: ubuntu-latest
+    # Required permissions
+    permissions:
+      pull-requests: read
+      contents: read
+    outputs:
+      # Expose matched filters as job 'packages' output variable
+      packages: ${{ steps.filter.outputs.changes }}
     steps:
     - uses: actions/checkout@v4
+    # For pull requests it's not necessary to checkout the code
+    - uses: dorny/paths-filter@v3
+      id: filter
+      with:
+        filters: |
+          ADCMonitor: STM32/ADCMonitor/**
+          circularBuffer: STM32/circularBuffer/**
+          FLASH_readwrite: STM32/FLASH_readwrite/**
+          I2C: STM32/I2C/**
+          jumpToBootloader: STM32/jumpToBootloader/**
+          Regulation: STM32/Regulation/**
+          SPI: STM32/SPI/**
+          TransformationFunctions: STM32/TransformationFunctions/**
+          USBprint: STM32/USBprint/**
+          Filtering: STM32/Filtering/**
+          Util: STM32/Util/**
+  run_unittests:
+    needs: changes
+    if: ${{ needs.changes.outputs.packages != '[]' && needs.changes.outputs.packages != '' }}
+    strategy:
+      matrix:
+        # Parse JSON array containing names of all filters matching any of changed files
+        package: ${{ fromJSON(needs.changes.outputs.packages) }}
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4   # gets file environment with submodule included for libraries
+    # Check whether the unittest folder exist in the modified project. If so, run unittests.
+    - name: Check if unittests exist
+      id: unittests_exists
+      run: |
+        if [ -d "unit_testing/${{ matrix.package }}" ]; then
+          echo 'exist=1' >> $GITHUB_ENV
+        else
+          echo 'exist=0' >> $GITHUB_ENV
+        fi
+    - uses: actions/setup-python@v4
+      with: 
+        python-version: '3.10'
     # Build and run unittests. If the unittest fails the line number is output.
     - name: Run unittests
+      if: env.exist == '1'
       run: |
         cd unit_testing
-        ./unitTests.py
-
-        # Also run the old unit tests - to be refactored in the new framework at a later date
-        cd "../STM32/UnitTesting"
-        cmake CMakeLists.txt
-        make
-        # Extract the values assigned to the TARGET_NAMES variable
-        TARGET_NAMES=$(awk '/set\(TARGET_NAMES/{flag=1; next} /\)/{flag=0} flag' CMakeLists.txt)
-
-        # Remove leading and trailing whitespace from the values
-        TARGET_NAMES=$(echo "$TARGET_NAMES" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
-
-        # Loop over the TARGET_NAMES and echo each line
-        while IFS= read -r target_name; do
-          output=$(./$target_name)
-          echo $output
-          if [[ $output =~ "failed" ]]; then
-            echo "Test failed"
-            exit 1
-          fi
-        done <<< "$TARGET_NAMES"
-
-
-
+        python unitTests.py -D ${{ matrix.package }}
 
