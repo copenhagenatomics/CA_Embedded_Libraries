@@ -66,32 +66,3 @@ jobs:
         cd unit_testing
         python unitTests.py -D ${{ matrix.package }}
 
-    # Build and run unittests. If the unittest fails the line number is output.
-    #- name: Run unittests
-    #  run: |
-    #    cd unit_testing
-    #    ./unitTests.py
-#
-    #    # Also run the old unit tests - to be refactored in the new framework at a later date
-    #    cd "../STM32/UnitTesting"
-    #    cmake CMakeLists.txt
-    #    make
-    #    # Extract the values assigned to the TARGET_NAMES variable
-    #    TARGET_NAMES=$(awk '/set\(TARGET_NAMES/{flag=1; next} /\)/{flag=0} flag' CMakeLists.txt)
-#
-    #    # Remove leading and trailing whitespace from the values
-    #    TARGET_NAMES=$(echo "$TARGET_NAMES" | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
-#
-    #    # Loop over the TARGET_NAMES and echo each line
-    #    while IFS= read -r target_name; do
-    #      output=$(./$target_name)
-    #      echo $output
-    #      if [[ $output =~ "failed" ]]; then
-    #        echo "Test failed"
-    #        exit 1
-    #      fi
-    #    done <<< "$TARGET_NAMES"
-#
-
-
-
