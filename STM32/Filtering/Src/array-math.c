@@ -11,6 +11,7 @@
 ** PUBLIC FUNCTION DEFINITIONS
 ***************************************************************************************************/
 
+
 /*!
 ** @brief Returns the maximum value in an array of double
 */
