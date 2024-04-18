@@ -59,6 +59,7 @@ class ADCMonitorTest: public ::testing::Test
 
 TEST_F(ADCMonitorTest, testADCMean)
 {
+    ASSERT_TRUE(false);
     const int noOfSamples = 100;
     const int noOfChannels = 2;
     int16_t pData[noOfSamples*noOfChannels*2];
