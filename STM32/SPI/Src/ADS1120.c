@@ -17,6 +17,7 @@
 #define GAIN 16.0 // Defined from ADS1120_RegConfig.gain
 #define QUANTIZATION 65536.0 // Quantization steps
 
+
 // Helper union class for setting up registers in a 4 byte array.
 typedef union ADS1120_RegConfig
 {

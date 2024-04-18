@@ -27,6 +27,14 @@ jobs:
       with:
         filters: |
           ADCMonitor: STM32/ADCMonitor/**
+          circularBuffer: STM32/circularBuffer/**
+          FLASH_readwrite: STM32/FLASH_readwrite/**
+          I2C: STM32/I2C/**
+          jumpToBootloader: STM32/jumpToBootloader/**
+          Regulation: STM32/Regulation/**
+          SPI: STM32/SPI/**
+          TransformationFunctions: STM32/TransformationFunctions/**
+          USBprint: STM32/USBprint/**
           Filtering: STM32/Filtering/**
           Util: STM32/Util/**
   run_unittests:
