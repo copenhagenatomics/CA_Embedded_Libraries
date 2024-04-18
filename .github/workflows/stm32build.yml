@@ -26,7 +26,7 @@ jobs:
       id: filter
       with:
         filters: |
-          AC: STM32/ADCMonitor/**
+          ADCMonitor: STM32/ADCMonitor/**
           Filtering: STM32/Filtering/**
           Util: STM32/Util/**
   run_unittests:
