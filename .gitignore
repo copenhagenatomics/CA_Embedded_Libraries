@@ -1,8 +1,1 @@
 build/
-.cproject
-.project
-CMakeCache.txt
-CMakeFiles
-CTestTestfile.cmake
-Makefile
-cmake_install.cmake
