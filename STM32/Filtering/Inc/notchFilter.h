@@ -14,6 +14,10 @@
 #    define M_PI 3.14159265358979323846
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 typedef struct {
 	
 	float alpha;
@@ -26,5 +30,9 @@ typedef struct {
 
 void InitNotchFilter(NotchFilter *filter, float centerFreqHz, float notchWidthHz, float Ts);
 float UpdateNotchFilter(NotchFilter *filter, float x0);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* INC_NOTCHFILTER_H_ */
