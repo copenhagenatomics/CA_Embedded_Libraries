@@ -15,11 +15,12 @@
 #endif
 
 typedef struct {
-
-	float alpha;	// filter coefficients for current and previous inputs
-	float beta;		// filter coefficients for current and previous outputs
-	float x[3];		// measured inputs
-	float y[3];		// filtered outputs
+	
+	float alpha;
+	float beta;
+	float scaling_factor; 
+	float x[3];
+	float y[3];
 
 } NotchFilter;
 
