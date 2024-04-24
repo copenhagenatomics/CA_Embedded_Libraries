@@ -27,11 +27,7 @@ class GoertzelTest: public ::testing::Test
         /*******************************************************************************************
         ** METHODS
         *******************************************************************************************/
-        GoertzelTest() {
-
-
-
-        }
+        GoertzelTest() {}
 
         static void generateSine(int32_t* pData, int noOfSamples, float amplitude, float offset, float freq, float fs)
         {
