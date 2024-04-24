@@ -67,6 +67,8 @@ extern "C" {
 
 #define RCC (&RCC_obj)
 
+#define __NOP()  0
+
 /***************************************************************************************************
 ** PUBLIC TYPEDEFS
 ***************************************************************************************************/
@@ -89,8 +91,16 @@ typedef struct
 
 typedef uint32_t WWDG_HandleTypeDef;
 typedef uint32_t TIM_HandleTypeDef;
+typedef uint32_t SPI_HandleTypeDef;
 typedef uint32_t GPIO_TypeDef;
-typedef uint32_t HAL_StatusTypeDef;
+
+typedef enum
+{
+  HAL_OK       = 0x00,
+  HAL_ERROR    = 0x01,
+  HAL_BUSY     = 0x02,
+  HAL_TIMEOUT  = 0x03
+} HAL_StatusTypeDef;
 
 /***************************************************************************************************
 ** PUBLIC OBJECTS
@@ -110,6 +120,9 @@ HAL_StatusTypeDef HAL_WWDG_Refresh(WWDG_HandleTypeDef *hwwdg);
 
 /* TIM */
 HAL_StatusTypeDef HAL_TIM_Base_Start_IT(TIM_HandleTypeDef *htim);
+
+/* SPI */
+HAL_StatusTypeDef HAL_SPI_Receive(SPI_HandleTypeDef *hspi, uint8_t *pData, uint16_t Size, uint32_t Timeout);
 
 /* HAL */
 void forceTick(uint32_t next_val);
