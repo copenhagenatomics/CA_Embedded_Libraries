@@ -1,15 +1,21 @@
 #include "LTC2512-24.h"
 #include <stdbool.h>
 
+/***************************************************************************************************
+** PRIVATE OBJECTS
+***************************************************************************************************/
+
 static uint8_t RxBufferChA[4] = {0};
 static uint8_t RxBufferChB[3] = {0};
+
+/***************************************************************************************************
+** PRIVATE FUNCTIONS
+***************************************************************************************************/
 
 // The LTC2512-24 ADC outputs 24 bit ADC values in 2's complement
 // format. To format this correctly in a int32_t variable a transform
 // is necessary
-const int MODULO = (1 << 24);
-const int MAX_VALUE = ((1 << 23) - 1);
-static int32_t transform(int32_t value) 
+int32_t transform2sComplement(int32_t value, const int MODULO, const int MAX_VALUE) 
 {
     if (value > MAX_VALUE) {
         value -= MODULO;
@@ -18,11 +24,15 @@ static int32_t transform(int32_t value)
 }
 
 // Set the down-sampling factor by setting [SEL1, SEL0]
-void setDownsamplingFactor(LTC2512Device *dev, uint8_t df)
+static void setDownsamplingFactor(LTC2512Device *dev, uint8_t df)
 {
     stmSetGpio(dev->SEL0, df & 0x01);
     stmSetGpio(dev->SEL1, ((df & 0x02) >> 1));
 }
+
+/***************************************************************************************************
+** PUBLIC FUNCTIONS
+***************************************************************************************************/
 
 void enableDisableChannels(LTC2512Device *dev, int channel, bool onOff)
 {
@@ -48,19 +58,30 @@ int measureChannelA(LTC2512Device *dev)
     for (int i = 0; i < sizeof(RxBufferChA)/sizeof(RxBufferChA[0]); i++)
         RxBufferChA[i] = 0;
 
-    return transform(adc);
+    const int MODULO = (1 << 24);
+    const int MAX_VALUE = ((1 << 23) - 1);
+    return transform2sComplement(adc, MODULO, MAX_VALUE);
 }
 
-int measureChannelB(LTC2512Device *dev)
+void measureChannelB(LTC2512Device *dev, int32_t* differential, uint32_t* common)
 {   
     uint8_t rData[3];
     if (HAL_SPI_Receive(dev->hspib, rData, 3, 1) != HAL_OK)
-        return 0xFFFFFFFF;
+    {
+        *differential = 0xFFFFFFFF;
+        *common = 0xFFFFFFFF;
+        return;
+    }
 
-    int32_t adc = (((RxBufferChB[0] << 8) | RxBufferChB[1]) >> 2) & 0x3FFF;
+    int32_t adc = (((RxBufferChB[0] << 6) | RxBufferChB[1]) >> 2) & 0x3FFF;
+    *common = (((RxBufferChB[1] << 6) | RxBufferChB[2]) >> 2) & 0xFF;
+
     for (int i = 0; i < sizeof(RxBufferChB)/sizeof(RxBufferChB[0]); i++)
         RxBufferChB[i] = 0;
-    return adc;
+
+    const int MODULO = (1 << 14);
+    const int MAX_VALUE = ((1 << 13) - 1);
+    *differential = transform2sComplement(adc, MODULO, MAX_VALUE);
 }
 
 void syncConversion(LTC2512Device *dev)

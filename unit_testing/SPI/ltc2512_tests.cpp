@@ -89,5 +89,42 @@ TEST_F(LTC2512Test, testDownsamplingFactor)
 
 TEST_F(LTC2512Test, testTransform)
 {   
-    
+    // Test the conversion function for the 24 bit differential voltage
+    const int MODULO24 = (1 << 24);
+    const int MAX_VALUE24 = ((1 << 23) - 1);
+
+    int32_t testnumber = 0;
+    int32_t transformedNumber = transform2sComplement(testnumber, MODULO24, MAX_VALUE24);
+    EXPECT_EQ(transformedNumber, 0);
+
+    testnumber = 8388607;
+    transformedNumber = transform2sComplement(testnumber, MODULO24, MAX_VALUE24);
+    EXPECT_EQ(transformedNumber, 8388607);
+
+    testnumber = 16777215;
+    transformedNumber = transform2sComplement(testnumber, MODULO24, MAX_VALUE24);
+    EXPECT_EQ(transformedNumber, -1);
+
+    testnumber = 8388608;
+    transformedNumber = transform2sComplement(testnumber, MODULO24, MAX_VALUE24);
+    EXPECT_EQ(transformedNumber, -8388608);
+
+    // Test the conversion function for the 24 bit differential voltage
+    const int MODULO14 = (1 << 14);
+    const int MAX_VALUE14 = ((1 << 13) - 1);
+    testnumber = 0;
+    transformedNumber = transform2sComplement(testnumber, MODULO14, MAX_VALUE14);
+    EXPECT_EQ(transformedNumber, 0);
+
+    testnumber = 8191;
+    transformedNumber = transform2sComplement(testnumber, MODULO14, MAX_VALUE14);
+    EXPECT_EQ(transformedNumber, 8191);
+
+    testnumber = 16383;
+    transformedNumber = transform2sComplement(testnumber, MODULO14, MAX_VALUE14);
+    EXPECT_EQ(transformedNumber, -1);
+
+    testnumber = 8192;
+    transformedNumber = transform2sComplement(testnumber, MODULO14, MAX_VALUE14);
+    EXPECT_EQ(transformedNumber, -8192);
 }
