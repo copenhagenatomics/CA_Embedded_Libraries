@@ -52,7 +52,7 @@ class GoertzelTest: public ::testing::Test
 ** TESTS
 ***************************************************************************************************/
 
-TEST_F(GoertzelTest, testNoOffsetNoOffset)
+TEST_F(GoertzelTest, testNoOffset)
 {
     // Initialise the Goertzel filter
     GoertzelInit(peakToPeak, vRange, gain, targetFreq, fs, noOfSamples, vToUnit);
@@ -122,7 +122,7 @@ TEST_F(GoertzelTest, testVToUnitGain)
 {
     // Update the vToUnit scalar to go from Voltage to any other unit
     // Since the Goertzel is bias independent it does not need a vToUnitBias
-    vToUnit = 10;
+    vToUnit = 5;
 
     // Initialise the Goertzel filter
     GoertzelInit(peakToPeak, vRange, gain, targetFreq, fs, noOfSamples, vToUnit);
