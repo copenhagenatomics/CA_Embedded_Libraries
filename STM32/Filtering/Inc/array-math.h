@@ -28,6 +28,7 @@ typedef double_cbuf_t * double_cbuf_handle_t;
 extern "C" {
 #endif
 
+double movingAvg(double *ptrArr, double *ptrSum, int currPos, int len, double newVal);
 /* Note: Function nomenclature loosely chosen to fit with C++ algorithm.h library */
 int max_element(double arr[], unsigned len, double* result);
 int mean_element(double arr[], unsigned len, double* result);

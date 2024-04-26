@@ -96,6 +96,46 @@ TEST_F(ArrayMathTest, testMeanElement)
     EXPECT_DOUBLE_EQ(-DBL_MAX, result);
 }
 
+TEST_F(ArrayMathTest, testMvgAverage)
+{
+    // Initialisation of variables needed for mvgAverage
+    static const int LEN = 20;
+    static double mvgArr[LEN] = {0};
+    static double mvgSum = 0;
+    static int pos = 0;
+    static double avg = 0;
+    static double testValues[LEN] = {0};
+
+    testValues[0] = 1;
+    avg = movingAvg(mvgArr, &mvgSum, pos, LEN, testValues[0]);
+
+    // The average should be 1 / LEN, 
+    // since all other positions in the array are 0
+    EXPECT_EQ(avg, testValues[0]/LEN);
+    pos++;
+
+    double sum = testValues[0];
+    // Add a sequence of numbers matching the filter length.
+    for (int i = 1; i<LEN; i++)
+    {
+        testValues[i] = i+1;
+        sum += testValues[i];
+        avg = movingAvg(mvgArr, &mvgSum, pos, LEN, i+1);
+        pos++;
+        
+        EXPECT_EQ(sum, mvgSum);
+        EXPECT_EQ(avg, sum/LEN);
+    }
+
+    // Check that the circular function works
+    pos = 0;
+    sum -= testValues[0]; 
+    testValues[0] = 1000;
+    sum += testValues[0];
+    avg = movingAvg(mvgArr, &mvgSum, pos, LEN, testValues[0]);
+    EXPECT_EQ(avg, sum/LEN);
+}
+
 TEST_F(ArrayMathTest, testCbInit)
 {
     double testBuf[100] = {0};
@@ -234,3 +274,4 @@ TEST_F(ArrayMathTest, testcbMaxErrors)
     EXPECT_EQ(0, result);
 
 }
+

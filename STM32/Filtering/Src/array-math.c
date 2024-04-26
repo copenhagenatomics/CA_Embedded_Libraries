@@ -12,6 +12,22 @@
 ***************************************************************************************************/
 
 /*!
+** @brief Computes the moving average of an array in a circular fashion.
+**        The array should be of 'len' elements and the caller is responsible
+**        for keeping track of the current position in the array.
+*/
+double movingAvg(double *ptrArr, double *ptrSum, int currPos, int len, double newVal)
+{
+    // Update sum of array
+    *ptrSum = *ptrSum - ptrArr[currPos] + newVal;
+    // Update value in array
+    ptrArr[currPos] = newVal;
+    // Return average
+    return *ptrSum / len;
+}
+
+
+/*!
 ** @brief Returns the maximum value in an array of double
 */
 int max_element(double arr[], unsigned len, double* result) {
