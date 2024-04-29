@@ -3,6 +3,8 @@
  *
  *  Created on: Feb 28, 2023
  *      Author: matias
+ * 
+ * The implementation of this based heavily on this guide https://www.youtube.com/watch?v=ysS4bIXFAsU 
  */
 
 #include "notchFilter.h"
