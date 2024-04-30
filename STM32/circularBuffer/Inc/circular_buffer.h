@@ -4,8 +4,14 @@
 #include <stdio.h>       // Needed for size_t
 #include <stdbool.h>     // Needed for bool
 
-/// Opaque circular buffer structure
-typedef struct circular_buf_t circular_buf_t;
+/// Circular buffer structure
+typedef struct circular_buf_t {
+    uint8_t * buffer;
+    size_t head;
+    size_t tail;
+    size_t max;
+    bool full;
+} circular_buf_t;
 
 /// Handle type, the way users interact with the API
 typedef circular_buf_t* cbuf_handle_t;
@@ -14,6 +20,11 @@ typedef circular_buf_t* cbuf_handle_t;
 /// Requires: buffer is not NULL, size > 0
 /// Ensures: cbuf has been created and is returned in an empty state
 cbuf_handle_t circular_buf_init(size_t size);
+
+/// Pass in a storage buffer and size, returns a circular buffer handle
+/// Requires: buffer is not NULL, size > 0
+/// Ensures: cbuf has been created and is returned in an empty state
+cbuf_handle_t circular_buf_init_static(circular_buf_t* cb, uint8_t* buf, size_t size);
 
 /// Free a circular buffer structure
 /// Requires: cbuf is valid and created by circular_buf_init

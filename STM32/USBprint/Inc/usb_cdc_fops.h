@@ -17,22 +17,37 @@
 #ifndef USB_CDC_FOPS_H
 #define USB_CDC_FOPS_H
 
-#ifdef __cplusplus
- extern "C" {
-#endif
+#include <stdbool.h>
+#include <stdint.h>
 
 #include "usbd_cdc.h"
-#include "stdbool.h"
+
+#ifdef __cplusplus
+    extern "C" {
+#endif
+
+/***************************************************************************************************
+** DEFINES
+***************************************************************************************************/
+
+#define CIRCULAR_BUFFER_SIZE 1024
+
+/***************************************************************************************************
+** PUBLIC OBJECT DECLARATION
+***************************************************************************************************/
 
 extern USBD_CDC_ItfTypeDef usb_cdc_fops;
 
-#define CIRCULAR_BUFFER_SIZE 1024
+/***************************************************************************************************
+** PUBLIC FUNCTION DECLARATIONS
+***************************************************************************************************/
 
 ssize_t usb_cdc_transmit(const uint8_t* Buf, uint16_t len);
 size_t usb_cdc_tx_available();
 int usb_cdc_rx(uint8_t* buf);
 void usb_cdc_rx_flush();
 bool isComPortOpen();
+bool isUsbError();
 
 #ifdef __cplusplus
 }

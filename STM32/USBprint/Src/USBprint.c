@@ -22,8 +22,7 @@ int USBnprintf(const char * format, ... )
     len += vsnprintf(&buffer[len], sizeof(buffer) - len, format, args);
     va_end (args);
 
-    usb_cdc_transmit((uint8_t*)buffer, len);
-    return len;
+    return usb_cdc_transmit((uint8_t*)buffer, len);
 }
 
 ssize_t writeUSB(const void *buf, size_t count)
