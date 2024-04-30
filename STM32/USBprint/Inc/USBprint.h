@@ -30,4 +30,6 @@ int usbRx(uint8_t* buf);
 
 void usbFlush();
 
+uint32_t isUsbError();
+
 #endif /* INC_USBPRINT_H_ */

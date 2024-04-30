@@ -32,6 +32,11 @@
 
 #define CIRCULAR_BUFFER_SIZE 1024
 
+#define CDC_ERROR_NONE              0x00000000U
+#define CDC_ERROR_DELAYED_TRANSMIT  0x00000001U
+#define CDC_ERROR_TRANSMIT          0x00000002U
+#define CDC_ERROR_CROPPED_TRANSMIT  0x00000004U
+
 /***************************************************************************************************
 ** PUBLIC OBJECT DECLARATION
 ***************************************************************************************************/
@@ -47,7 +52,7 @@ size_t usb_cdc_tx_available();
 int usb_cdc_rx(uint8_t* buf);
 void usb_cdc_rx_flush();
 bool isComPortOpen();
-bool isUsbError();
+uint32_t isCdcError();
 
 #ifdef __cplusplus
 }

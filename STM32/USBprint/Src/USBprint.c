@@ -22,11 +22,13 @@ int USBnprintf(const char * format, ... )
     len += vsnprintf(&buffer[len], sizeof(buffer) - len, format, args);
     va_end (args);
 
+    /* Error code actually captured in lower level module */
     return usb_cdc_transmit((uint8_t*)buffer, len);
 }
 
 ssize_t writeUSB(const void *buf, size_t count)
 {
+    /* Error code actually captured in lower level module */
     return usb_cdc_transmit(buf, count);
 }
 
@@ -57,4 +59,11 @@ int usbRx(uint8_t* buf)
 void usbFlush()
 {
     usb_cdc_rx_flush();
+}
+
+/*!
+** @brief Returns if there has been an error in the USB stack
+*/
+uint32_t isUsbError() {
+    return isCdcError();
 }

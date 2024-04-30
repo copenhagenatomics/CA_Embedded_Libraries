@@ -27,10 +27,13 @@ extern "C" {
 #define BS_VERSION_ERROR_Pos                26U
 #define BS_VERSION_ERROR_Msk                (1UL << BS_VERSION_ERROR_Pos)
 
+#define BS_USB_ERROR_Pos                    25U
+#define BS_USB_ERROR_Msk                    (1UL << BS_USB_ERROR_Pos)
+
 /* Used for defining which bits are errors, and which are statuses */
 #define BS_SYSTEM_ERRORS_Msk                (BS_OVER_TEMPERATURE_Msk | BS_UNDER_VOLTAGE_Msk | \
                                              BS_OVER_VOLTAGE_Msk | BS_OVER_CURRENT_Msk | \
-                                             BS_VERSION_ERROR_Msk)
+                                             BS_VERSION_ERROR_Msk | BS_USB_ERROR_Msk)
 
 // NOTE!! Do not change order or values since this list must match ALL OTP programmers.
 typedef enum {
@@ -120,6 +123,7 @@ uint32_t bsGetField(uint32_t field);
 void setBoardTemp(float temp);
 void setBoardVoltage(float voltage);
 void setBoardCurrent(float current);
+void setBoardUsbError(uint32_t err);
 
 /*!
 ** @brief Sets the board type, the firmware is expecting to be used with

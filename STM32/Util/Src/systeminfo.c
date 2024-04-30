@@ -3,6 +3,7 @@
  */
 
 #include <stdio.h>
+
 #include "HAL_otp.h"
 #include "systemInfo.h"
 
@@ -28,6 +29,7 @@ static struct BS
     float temp;
     float voltage;
     float current;
+    uint32_t usb;
     BoardType boardType;
     pcbVersion pcb_version;
 } BS = {0};
@@ -205,6 +207,13 @@ const char* statusInfo(bool printStart)
             (int)bt, (int)BS.boardType, pv.major, pv.minor, BS.pcb_version.major, BS.pcb_version.minor);
     }
 
+    if (BS.usb)
+    {
+        len += snprintf(&buf[len], sizeof(buf) - len, 
+                        "USB. USB communication error 0x%08lx occurred most recently.\r\n", BS.usb);
+        BS.usb = 0U;
+    }
+
     return buf;
 }
 
@@ -292,5 +301,6 @@ uint32_t bsGetField(uint32_t field){ return BS.boardStatus & field; }
 void setBoardTemp(float temp){ BS.temp = temp; }
 void setBoardVoltage(float voltage){ BS.voltage = voltage; }
 void setBoardCurrent(float current){ BS.current = current; }
+void setBoardUsbError(uint32_t err) {BS.usb = err; }
 void setFirmwareBoardType(BoardType type){ BS.boardType = type; }
 void setFirmwareBoardVersion(pcbVersion version){ BS.pcb_version = version; }

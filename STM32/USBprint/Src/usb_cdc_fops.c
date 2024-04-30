@@ -66,7 +66,7 @@ static struct
     unsigned long portOpenTime;
 } usb_cdc_if = { {0}, {0}, closed, 0};
 
-static volatile bool usb_error = false;
+static volatile uint32_t usb_error = false;
 
 static circular_buf_t   tx_cb;
 static uint8_t          tx_buf[CIRCULAR_BUFFER_SIZE] = {0};
@@ -139,17 +139,24 @@ ssize_t usb_cdc_transmit(const uint8_t* Buf, uint16_t Len)
         // remaining bytes could be moved to circular buffer but in this case,
         // system is possible in a lack of resources. That problem can not be solved hear.
         Len = sizeof(usb_cdc_if.tx.irqBuf);
-        usb_error = true;
+        usb_error |= CDC_ERROR_CROPPED_TRANSMIT;
+    }
+    else {
+        usb_error &= ~CDC_ERROR_CROPPED_TRANSMIT;
     }
 
     memcpy(usb_cdc_if.tx.irqBuf, Buf, Len);
     USBD_CDC_SetTxBuffer(&hUsbDeviceFS, usb_cdc_if.tx.irqBuf, Len);
     if (USBD_CDC_TransmitPacket(&hUsbDeviceFS) != USBD_OK) {
-        usb_error = true;
+        usb_error |= CDC_ERROR_TRANSMIT;
         return -1; // Something went wrong in IO layer.
+    }
+    else {
+        usb_error &= ~CDC_ERROR_TRANSMIT;
     }
 
     // All good.
+
     return Len;
 }
 
@@ -162,13 +169,8 @@ size_t usb_cdc_tx_available()
 }
 
 
-bool isUsbError() {
-    bool r = usb_error;
-    if(usb_error) {
-        usb_error = false;
-    }
-    
-    return r;
+uint32_t isCdcError() {
+    return usb_error;
 }
 
 /***************************************************************************************************
@@ -349,7 +351,10 @@ static int8_t CDC_TransmitCplt_FS(uint8_t *Buf, uint32_t *Len, uint8_t epnum)
     }
 
     if(result != USBD_OK) {
-        usb_error = true;
+        usb_error |= CDC_ERROR_DELAYED_TRANSMIT;
+    }
+    else {
+        usb_error &= ~CDC_ERROR_DELAYED_TRANSMIT;
     }
 
     return result;
