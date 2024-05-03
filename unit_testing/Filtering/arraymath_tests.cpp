@@ -67,6 +67,34 @@ TEST_F(ArrayMathTest, testMaxElement)
     EXPECT_EQ(-DBL_MAX, result);
 }
 
+TEST_F(ArrayMathTest, testMinElement)
+{
+    double testBuf[100] = {0};
+
+    for(int i = 0; i < 100; i++) {
+        testBuf[i] = 100 * std::sin(2.0 * M_PI * i / 100.0);
+    }
+
+    double result;
+    EXPECT_EQ(0, min_element(testBuf, 100, &result));
+    EXPECT_EQ(-100.0, result);
+
+    /* Check larger positive numbers don't influence the outcome */
+    testBuf[13] = DBL_MAX;
+    EXPECT_EQ(0, min_element(testBuf, 100, &result));
+    EXPECT_EQ(-100.0, result);
+
+    /* Try a different larger negative number */
+    testBuf[58] = -DBL_MAX;
+    EXPECT_EQ(0, min_element(testBuf, 100, &result));
+    EXPECT_EQ(-DBL_MAX, result);
+
+    /* Check error returned if 0 length selected */
+    result = -DBL_MAX;
+    EXPECT_EQ(-1, min_element(testBuf, 0, &result));
+    EXPECT_EQ(-DBL_MAX, result);
+}
+
 TEST_F(ArrayMathTest, testMeanElement)
 {
     double testBuf[100] = {0};
@@ -94,6 +122,42 @@ TEST_F(ArrayMathTest, testMeanElement)
     result = -DBL_MAX;
     EXPECT_EQ(-1, mean_element(testBuf, 0, &result));
     EXPECT_DOUBLE_EQ(-DBL_MAX, result);
+}
+
+TEST_F(ArrayMathTest, testMvgAverage)
+{
+    unsigned int len = 100;
+    double testBuf[len] = {0};
+    moving_avg_cbuf_t test_cb;
+
+    /* Initialise moving average handle */
+    EXPECT_EQ(0, maInit(&test_cb, testBuf, len));
+
+    /* Add single value and calculate the average */
+    double testValue1 = 1;
+    double avg = maMean(&test_cb, testValue1);
+    EXPECT_EQ(avg, testValue1/test_cb.cbuf_t.len);
+
+    double sum = testValue1;
+    // Add a sequence of numbers matching the filter length.
+    double testValue = 0;
+    for (int i = 1; i<len; i++)
+    {
+        // Test a range with positive and negative numbers
+        testValue = i-len/2;
+        sum += testValue;
+        avg = maMean(&test_cb, testValue);
+        
+        EXPECT_EQ(sum, test_cb.sum);
+        EXPECT_EQ(avg, sum/len);
+    }
+
+    // Check that the circular function works
+    sum -= testValue1; 
+    testValue = 1000;
+    sum += testValue;
+    avg = maMean(&test_cb, testValue);
+    EXPECT_EQ(avg, sum/len);
 }
 
 TEST_F(ArrayMathTest, testCbInit)
@@ -234,3 +298,4 @@ TEST_F(ArrayMathTest, testcbMaxErrors)
     EXPECT_EQ(0, result);
 
 }
+

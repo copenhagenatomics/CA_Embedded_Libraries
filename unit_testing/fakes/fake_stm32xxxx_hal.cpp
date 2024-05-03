@@ -27,19 +27,25 @@ HAL_StatusTypeDef HAL_ADC_Start_DMA(ADC_HandleTypeDef* hadc, uint32_t* pData, ui
     /* Do nothing */
     hadc->dma_address = pData;
     hadc->dma_length  = Length;
-    return 0;
+    return HAL_OK;
 }
 
 HAL_StatusTypeDef HAL_WWDG_Refresh(WWDG_HandleTypeDef *hwwdg)
 {
     /* Do nothing */
-    return 0;
+    return HAL_OK;
 }
 
 HAL_StatusTypeDef HAL_TIM_Base_Start_IT(TIM_HandleTypeDef *htim)
 {
     /* Do nothing */
-    return 0;
+    return HAL_OK;
+}
+
+HAL_StatusTypeDef HAL_SPI_Receive(SPI_HandleTypeDef *hspi, uint8_t *pData, uint16_t Size, uint32_t Timeout)
+{
+    /* Do nothing */
+    return HAL_OK;
 }
 
 void forceTick(uint32_t next_val)

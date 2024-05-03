@@ -25,12 +25,10 @@ FetchContent_MakeAvailable(googletest)
 
 set(SRC ../../STM32)
 set(LIB ../../STM32)
-set(INC_LIB ${LIB}/ADCMonitor/Inc ${LIB}/circularBuffer/Inc ${LIB}/Filtering/Inc 
-            ${LIB}/FLASH_readwrite/Inc ${LIB}/I2C/Inc ${LIB}/jumpToBootloader/Inc 
-            ${LIB}/Regulation/Inc ${LIB}/SPI/Inc ${LIB}/TransformationFunctions/Inc 
-            ${LIB}/USBprint/Inc ${LIB}/Util/Inc)
+set(INC_LIB ${LIB}/SPI/Inc ${LIB}/SPI/Src ${LIB}/Util/Inc)
 set(UT_FAKES ../fakes)
 set(UT_STUBS ../stubs)
+
 
 ####################################################################################################
 ## List of tests to run
@@ -40,20 +38,8 @@ enable_testing()
 
 include(GoogleTest)
 
-# Array math tests
-add_executable(arraymath_test arraymath_tests.cpp ${SRC}/Filtering/Src/array-math.c)
-target_include_directories(arraymath_test PRIVATE ${UT_FAKES} ${UT_STUBS} ${INC_LIB})
-target_link_libraries(arraymath_test GTest::gtest_main gmock_main)
-gtest_discover_tests(arraymath_test)
-
-# Lowpass filter tests
-add_executable(lpfilter_test lowpassfilter_tests.cpp ${SRC}/Filtering/Src/lowpassFilter.c ${SRC}/Filtering/Src/array-math.c)
-target_include_directories(lpfilter_test PRIVATE ${UT_FAKES} ${UT_STUBS} ${INC_LIB})
-target_link_libraries(lpfilter_test GTest::gtest_main gmock_main)
-gtest_discover_tests(lpfilter_test)
-
-# Notch filter tests
-add_executable(notchfilter_test notchfilter_tests.cpp ${SRC}/Filtering/Src/notchFilter.c ${SRC}/Filtering/Src/array-math.c)
-target_include_directories(notchfilter_test PRIVATE ${UT_FAKES} ${UT_STUBS} ${INC_LIB})
-target_link_libraries(notchfilter_test GTest::gtest_main gmock_main)
-gtest_discover_tests(notchfilter_test)
+# LTC2512-24 tests
+add_executable(ltc2512_test ltc2512_tests.cpp ${UT_FAKES}/fake_stm32xxxx_hal.cpp ${UT_FAKES}/fake_StmGpio.cpp)
+target_include_directories(ltc2512_test PRIVATE ${UT_FAKES} ${UT_STUBS} ${INC_LIB})
+target_link_libraries(ltc2512_test GTest::gtest_main gmock_main)
+gtest_discover_tests(ltc2512_test)

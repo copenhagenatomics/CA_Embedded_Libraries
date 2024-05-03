@@ -14,16 +14,25 @@
 #    define M_PI 3.14159265358979323846
 #endif
 
-typedef struct {
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-	float alpha;	// filter coefficients for current and previous inputs
-	float beta;		// filter coefficients for current and previous outputs
-	float x[3];		// measured inputs
-	float y[3];		// filtered outputs
+typedef struct {
+	
+	float alpha;
+	float beta;
+	float scaling_factor; 
+	float x[3];
+	float y[3];
 
 } NotchFilter;
 
 void InitNotchFilter(NotchFilter *filter, float centerFreqHz, float notchWidthHz, float Ts);
 float UpdateNotchFilter(NotchFilter *filter, float x0);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* INC_NOTCHFILTER_H_ */
