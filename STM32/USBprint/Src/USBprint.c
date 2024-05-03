@@ -24,7 +24,7 @@ int USBnprintf(const char * format, ... )
     va_end (args);
 
     /* Error code captured in lower level module */
-    ssize_t ret = usb_cdc_transmit((uint8_t*)buffer, len);
+    ssize_t ret = usb_cdc_transmit((const uint8_t*)buffer, len);
     if(ret >= 2) {
         return ret - 2;
     }
