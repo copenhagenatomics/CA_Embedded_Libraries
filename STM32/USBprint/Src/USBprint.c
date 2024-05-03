@@ -25,12 +25,19 @@ int USBnprintf(const char * format, ... )
 
     /* Error code captured in lower level module */
     ssize_t ret = usb_cdc_transmit((const uint8_t*)buffer, len);
+
+    /* Since this function adds 2 characters to the transmit, remove those from the return value. 
+    ** It is most likely a user will want to compare the length sent with the length of the input 
+    ** string. */
     if(ret >= 2) {
         return ret - 2;
     }
+    /* This situation should probably never happen, since this function always adds 2, but there 
+    ** could be an issue in a lower level module */
     else if(ret >= 0) {
         return 0;
     }
+    /* Any value less than 0 is an error, so pass that up */
     else {
         return ret;
     }
