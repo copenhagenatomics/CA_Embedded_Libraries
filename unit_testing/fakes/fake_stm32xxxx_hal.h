@@ -89,6 +89,7 @@ typedef struct
     uint32_t CSR;            /*!< RCC clock control register,                                  Address offset: 0x00 */
 } RCC_TypeDef;
 
+typedef uint32_t CRC_HandleTypeDef;
 typedef uint32_t WWDG_HandleTypeDef;
 typedef uint32_t TIM_HandleTypeDef;
 typedef uint32_t SPI_HandleTypeDef;
