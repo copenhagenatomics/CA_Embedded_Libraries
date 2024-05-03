@@ -143,7 +143,8 @@ TEST_F(ArrayMathTest, testMvgAverage)
     double testValue = 0;
     for (int i = 1; i<len; i++)
     {
-        testValue = i+1;
+        // Test a range with positive and negative numbers
+        testValue = i-len/2;
         sum += testValue;
         avg = maMean(&test_cb, testValue);
         
@@ -157,6 +158,8 @@ TEST_F(ArrayMathTest, testMvgAverage)
     sum += testValue;
     avg = maMean(&test_cb, testValue);
     EXPECT_EQ(avg, sum/len);
+
+
 }
 
 TEST_F(ArrayMathTest, testCbInit)
