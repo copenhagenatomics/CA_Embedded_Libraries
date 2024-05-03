@@ -39,6 +39,12 @@ if __name__ == "__main__":
     #If the directory is not specified then run all tests from all sub-directories
     returncodes = []
     for f in os.scandir(os.getcwd()):
-        if f.is_dir() and f.name not in ["fakes", "stubs"]:
+        if f.is_dir() and f.name not in ["fakes", "stubs", "redirects"]:
             returncodes.append(run_tests_in_subdirectory(f.name, regex, verbose))
-    sys.exit(any(r != 0 for r in returncodes))
+    
+    if any(r != 0 for r in returncodes):
+        print("\r\nSome errors occurred")
+        sys.exit(1)
+    else:
+        print("\r\nNo errors occurred")
+        sys.exit(0)
