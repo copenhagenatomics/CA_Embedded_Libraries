@@ -84,7 +84,7 @@ TEST_F(ArrayMathTest, testMinElement)
     EXPECT_EQ(0, min_element(testBuf, 100, &result));
     EXPECT_EQ(-100.0, result);
 
-    /* Try a different larger positive number */
+    /* Try a different larger negative number */
     testBuf[58] = -DBL_MAX;
     EXPECT_EQ(0, min_element(testBuf, 100, &result));
     EXPECT_EQ(-DBL_MAX, result);
