@@ -12,22 +12,6 @@
 ***************************************************************************************************/
 
 /*!
-** @brief Computes the moving average of an array in a circular fashion.
-**        The array should be of 'len' elements and the caller is responsible
-**        for keeping track of the current position in the array.
-*/
-double movingAvg(double *ptrArr, double *ptrSum, int currPos, int len, double newVal)
-{
-    // Update sum of array
-    *ptrSum = *ptrSum - ptrArr[currPos] + newVal;
-    // Update value in array
-    ptrArr[currPos] = newVal;
-    // Return average
-    return *ptrSum / len;
-}
-
-
-/*!
 ** @brief Returns the maximum value in an array of double
 */
 int max_element(double arr[], unsigned len, double* result) {
@@ -95,6 +79,20 @@ int cbInit(double_cbuf_handle_t p_cb, double* buf, unsigned len) {
 }
 
 /*!
+** @brief Initialises an empty circular buffer
+*/
+int maInit(moving_avg_cbuf_handle_t p_ma, double* buf, unsigned len) {
+    if (cbInit(p_ma->cbuf_t, buf, len) != 0)
+    {
+        return -1;
+    }
+
+    p_ma->sum = 0;
+
+    return 0;
+}
+
+/*!
 ** @brief Add a new element to the circular buffer and discard the oldest element
 */
 void cbPush(double_cbuf_handle_t p_cb, double new_val) {
@@ -103,6 +101,27 @@ void cbPush(double_cbuf_handle_t p_cb, double new_val) {
     if(p_cb->idx >= p_cb->len) {
         p_cb->idx = 0;
     }
+}
+
+/*!
+** @brief Computes the moving average of an array in a circular fashion.
+*/
+
+double maMean(moving_avg_cbuf_handle_t p_ma, double newVal)
+{
+    // Update sum of array
+    p_ma->sum = p_ma->sum - p_ma->cbuf_t->buffer[p_ma->cbuf_t->idx] + newVal;
+    // Update value in array
+    p_ma->cbuf_t->buffer[p_ma->cbuf_t->idx] = newVal;    
+    // Update idx
+    p_ma->cbuf_t->idx++;
+    if (p_ma->cbuf_t->idx >= p_ma->cbuf_t->len)
+    {
+        p_ma->cbuf_t->idx = 0;
+    }
+
+    // Return average
+    return p_ma->sum / p_ma->cbuf_t->len;
 }
 
 /*!

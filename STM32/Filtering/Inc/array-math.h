@@ -20,6 +20,13 @@ typedef struct {
 
 typedef double_cbuf_t * double_cbuf_handle_t;
 
+typedef struct {
+    double_cbuf_t * cbuf_t;
+    double  sum;
+} moving_avg_cbuf_t;
+
+typedef moving_avg_cbuf_t * moving_avg_cbuf_handle_t;
+
 /***************************************************************************************************
 ** PUBLIC FUNCTION DECLARATIONS
 ***************************************************************************************************/
@@ -35,6 +42,8 @@ int min_element(double arr[], unsigned len, double* result);
 int mean_element(double arr[], unsigned len, double* result);
 
 /* Functions for moving average filters */
+int maInit(moving_avg_cbuf_handle_t p_ma, double* buf, unsigned len);
+double maMean(moving_avg_cbuf_handle_t p_ma, double newVal);
 int cbInit(double_cbuf_handle_t p_cb, double* buf, unsigned len);
 void cbPush(double_cbuf_handle_t p_cb, double new_val);
 int cbMean(double_cbuf_handle_t p_cb, int elements, double* result);

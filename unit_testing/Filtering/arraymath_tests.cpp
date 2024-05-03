@@ -126,42 +126,37 @@ TEST_F(ArrayMathTest, testMeanElement)
 
 TEST_F(ArrayMathTest, testMvgAverage)
 {
-    // Initialisation of variables needed for mvgAverage
-    static const int LEN = 20;
-    static double mvgArr[LEN] = {0};
-    static double mvgSum = 0;
-    static int pos = 0;
-    static double avg = 0;
-    static double testValues[LEN] = {0};
+    unsigned int len = 100;
+    double testBuf[len] = {0};
+    moving_avg_cbuf_t test_cb;
 
-    testValues[0] = 1;
-    avg = movingAvg(mvgArr, &mvgSum, pos, LEN, testValues[0]);
+    /* Initialise moving average handle */
+    EXPECT_EQ(0, maInit(&test_cb, testBuf, len));
 
-    // The average should be 1 / LEN, 
-    // since all other positions in the array are 0
-    EXPECT_EQ(avg, testValues[0]/LEN);
-    pos++;
+    /* Add single value and calculate the average */
+    double testValue1 = 1;
+    double avg = maMean(&test_cb, testValue1);
+    EXPECT_EQ(avg, testValue1/test_cb.cbuf_t->len);
 
-    double sum = testValues[0];
+    double sum = testValue1;
     // Add a sequence of numbers matching the filter length.
-    for (int i = 1; i<LEN; i++)
+    double testValue = 0;
+    for (int i = 1; i<len; i++)
     {
-        testValues[i] = i+1;
-        sum += testValues[i];
-        avg = movingAvg(mvgArr, &mvgSum, pos, LEN, i+1);
-        pos++;
+        testValue = i+1;
+        sum += testValue;
+        avg = maMean(&test_cb, testValue);
         
-        EXPECT_EQ(sum, mvgSum);
-        EXPECT_EQ(avg, sum/LEN);
+        EXPECT_EQ(sum, test_cb.sum);
+        EXPECT_EQ(avg, sum/len);
     }
 
     // Check that the circular function works
-    pos = 0;
-    sum -= testValues[0]; 
-    testValues[0] = 1000;
-    sum += testValues[0];
-    avg = movingAvg(mvgArr, &mvgSum, pos, LEN, testValues[0]);
-    EXPECT_EQ(avg, sum/LEN);
+    sum -= testValue1; 
+    testValue = 1000;
+    sum += testValue;
+    avg = maMean(&test_cb, testValue);
+    EXPECT_EQ(avg, sum/len);
 }
 
 TEST_F(ArrayMathTest, testCbInit)
