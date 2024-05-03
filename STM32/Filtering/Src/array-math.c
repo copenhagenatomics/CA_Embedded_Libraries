@@ -79,7 +79,7 @@ int cbInit(double_cbuf_handle_t p_cb, double* buf, unsigned len) {
 }
 
 /*!
-** @brief Initialises an empty circular buffer
+** @brief Initialises an empty moving average buffer 
 */
 int maInit(moving_avg_cbuf_handle_t p_ma, double* buf, unsigned len) {
     if (cbInit(p_ma->cbuf_t, buf, len) != 0)
@@ -106,7 +106,6 @@ void cbPush(double_cbuf_handle_t p_cb, double new_val) {
 /*!
 ** @brief Computes the moving average of an array in a circular fashion.
 */
-
 double maMean(moving_avg_cbuf_handle_t p_ma, double newVal)
 {
     // Update sum of array
