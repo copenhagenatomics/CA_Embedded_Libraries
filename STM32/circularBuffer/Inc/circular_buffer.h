@@ -4,6 +4,10 @@
 #include <stdio.h>       // Needed for size_t
 #include <stdbool.h>     // Needed for bool
 
+#ifdef __cplusplus
+  extern "C" {
+#endif
+
 /// Circular buffer structure
 typedef struct circular_buf_t {
     uint8_t * buffer;
@@ -64,5 +68,9 @@ size_t circular_buf_capacity(cbuf_handle_t cbuf);
 /// Requires: cbuf is valid and created by circular_buf_init
 /// Returns the current number of elements in the buffer
 size_t circular_buf_size(cbuf_handle_t cbuf);
+
+#ifdef __cplusplus
+  }
+#endif
 
 #endif //CIRCULAR_BUFFER_H_

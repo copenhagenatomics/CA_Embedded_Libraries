@@ -7,6 +7,12 @@
 #include <assert.h>
 #include <stdbool.h>
 
+#if defined(STM32F401xC)
+  #include "stm32f4xx_hal.h"
+#elif defined(STM32H753xx)
+  #include "stm32h7xx_hal.h"
+#endif
+
 #include "usb_cdc_fops.h"
 #include "circular_buffer.h"
 
@@ -51,6 +57,12 @@ static USBD_CDC_LineCodingTypeDef LineCoding = {
         0x08    /* nb. of bits 8 */
 };
 
+typedef enum {
+        closed,
+        preOpen,
+        open
+    } comport_t;
+
 // Internal data for rx/tx
 static struct
 {
@@ -58,15 +70,11 @@ static struct
         cbuf_handle_t ctx;
         uint8_t irqBuf[CIRCULAR_BUFFER_SIZE];   // lower layer buffer for IRQ USB_CDC driver callback
     } tx, rx;
-    enum {
-        closed,
-        preOpen,
-        open
-    } isComPortOpen;
+    comport_t isComPortOpen;
     unsigned long portOpenTime;
 } usb_cdc_if = { {0}, {0}, closed, 0};
 
-static volatile uint32_t usb_error = false;
+static volatile uint32_t usb_error = CDC_ERROR_NONE;
 
 static circular_buf_t   tx_cb;
 static uint8_t          tx_buf[CIRCULAR_BUFFER_SIZE] = {0};
@@ -152,7 +160,7 @@ ssize_t usb_cdc_transmit(const uint8_t* Buf, uint16_t Len)
         return -1; // Something went wrong in IO layer.
     }
     else {
-        usb_error &= ~CDC_ERROR_TRANSMIT;
+        usb_error &= ~(CDC_ERROR_DELAYED_TRANSMIT | CDC_ERROR_TRANSMIT);
     }
 
     // All good.
@@ -195,7 +203,7 @@ static int8_t CDC_Init_FS(void)
     usb_cdc_if.rx.ctx = circular_buf_init_static(&rx_cb, rx_buf, CIRCULAR_BUFFER_SIZE);
 
     // Default is no host attached.
-    usb_cdc_if.isComPortOpen = false;
+    usb_cdc_if.isComPortOpen = closed;
 
     return (USBD_OK);
 }
@@ -301,9 +309,6 @@ static int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len)
     /* Only way subsequent USBD_CDC functions can fail is if this parameter is NULL */
     assert(hUsbDeviceFS.pClassDataCmsit[hUsbDeviceFS.classId] != NULL);
 
-    USBD_CDC_SetRxBuffer(&hUsbDeviceFS, &Buf[0]);
-    USBD_CDC_ReceivePacket(&hUsbDeviceFS);
-
     uint16_t len = (uint16_t)*Len;
 
     // Update circular buffer with incoming values
@@ -312,6 +317,11 @@ static int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len)
     }
 
     memset(Buf, '\0', len); // clear the buffer
+
+    /* Prepare for a new reception */
+    USBD_CDC_SetRxBuffer(&hUsbDeviceFS, &Buf[0]);
+    USBD_CDC_ReceivePacket(&hUsbDeviceFS);
+
     return (USBD_OK);
 }
 
@@ -354,7 +364,7 @@ static int8_t CDC_TransmitCplt_FS(uint8_t *Buf, uint32_t *Len, uint8_t epnum)
         usb_error |= CDC_ERROR_DELAYED_TRANSMIT;
     }
     else {
-        usb_error &= ~CDC_ERROR_DELAYED_TRANSMIT;
+        usb_error &= ~(CDC_ERROR_DELAYED_TRANSMIT | CDC_ERROR_TRANSMIT);
     }
 
     return result;

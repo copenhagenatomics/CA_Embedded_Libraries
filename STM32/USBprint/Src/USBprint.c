@@ -6,10 +6,11 @@
  */
 
 
+#include <stdarg.h>
+#include <string.h>
+#include <stdio.h>
+
 #include "USBprint.h"
-#include "stdarg.h"
-#include "string.h"
-#include "stdio.h"
 #include "usb_cdc_fops.h"
 
 int USBnprintf(const char * format, ... )
@@ -22,14 +23,23 @@ int USBnprintf(const char * format, ... )
     len += vsnprintf(&buffer[len], sizeof(buffer) - len, format, args);
     va_end (args);
 
-    /* Error code actually captured in lower level module */
-    return usb_cdc_transmit((uint8_t*)buffer, len);
+    /* Error code captured in lower level module */
+    ssize_t ret = usb_cdc_transmit((uint8_t*)buffer, len);
+    if(ret >= 2) {
+        return ret - 2;
+    }
+    else if(ret >= 0) {
+        return 0;
+    }
+    else {
+        return ret;
+    }
 }
 
 ssize_t writeUSB(const void *buf, size_t count)
 {
-    /* Error code actually captured in lower level module */
-    return usb_cdc_transmit(buf, count);
+    /* Error code captured in lower level module */
+    return usb_cdc_transmit((const uint8_t*)buf, count);
 }
 
 size_t txAvailable()
