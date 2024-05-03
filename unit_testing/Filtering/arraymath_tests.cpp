@@ -67,6 +67,34 @@ TEST_F(ArrayMathTest, testMaxElement)
     EXPECT_EQ(-DBL_MAX, result);
 }
 
+TEST_F(ArrayMathTest, testMinElement)
+{
+    double testBuf[100] = {0};
+
+    for(int i = 0; i < 100; i++) {
+        testBuf[i] = 100 * std::sin(2.0 * M_PI * i / 100.0);
+    }
+
+    double result;
+    EXPECT_EQ(0, min_element(testBuf, 100, &result));
+    EXPECT_EQ(-100.0, result);
+
+    /* Check larger positive numbers don't influence the outcome */
+    testBuf[13] = DBL_MAX;
+    EXPECT_EQ(0, min_element(testBuf, 100, &result));
+    EXPECT_EQ(-100.0, result);
+
+    /* Try a different larger positive number */
+    testBuf[58] = -DBL_MAX;
+    EXPECT_EQ(0, min_element(testBuf, 100, &result));
+    EXPECT_EQ(-DBL_MAX, result);
+
+    /* Check error returned if 0 length selected */
+    result = -DBL_MAX;
+    EXPECT_EQ(-1, min_element(testBuf, 0, &result));
+    EXPECT_EQ(-DBL_MAX, result);
+}
+
 TEST_F(ArrayMathTest, testMeanElement)
 {
     double testBuf[100] = {0};
