@@ -158,8 +158,6 @@ TEST_F(ArrayMathTest, testMvgAverage)
     sum += testValue;
     avg = maMean(&test_cb, testValue);
     EXPECT_EQ(avg, sum/len);
-
-
 }
 
 TEST_F(ArrayMathTest, testCbInit)
