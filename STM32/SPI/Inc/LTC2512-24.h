@@ -6,7 +6,8 @@
  *  created: 25/07/2023
  */
 
-#pragma once
+#ifndef INC_LTC2512_24_H_
+#define INC_LTC2512_24_H_
 
 #if defined(STM32F401xC)
 #include "stm32f4xx_hal.h"
@@ -62,3 +63,5 @@ void enableDisableChannels(LTC2512Device *dev, int channel, bool onOff);
 
 // Initialise the external ADC LTC2512 Device.
 int LTC2512Init(LTC2512Device *dev, uint8_t downsampleFactor);
+
+#endif /* INC_LTC2512_24_H_ */

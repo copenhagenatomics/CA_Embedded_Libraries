@@ -1,11 +1,11 @@
 /*
- * notchFilter.c
+ * lowpassFilter.c
  *
  *  Created on: Dec 6, 2023
  *      Author: matias
  * 
  *  Description:
- *      First order exponential moving average (low pass filter).
+ *      First order exponential moving average (low pass IIR filter).
  *      Low cutoff frequencies relative to the sampling frequency
  *      will produce alpha values close to 0 i.e. smooth the signal
  *      to a high degree. 
@@ -23,6 +23,11 @@
  *      filter: Lowpass filter struct
  *      cutOffFrequency: Cut-off frequency with 3 dB attenuation              
  *      fs: sampling frequency
+ * 
+ *   NOTE: The nyquist theorem states that the fs/cutOffFrequency MUST be
+ *         at least 2. Any ratio lower than that gives undefined behaviour.
+ *         In addition, the quality of the filter degrades when lowering the
+ *         fs/cutOffFrequency ratio. A ratio of 10 or higher is advised. 
  */
 void InitLowpassFilter(LowpassFilter *filter, float cutOffFrequency, float fs)
 {
@@ -43,7 +48,7 @@ void InitLowpassFilter(LowpassFilter *filter, float cutOffFrequency, float fs)
     }
 
     // Initialise filter
-	filter->alpha = alpha;
+    filter->alpha = alpha;
     filter->out = 0;
 }
 
@@ -60,7 +65,7 @@ void InitLowpassFilterAlpha(LowpassFilter *filter, float alpha)
     }
 
     // Initialise filter
-	filter->alpha = alpha;
+    filter->alpha = alpha;
     filter->out = 0;
 }
 

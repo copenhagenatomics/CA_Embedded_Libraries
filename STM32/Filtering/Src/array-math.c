@@ -44,6 +44,22 @@ int max_element(double arr[], unsigned len, double* result) {
 }
 
 /*!
+** @brief Returns the minimum value in an array of double
+*/
+int min_element(double arr[], unsigned len, double* result) {
+    if(len != 0) {
+        double ret_val = arr[0];
+        for(unsigned i = 1; i < len; i++) {
+            if(arr[i] < ret_val) ret_val = arr[i];
+        }
+        *result = ret_val;
+        return 0;
+    }
+
+    return -1;
+}
+
+/*!
 ** @brief Returns the average value of an array of double
 */
 int mean_element(double arr[], unsigned len, double* result) {

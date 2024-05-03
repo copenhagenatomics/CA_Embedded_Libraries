@@ -31,6 +31,7 @@ extern "C" {
 double movingAvg(double *ptrArr, double *ptrSum, int currPos, int len, double newVal);
 /* Note: Function nomenclature loosely chosen to fit with C++ algorithm.h library */
 int max_element(double arr[], unsigned len, double* result);
+int min_element(double arr[], unsigned len, double* result);
 int mean_element(double arr[], unsigned len, double* result);
 
 /* Functions for moving average filters */
