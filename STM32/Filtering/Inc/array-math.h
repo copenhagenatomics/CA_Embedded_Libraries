@@ -21,7 +21,7 @@ typedef struct {
 typedef double_cbuf_t * double_cbuf_handle_t;
 
 typedef struct {
-    double_cbuf_handle_t cbuf_t;
+    double_cbuf_t cbuf_t;
     double  sum;
 } moving_avg_cbuf_t;
 

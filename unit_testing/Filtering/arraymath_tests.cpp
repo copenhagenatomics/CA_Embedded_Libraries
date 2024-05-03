@@ -136,7 +136,7 @@ TEST_F(ArrayMathTest, testMvgAverage)
     /* Add single value and calculate the average */
     double testValue1 = 1;
     double avg = maMean(&test_cb, testValue1);
-    EXPECT_EQ(avg, testValue1/test_cb.cbuf_t->len);
+    EXPECT_EQ(avg, testValue1/test_cb.cbuf_t.len);
 
     double sum = testValue1;
     // Add a sequence of numbers matching the filter length.
