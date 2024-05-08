@@ -28,5 +28,5 @@ void writeToFlashSafe(CRC_HandleTypeDef *hcrc, uint32_t indx, uint32_t size, uin
 
 void readFromFlashSafe(CRC_HandleTypeDef *hcrc, uint32_t indx, uint32_t size, uint8_t *data)
 {
-
+    *data = 0xFF;
 }

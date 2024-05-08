@@ -41,13 +41,13 @@ static char buf[600] = { 0 };
     #define ID2 *((unsigned long *) (UID_BASE + 4U))
     #define ID3 *((unsigned long *) (UID_BASE + 8U))
 #else
-    #define ID1 0
-    #define ID2 0
-    #define ID3 0
+    #define ID1 0U
+    #define ID2 0U
+    #define ID3 0U
 
-    #define GIT_VERSION 0
-    #define GIT_DATE    0
-    #define GIT_SHA     0
+    #define GIT_VERSION "0"
+    #define GIT_DATE    "0"
+    #define GIT_SHA     "0"
 #endif
 
 static const char* mcuType()
@@ -99,6 +99,7 @@ static char* productType(uint8_t id)
     case ER               :  return "ER";            	 break;
     case ERHC             :  return "ERHC";            	 break;
     case VFD              :  return "VFD";            	 break;
+    case Tachometer       :  return "Tachometer";     	 break;
     }
     return "NA";
 }

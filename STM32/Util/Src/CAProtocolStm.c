@@ -1,5 +1,6 @@
 #include <string.h>
 #include <stdio.h>
+#include <inttypes.h>
 
 #include "CAProtocolStm.h"
 #include "USBprint.h"
@@ -125,7 +126,7 @@ const char* CAonBoot()
     {
         // System has none of watchdog, SW reset or porrst bit set. At least
         // one reason should be set => this should never happen, inspect!!
-        sprintf(msg, "reconnected Reset Reason: Unknown(%lX)", RCC->CSR);
+        sprintf(msg, "reconnected Reset Reason: Unknown(%" PRIx32 ")", RCC->CSR);
     }
 
     // Reset the boot flags.

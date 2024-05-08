@@ -9,6 +9,8 @@
 #include <string.h>
 #include <strings.h>
 #include <stdlib.h>
+#include <inttypes.h>
+
 #include "CAProtocolStm.h"
 #include "CAProtocol.h"
 
@@ -116,7 +118,7 @@ static void otp_write(CAProtocolCtx* ctx, const char *input)
     uint32_t  date;
 
     // Check for supported version.
-    if (sscanf(input, "OTP w %02lu", &OTPVersion) != 1)
+    if (sscanf(input, "OTP w %02" PRIu32, &OTPVersion) != 1)
         return; // Parse failure, Invalid format of version field.
     if (OTPVersion > OTP_VERSION || OTPVersion == 0)
         return; // Not supported version of the OTP data.
@@ -131,7 +133,8 @@ static void otp_write(CAProtocolCtx* ctx, const char *input)
 
     case OTP_VERSION_2:
         // During write only the current version is supported.
-        if (sscanf(input, "OTP w %02lu %02lu %02lu %02lu.%02lu %lu", &OTPVersion, &BoardType, &SubBoardType, &PCBversion[1], &PCBversion[0], &date) == 6)
+        if (sscanf(input, "OTP w %02" PRIu32 " %02" PRIu32 " %02" PRIu32 " %02" PRIu32 ".%02" PRIu32 " %" PRIu32, 
+                   &OTPVersion, &BoardType, &SubBoardType, &PCBversion[1], &PCBversion[0], &date) == 6)
         {
             if (BoardType < 0xFF && PCBversion[1] <= 0xFF && PCBversion[0] <= 0xFF)
             {
