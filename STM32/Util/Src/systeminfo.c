@@ -99,6 +99,7 @@ static char* productType(uint8_t id)
     case ER               :  return "ER";            	 break;
     case ERHC             :  return "ERHC";            	 break;
     case VFD              :  return "VFD";            	 break;
+    case Tachometer       :  return "Tachometer";     	 break;
     }
     return "NA";
 }
