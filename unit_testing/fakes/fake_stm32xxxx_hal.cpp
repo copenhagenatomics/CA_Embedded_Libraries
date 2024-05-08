@@ -36,6 +36,11 @@ HAL_StatusTypeDef HAL_WWDG_Refresh(WWDG_HandleTypeDef *hwwdg)
     return HAL_OK;
 }
 
+HAL_StatusTypeDef HAL_TIM_Base_Start(TIM_HandleTypeDef *htim) {
+    /* Do nothing */
+    return HAL_OK;
+}
+
 HAL_StatusTypeDef HAL_TIM_Base_Start_IT(TIM_HandleTypeDef *htim)
 {
     /* Do nothing */

@@ -69,6 +69,8 @@ extern "C" {
 
 #define __NOP()  0
 
+#define __HAL_TIM_GET_COUNTER(x) ((TIM_HandleTypeDef*)x)->CNT;
+
 /***************************************************************************************************
 ** PUBLIC TYPEDEFS
 ***************************************************************************************************/
@@ -89,9 +91,12 @@ typedef struct
     uint32_t CSR;            /*!< RCC clock control register,                                  Address offset: 0x00 */
 } RCC_TypeDef;
 
+typedef struct {
+    uint32_t CNT;
+} TIM_HandleTypeDef;
+
 typedef uint32_t CRC_HandleTypeDef;
 typedef uint32_t WWDG_HandleTypeDef;
-typedef uint32_t TIM_HandleTypeDef;
 typedef uint32_t SPI_HandleTypeDef;
 typedef uint32_t GPIO_TypeDef;
 
@@ -120,6 +125,7 @@ HAL_StatusTypeDef HAL_ADC_Start_DMA(ADC_HandleTypeDef* hadc, uint32_t* pData, ui
 HAL_StatusTypeDef HAL_WWDG_Refresh(WWDG_HandleTypeDef *hwwdg);
 
 /* TIM */
+HAL_StatusTypeDef HAL_TIM_Base_Start(TIM_HandleTypeDef *htim);
 HAL_StatusTypeDef HAL_TIM_Base_Start_IT(TIM_HandleTypeDef *htim);
 
 /* SPI */
