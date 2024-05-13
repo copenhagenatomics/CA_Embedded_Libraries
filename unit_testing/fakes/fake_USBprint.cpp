@@ -1,5 +1,5 @@
 /*!
-** @file   fake_USBprint.c
+** @file   fake_USBprint.cpp
 ** @author Luke W
 ** @date   22/01/2024
 */
