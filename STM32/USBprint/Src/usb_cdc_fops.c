@@ -131,11 +131,16 @@ ssize_t usb_cdc_transmit(const uint8_t* Buf, uint16_t Len)
 
     if (hcdc->TxState != 0)
     {
+        // If the buffer does not contain enough space to hold the message return.
+        if (circular_buf_size(usb_cdc_if.tx.ctx) < Len)
+        {
+            return -2;
+        }
         // USB CDC is transmitting data to the network. Leave transmit handling to CDC_TransmitCplt_FS
         for (int len = 0;len < Len; len++)
         {
             if (circular_buf_put(usb_cdc_if.tx.ctx, *Buf))
-                return len; // len < Len since not enough space in buffer. Leave error handling to caller.
+                return len; // len < Len since not enough space in buffer. Should never occur.
             Buf++;
         }
         return Len;
