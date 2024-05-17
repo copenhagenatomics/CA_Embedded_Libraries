@@ -15,38 +15,29 @@
 #include <string.h> /* memset */
 #include "circular_buffer.h"
 
-// The definition of our circular buffer structure is hidden from the user
-struct circular_buf_t {
-	uint8_t * buffer;
-	size_t head;
-	size_t tail;
-	size_t max;
-	bool full;
-};
-
 //#pragma mark - Private Functions -
 
 static void advance_pointer(cbuf_handle_t cbuf)
 {
-	assert(cbuf);
+    assert(cbuf);
 
-	if(circular_buf_full(cbuf))
+    if(circular_buf_full(cbuf))
     {
         cbuf->tail = (cbuf->tail + 1) % cbuf->max;
     }
 
-	cbuf->head = (cbuf->head + 1) % cbuf->max;
+    cbuf->head = (cbuf->head + 1) % cbuf->max;
 
-	// We mark full because we will advance tail on the next time around
-	cbuf->full = (cbuf->head == cbuf->tail);
+    // We mark full because we will advance tail on the next time around
+    cbuf->full = (cbuf->head == cbuf->tail);
 }
 
 static void retreat_pointer(cbuf_handle_t cbuf)
 {
-	assert(cbuf);
+    assert(cbuf);
 
-	cbuf->full = false;
-	cbuf->tail = (cbuf->tail + 1) % cbuf->max;
+    cbuf->full = false;
+    cbuf->tail = (cbuf->tail + 1) % cbuf->max;
 }
 
 cbuf_handle_t circular_buf_init(size_t size)
@@ -58,6 +49,18 @@ cbuf_handle_t circular_buf_init(size_t size)
     cbuf->buffer = malloc(size);
     assert(cbuf->buffer);
 
+    cbuf->max = size;
+    circular_buf_reset(cbuf);
+
+    assert(circular_buf_empty(cbuf));
+    return cbuf;
+}
+
+cbuf_handle_t circular_buf_init_static(circular_buf_t* cb, uint8_t* buf, size_t size) {
+    assert(size);
+
+    cbuf_handle_t cbuf = cb;
+    cbuf->buffer = buf;
     cbuf->max = size;
     circular_buf_reset(cbuf);
 
@@ -86,31 +89,31 @@ void circular_buf_reset(cbuf_handle_t cbuf)
 
 size_t circular_buf_size(cbuf_handle_t cbuf)
 {
-	assert(cbuf);
+    assert(cbuf);
 
-	size_t size = cbuf->max;
+    size_t size = cbuf->max;
 
-	if(!circular_buf_full(cbuf))
-	{
-		if(cbuf->head >= cbuf->tail)
-		{
-			size = (cbuf->head - cbuf->tail);
-		}
-		else
-		{
-			size = (cbuf->max + cbuf->head - cbuf->tail);
-		}
+    if(!circular_buf_full(cbuf))
+    {
+        if(cbuf->head >= cbuf->tail)
+        {
+            size = (cbuf->head - cbuf->tail);
+        }
+        else
+        {
+            size = (cbuf->max + cbuf->head - cbuf->tail);
+        }
 
-	}
+    }
 
-	return size;
+    return size;
 }
 
 size_t circular_buf_capacity(cbuf_handle_t cbuf)
 {
-	assert(cbuf);
+    assert(cbuf);
 
-	return cbuf->max;
+    return cbuf->max;
 }
 
 int circular_buf_put(cbuf_handle_t cbuf, uint8_t data)
@@ -148,14 +151,14 @@ int circular_buf_get(cbuf_handle_t cbuf, uint8_t * data)
 
 bool circular_buf_empty(cbuf_handle_t cbuf)
 {
-	assert(cbuf);
+    assert(cbuf);
 
     return (!circular_buf_full(cbuf) && (cbuf->head == cbuf->tail));
 }
 
 bool circular_buf_full(cbuf_handle_t cbuf)
 {
-	assert(cbuf);
+    assert(cbuf);
 
     return cbuf->full;
 }
