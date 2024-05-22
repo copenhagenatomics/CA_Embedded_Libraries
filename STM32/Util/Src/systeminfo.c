@@ -3,6 +3,7 @@
  */
 
 #include <stdio.h>
+#include <inttypes.h>
 
 #include "HAL_otp.h"
 #include "systemInfo.h"
@@ -43,9 +44,9 @@ static char buf[600] = { 0 };
     #define ID2 *((unsigned long *) (UID_BASE + 4U))
     #define ID3 *((unsigned long *) (UID_BASE + 8U))
 #else
-    #define ID1 0U
-    #define ID2 0U
-    #define ID3 0U
+    #define ID1 (unsigned long) 0U
+    #define ID2 (unsigned long) 0U
+    #define ID3 (unsigned long) 0U
 
     #define GIT_VERSION "0"
     #define GIT_DATE    "0"
@@ -211,7 +212,7 @@ const char* statusInfo(bool printStart)
     if (BS.usb)
     {
         len += snprintf(&buf[len], sizeof(buf) - len, 
-                        "USB. USB communication error 0x%08lx occurred most recently.\r\n", BS.usb);
+                        "USB. USB communication error 0x%08" PRIx32 " occurred most recently.\r\n", BS.usb);
         BS.usb = 0U;
     }
 
@@ -305,3 +306,29 @@ void setBoardCurrent(float current){ BS.current = current; }
 void setBoardUsbError(uint32_t err) {BS.usb = err; }
 void setFirmwareBoardType(BoardType type){ BS.boardType = type; }
 void setFirmwareBoardVersion(pcbVersion version){ BS.pcb_version = version; }
+
+/*!
+** @brief Sets the board type and version the firmware was compiled for
+**
+** If the board type/version does not match the value programmed in the OTP, this function sets the 
+** board status version error flag, and returns -1
+**
+** @param[in] type              Type of board, e.g. AC, DC, Current ...
+** @param[in] breaking_version  Oldest version of PCB this firmware can run on
+*/
+int boardSetup(BoardType type, pcbVersion breaking_version) {
+    setFirmwareBoardType(type);
+    setFirmwareBoardVersion(breaking_version);
+
+    BoardType board;
+    if (getBoardInfo(&board, NULL) || board != type) {
+        bsSetError(BS_VERSION_ERROR_Msk);
+    }
+
+    pcbVersion ver;
+    if (getPcbVersion(&ver) || ver.major < breaking_version.major || ver.minor < breaking_version.minor) {
+        bsSetError(BS_VERSION_ERROR_Msk);
+    }
+
+    return (bsGetStatus() & BS_VERSION_ERROR_Msk) ? -1 : 0;
+}

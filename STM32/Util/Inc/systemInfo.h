@@ -136,6 +136,11 @@ void setFirmwareBoardType(BoardType type);
 */
 void setFirmwareBoardVersion(pcbVersion version);
 
+/*!
+** @brief Sets the board type and version the firmware was compiled for
+*/
+int boardSetup(BoardType type, pcbVersion breaking_version);
+
 #ifdef __cplusplus
 }
 #endif
