@@ -65,7 +65,9 @@ extern "C" {
 #define __HAL_RCC_CLEAR_RESET_FLAGS() 0
 #define __HAL_RCC_GET_FLAG(x)         0
 
-#define RCC (&RCC_obj)
+#define RCC  (&RCC_obj)
+#define TIM4 (&TIM4_obj)
+#define TIM5 (&TIM5_obj)
 
 #define __NOP()  0
 
@@ -86,10 +88,16 @@ typedef struct ADC_HandleTypeDef
     uint32_t  dma_length;
 } ADC_HandleTypeDef;
 
-typedef struct
-{
+typedef struct {
     uint32_t CSR;            /*!< RCC clock control register,                                  Address offset: 0x00 */
 } RCC_TypeDef;
+
+typedef struct {
+    uint32_t CCR1;        /*!< TIM capture/compare register 1,      Address offset: 0x34 */
+    uint32_t CCR2;        /*!< TIM capture/compare register 2,      Address offset: 0x38 */
+    uint32_t CCR3;        /*!< TIM capture/compare register 3,      Address offset: 0x3C */
+    uint32_t CCR4;        /*!< TIM capture/compare register 4,      Address offset: 0x40 */
+} TIM_TypeDef;
 
 typedef struct {
     uint32_t CNT;
@@ -113,6 +121,8 @@ typedef enum
 ***************************************************************************************************/
 
 extern RCC_TypeDef RCC_obj;
+extern TIM_TypeDef TIM4_obj;
+extern TIM_TypeDef TIM5_obj;
 
 /***************************************************************************************************
 ** PUBLIC FUNCTIONS
