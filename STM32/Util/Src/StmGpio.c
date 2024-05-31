@@ -41,6 +41,7 @@ void stmGpioInit(StmGpio *ctx, GPIO_TypeDef* blk, uint16_t pin, StmGpioMode_t gp
                                 GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
                                 break;
     case STM_GPIO_INPUT_PULLUP: GPIO_InitStruct.Pull = GPIO_PULLUP;
+                                /* Fall through intentional */
     case STM_GPIO_INPUT:        GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
                                 break;
     }
