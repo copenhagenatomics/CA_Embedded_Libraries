@@ -33,19 +33,16 @@ void stmGpioInit(StmGpio *ctx, GPIO_TypeDef* blk, uint16_t pin, StmGpioMode_t gp
     ctx->toggle = togglePin;
 
     GPIO_InitTypeDef GPIO_InitStruct = {0};
+    GPIO_InitStruct.Pin = pin;
+    GPIO_InitStruct.Pull = GPIO_NOPULL;
     switch(gpioMode)
     {
-    case STM_GPIO_OUTPUT:
-        GPIO_InitStruct.Pin = pin;
-        GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-        GPIO_InitStruct.Pull = GPIO_NOPULL;
-        GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-        break;
-    case STM_GPIO_INPUT:
-        GPIO_InitStruct.Pin = pin;
-        GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-        GPIO_InitStruct.Pull = GPIO_NOPULL;
-        break;
+    case STM_GPIO_OUTPUT:       GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+                                GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+                                break;
+    case STM_GPIO_INPUT_PULLUP: GPIO_InitStruct.Pull = GPIO_PULLUP;
+    case STM_GPIO_INPUT:        GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
+                                break;
     }
     HAL_GPIO_Init(ctx->blk, &GPIO_InitStruct);
 }
