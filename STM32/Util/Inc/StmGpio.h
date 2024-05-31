@@ -35,7 +35,8 @@ typedef struct StmGpio
 typedef enum
 {
     STM_GPIO_OUTPUT,
-    STM_GPIO_INPUT
+    STM_GPIO_INPUT,
+    STM_GPIO_INPUT_PULLUP,
     // More to come, speed etc.
 } StmGpioMode_t;
 void stmGpioInit(StmGpio *ctx, GPIO_TypeDef* blk, uint16_t pin, StmGpioMode_t type);

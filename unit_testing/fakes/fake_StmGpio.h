@@ -36,7 +36,8 @@ typedef enum {
 typedef enum
 {
     STM_GPIO_OUTPUT,
-    STM_GPIO_INPUT
+    STM_GPIO_INPUT,
+    STM_GPIO_INPUT_PULLUP,
     // More to come, speed etc.
 } StmGpioMode_t;
 
