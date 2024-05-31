@@ -132,7 +132,7 @@ ssize_t usb_cdc_transmit(const uint8_t* Buf, uint16_t Len)
     if (hcdc->TxState != 0)
     {
         // If the buffer does not contain enough space to hold the message return.
-        if (circular_buf_size(usb_cdc_if.tx.ctx) < Len)
+        if (circular_buf_capacity(usb_cdc_if.tx.ctx) < Len)
         {
             return -2;
         }
