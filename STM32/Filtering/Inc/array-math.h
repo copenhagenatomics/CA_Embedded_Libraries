@@ -44,7 +44,8 @@ int mean_element(double arr[], unsigned len, double* result);
 /* Functions for moving average filters */
 int maInit(moving_avg_cbuf_handle_t p_ma, double* buf, unsigned len);
 double maMean(moving_avg_cbuf_handle_t p_ma, double newVal);
-double maVar(moving_avg_cbuf_handle_t p_ma, double newVal);
+double maVariance(moving_avg_cbuf_handle_t p_ma, double newVal);
+double maStdDeviation(moving_avg_cbuf_handle_t p_ma, double newVal);
 int cbInit(double_cbuf_handle_t p_cb, double* buf, unsigned len);
 void cbPush(double_cbuf_handle_t p_cb, double new_val);
 int cbMean(double_cbuf_handle_t p_cb, int elements, double* result);

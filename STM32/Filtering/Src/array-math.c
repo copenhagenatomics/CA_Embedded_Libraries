@@ -6,6 +6,7 @@
 **/
 
 #include "array-math.h"
+#include <math.h>
 
 /***************************************************************************************************
 ** PUBLIC FUNCTION DEFINITIONS
@@ -135,7 +136,7 @@ double maMean(moving_avg_cbuf_handle_t p_ma, double newVal)
 **              Theory: https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford's_online_algorithm
 **              Implementation: https://stackoverflow.com/a/6664212
 */
-double maVar(moving_avg_cbuf_handle_t p_ma, double newVal)
+double maVariance(moving_avg_cbuf_handle_t p_ma, double newVal)
 {
     // Keep track of the previous average
     static double avg = 0;
@@ -152,6 +153,11 @@ double maVar(moving_avg_cbuf_handle_t p_ma, double newVal)
 
     // Return variance
     return p_ma->varSum / (p_ma->cbuf_t.len - 1);
+}
+
+double maStdDeviation(moving_avg_cbuf_handle_t p_ma, double newVal)
+{
+    return sqrt(maVariance(p_ma, newVal));
 }
 
 /*!
