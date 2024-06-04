@@ -147,7 +147,10 @@ double maVariance(moving_avg_cbuf_handle_t p_ma, double newVal)
     // Compute moving average
     double newAvg = maMean(p_ma, newVal);
 
-    // Variance sum term
+    /* Variance sum term 
+     * Standard notation is p_ma->varSum += (newVal-avg)*(newVal-newAvg)-(x_old-avg)*(x_old-newAvg)
+     * The expression below is a computationally lighter equivalent.  
+     */
     p_ma->varSum += (newVal + x_old - avg - newAvg) * (newVal - x_old);
     avg = newAvg;
 
