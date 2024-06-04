@@ -88,6 +88,7 @@ int maInit(moving_avg_cbuf_handle_t p_ma, double* buf, unsigned len) {
     }
 
     p_ma->sum = 0;
+    p_ma->varSum = 0;
 
     return 0;
 }
@@ -121,6 +122,36 @@ double maMean(moving_avg_cbuf_handle_t p_ma, double newVal)
 
     // Return average
     return p_ma->sum / p_ma->cbuf_t.len;
+}
+
+/*!
+** @brief Computes the variance of an array using Welford's online algorithm.
+** @note The variance algorithm is equivalent to 
+**              var (X) = (1 / (N-1)) * SUM_i ((X(i) - mean(X))^2)
+**       Hence, it uses the unbiased (N-1) population variance, rather than the sample variance used in the references
+**       below. This will yield a more conservative estimate especially for smaller sample size.
+**
+**       Information about the algorithm can be found here: 
+**              Theory: https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford's_online_algorithm
+**              Implementation: https://stackoverflow.com/a/6664212
+*/
+double maVar(moving_avg_cbuf_handle_t p_ma, double newVal)
+{
+    // Keep track of the previous average
+    static double avg = 0;
+
+    // Oldest sample
+    double x_old = p_ma->cbuf_t.buffer[p_ma->cbuf_t.idx];
+
+    // Compute moving average
+    double newAvg = maMean(p_ma, newVal);
+
+    // Variance sum term
+    p_ma->varSum += (newVal + x_old - avg - newAvg) * (newVal - x_old);
+    avg = newAvg;
+
+    // Return variance
+    return p_ma->varSum / (p_ma->cbuf_t.len - 1);
 }
 
 /*!
