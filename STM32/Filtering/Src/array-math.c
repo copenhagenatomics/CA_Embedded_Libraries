@@ -155,6 +155,10 @@ double maVariance(moving_avg_cbuf_handle_t p_ma, double newVal)
     return p_ma->varSum / (p_ma->cbuf_t.len - 1);
 }
 
+/*!
+** @brief Computes the moving standard deviation of an array in a circular fashion.
+**        Details of implementation described in maVariance.
+*/
 double maStdDeviation(moving_avg_cbuf_handle_t p_ma, double newVal)
 {
     return sqrt(maVariance(p_ma, newVal));
