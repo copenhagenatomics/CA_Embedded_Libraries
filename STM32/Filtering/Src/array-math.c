@@ -140,19 +140,19 @@ double maVariance(moving_avg_cbuf_handle_t p_ma, double newVal)
 {
     // Keep track of the previous average
     static double avg = 0;
-
-    // Oldest sample
-    double x_old = p_ma->cbuf_t.buffer[p_ma->cbuf_t.idx];
+    static double x_prev = 0;
 
     // Compute moving average
     double newAvg = maMean(p_ma, newVal);
 
     /* Variance sum term 
-     * Standard notation is p_ma->varSum += (newVal-avg)*(newVal-newAvg)-(x_old-avg)*(x_old-newAvg)
+     * Standard notation is p_ma->varSum += (newVal-avg)*(newVal-newAvg)-(x_prev-avg)*(x_prev-newAvg)
      * The expression below is a computationally lighter equivalent.  
      */
-    p_ma->varSum += (newVal + x_old - avg - newAvg) * (newVal - x_old);
+    p_ma->varSum += (newVal + x_prev - avg - newAvg) * (newVal - x_prev);
+    
     avg = newAvg;
+    x_prev = newVal;
 
     // Return variance
     return p_ma->varSum / (p_ma->cbuf_t.len - 1);
