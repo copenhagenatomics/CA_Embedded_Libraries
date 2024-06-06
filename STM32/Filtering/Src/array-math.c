@@ -7,6 +7,7 @@
 
 #include "array-math.h"
 #include <math.h>
+#include <stdio.h>
 
 /***************************************************************************************************
 ** PUBLIC FUNCTION DEFINITIONS
@@ -90,6 +91,7 @@ int maInit(moving_avg_cbuf_handle_t p_ma, double* buf, unsigned len) {
 
     p_ma->sum = 0;
     p_ma->varSum = 0;
+    p_ma->mean = 0;
 
     return 0;
 }
@@ -106,20 +108,35 @@ void cbPush(double_cbuf_handle_t p_cb, double new_val) {
 }
 
 /*!
+** @brief Get the newest element of the circular buffer
+*/
+double cbGetHead(double_cbuf_handle_t p_cb) {
+    if (p_cb->idx == 0)
+    {
+        return p_cb->buffer[p_cb->len - 1];
+    }
+    return p_cb->buffer[p_cb->idx - 1];
+}
+
+/*!
+** @brief Get the oldest element of the circular buffer
+*/
+double cbGetTail(double_cbuf_handle_t p_cb) {
+    return p_cb->buffer[p_cb->idx];
+}
+
+/*!
 ** @brief Computes the moving average of an array in a circular fashion.
 */
-double maMean(moving_avg_cbuf_handle_t p_ma, double newVal)
+double maMean(moving_avg_cbuf_handle_t p_ma, double new_val)
 {
     // Update sum of array
-    p_ma->sum = p_ma->sum - p_ma->cbuf_t.buffer[p_ma->cbuf_t.idx] + newVal;
+    p_ma->sum = p_ma->sum - p_ma->cbuf_t.buffer[p_ma->cbuf_t.idx] + new_val;
     // Update value in array
-    p_ma->cbuf_t.buffer[p_ma->cbuf_t.idx] = newVal;    
-    // Update idx
-    p_ma->cbuf_t.idx++;
-    if (p_ma->cbuf_t.idx >= p_ma->cbuf_t.len)
-    {
-        p_ma->cbuf_t.idx = 0;
-    }
+    p_ma->cbuf_t.buffer[p_ma->cbuf_t.idx] = new_val;    
+
+    // Push new value onto buffer
+    cbPush(&p_ma->cbuf_t, new_val);
 
     // Return average
     return p_ma->sum / p_ma->cbuf_t.len;
@@ -129,42 +146,41 @@ double maMean(moving_avg_cbuf_handle_t p_ma, double newVal)
 ** @brief Computes the variance of an array using Welford's online algorithm.
 ** @note The variance algorithm is equivalent to 
 **              var (X) = (1 / (N-1)) * SUM_i ((X(i) - mean(X))^2)
-**       Hence, it uses the unbiased (N-1) population variance, rather than the sample variance used in the references
+**       Hence, it uses the unbiased (N-1) sample variance, rather than the population variance used in the references
 **       below. This will yield a more conservative estimate especially for smaller sample size.
 **
 **       Information about the algorithm can be found here: 
 **              Theory: https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford's_online_algorithm
 **              Implementation: https://stackoverflow.com/a/6664212
 */
-double maVariance(moving_avg_cbuf_handle_t p_ma, double newVal)
+double maVariance(moving_avg_cbuf_handle_t p_ma, double new_val)
 {
-    // Keep track of the previous average
-    static double avg = 0;
-    static double x_prev = 0;
+    double x_old = cbGetTail(&p_ma->cbuf_t);
 
-    // Compute moving average
-    double newAvg = maMean(p_ma, newVal);
+    // Moving average
+    double newMean = p_ma->mean + ((new_val - x_old)/p_ma->cbuf_t.len);
 
-    /* Variance sum term 
-     * Standard notation is p_ma->varSum += (newVal-avg)*(newVal-newAvg)-(x_prev-avg)*(x_prev-newAvg)
+    /* Variance numerator term 
+     * Standard notation is p_ma->varSum += (new_val-avg)*(new_val-newMean)-(x_old-avg)*(x_old-newMean)
      * The expression below is a computationally lighter equivalent.  
      */
-    p_ma->varSum += (newVal + x_prev - avg - newAvg) * (newVal - x_prev);
-    
-    avg = newAvg;
-    x_prev = newVal;
+    p_ma->varSum += (new_val + x_old - p_ma->mean - newMean) * (new_val - x_old);
+    p_ma->mean = newMean;
 
-    // Return variance
-    return p_ma->varSum / (p_ma->cbuf_t.len - 1);
+    // Push new value onto buffer
+    cbPush(&p_ma->cbuf_t, new_val);
+
+    // Return sample variance
+    return (p_ma->varSum / (p_ma->cbuf_t.len + 1));
 }
 
 /*!
 ** @brief Computes the moving standard deviation of an array in a circular fashion.
 **        Details of implementation described in maVariance.
 */
-double maStdDeviation(moving_avg_cbuf_handle_t p_ma, double newVal)
+double maStdDeviation(moving_avg_cbuf_handle_t p_ma, double new_val)
 {
-    return sqrt(maVariance(p_ma, newVal));
+    return sqrt(maVariance(p_ma, new_val));
 }
 
 /*!
