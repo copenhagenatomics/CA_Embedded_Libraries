@@ -139,7 +139,8 @@ double maMean(moving_avg_cbuf_handle_t p_ma, double new_val)
     cbPush(&p_ma->cbuf_t, new_val);
 
     // Return average
-    return p_ma->sum / p_ma->cbuf_t.len;
+    p_ma->mean = p_ma->sum / p_ma->cbuf_t.len;
+    return p_ma->mean;
 }
 
 /*!
@@ -156,22 +157,19 @@ double maMean(moving_avg_cbuf_handle_t p_ma, double new_val)
 double maVariance(moving_avg_cbuf_handle_t p_ma, double new_val)
 {
     double x_old = cbGetTail(&p_ma->cbuf_t);
+    double current_mean = p_ma->mean;
 
-    // Moving average
-    double newMean = p_ma->mean + ((new_val - x_old)/p_ma->cbuf_t.len);
+    // Moving average (new_val is pushed onto circular buffer in maMean)
+    double new_mean = maMean(p_ma, new_val);
 
     /* Variance numerator term 
      * Standard notation is p_ma->varSum += (new_val-avg)*(new_val-newMean)-(x_old-avg)*(x_old-newMean)
      * The expression below is a computationally lighter equivalent.  
      */
-    p_ma->varSum += (new_val + x_old - p_ma->mean - newMean) * (new_val - x_old);
-    p_ma->mean = newMean;
-
-    // Push new value onto buffer
-    cbPush(&p_ma->cbuf_t, new_val);
+    p_ma->varSum += (new_val + x_old - current_mean - new_mean) * (new_val - x_old);
 
     // Return sample variance
-    return (p_ma->varSum / (p_ma->cbuf_t.len + 1));
+    return (p_ma->varSum / (p_ma->cbuf_t.len - 1));
 }
 
 /*!
