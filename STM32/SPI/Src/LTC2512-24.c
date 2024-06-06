@@ -50,7 +50,7 @@ void enableDisableChannels(LTC2512Device *dev, int channel, bool onOff)
 
 int measureChannelA_IT(LTC2512Device *dev, uint8_t *buffer)
 {
-    if (HAL_SPI_Receive_IT(dev->hspia, RxBufferChA, 4) != HAL_OK)
+    if (HAL_SPI_Receive_IT(dev->hspia, buffer, 4) != HAL_OK)
         return 0xFFFFFFFF;    
     return 0;
 }
