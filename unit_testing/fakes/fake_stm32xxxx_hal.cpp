@@ -55,6 +55,12 @@ HAL_StatusTypeDef HAL_SPI_Receive(SPI_HandleTypeDef *hspi, uint8_t *pData, uint1
     return HAL_OK;
 }
 
+HAL_StatusTypeDef HAL_SPI_Receive_IT(SPI_HandleTypeDef *hspi, uint8_t *pData, uint16_t Size)
+{
+    /* Do nothing */
+    return HAL_OK;
+}
+
 void forceTick(uint32_t next_val)
 {
     force_tick = true;
