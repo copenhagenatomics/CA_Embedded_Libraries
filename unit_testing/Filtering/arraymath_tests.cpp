@@ -160,6 +160,67 @@ TEST_F(ArrayMathTest, testMvgAverage)
     EXPECT_EQ(avg, sum/len);
 }
 
+TEST_F(ArrayMathTest, testMvgVariance)
+{
+    unsigned int len = 5;
+    double testBuf[len] = {0};
+    moving_avg_cbuf_t test_cb;
+
+    /* Initialise moving average handle */
+    EXPECT_EQ(0, maInit(&test_cb, testBuf, len));
+
+    double tol = 1e-5;
+    double variance = 0;
+
+    /* Expected values found using Octave */
+    double expectedVariances[len] = {0.2, 0.8, 1.7, 2.5, 2.5};
+    for (int i = 0; i < len; i++)
+    {
+        variance = maVariance(&test_cb, i+1);
+        EXPECT_NEAR(variance, expectedVariances[i], tol);
+    }
+
+    /* Test that circular computation works - adding another sample wraps around*/
+    variance = maVariance(&test_cb, -1);
+    EXPECT_NEAR(variance, 5.3, tol);
+
+    /* Test that it can handle a 0 variance */
+    EXPECT_EQ(0, maInit(&test_cb, testBuf, len));
+    variance = maVariance(&test_cb, 0);
+    EXPECT_NEAR(variance, 0, tol);
+}
+
+TEST_F(ArrayMathTest, testMvgStdDeviation)
+{
+    unsigned int len = 5;
+    double testBuf[len] = {0};
+    moving_avg_cbuf_t test_cb;
+
+    /* Initialise moving average handle */
+    EXPECT_EQ(0, maInit(&test_cb, testBuf, len));
+
+    double tol = 1e-5;
+    double variance = 0;
+
+    /* Expected values found using Octave */
+    double expectedVariances[len] = {0.2, 0.8, 1.7, 2.5, 2.5};
+    for (int i = 0; i < len; i++)
+    {
+        variance = maStdDeviation(&test_cb, i+1);
+        EXPECT_NEAR(variance, sqrt(expectedVariances[i]), tol);
+    }
+
+    /* Test that circular computation works - adding another sample wraps around*/
+    variance = maStdDeviation(&test_cb, -1);
+    EXPECT_NEAR(variance, sqrt(5.3), tol);
+
+    /* Test that it can handle a 0 standard deviation */
+    EXPECT_EQ(0, maInit(&test_cb, testBuf, len));
+    variance = maStdDeviation(&test_cb, 0);
+    EXPECT_NEAR(variance, 0, tol);
+}
+
+
 TEST_F(ArrayMathTest, testCbInit)
 {
     double testBuf[100] = {0};

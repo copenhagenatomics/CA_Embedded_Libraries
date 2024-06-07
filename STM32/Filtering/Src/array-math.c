@@ -6,6 +6,8 @@
 **/
 
 #include "array-math.h"
+#include <math.h>
+#include <stdio.h>
 
 /***************************************************************************************************
 ** PUBLIC FUNCTION DEFINITIONS
@@ -88,6 +90,8 @@ int maInit(moving_avg_cbuf_handle_t p_ma, double* buf, unsigned len) {
     }
 
     p_ma->sum = 0;
+    p_ma->varSum = 0;
+    p_ma->mean = 0;
 
     return 0;
 }
@@ -104,23 +108,75 @@ void cbPush(double_cbuf_handle_t p_cb, double new_val) {
 }
 
 /*!
+** @brief Get the newest element of the circular buffer
+*/
+double cbGetHead(double_cbuf_handle_t p_cb) {
+    if (p_cb->idx == 0)
+    {
+        return p_cb->buffer[p_cb->len - 1];
+    }
+    return p_cb->buffer[p_cb->idx - 1];
+}
+
+/*!
+** @brief Get the oldest element of the circular buffer
+*/
+double cbGetTail(double_cbuf_handle_t p_cb) {
+    return p_cb->buffer[p_cb->idx];
+}
+
+/*!
 ** @brief Computes the moving average of an array in a circular fashion.
 */
-double maMean(moving_avg_cbuf_handle_t p_ma, double newVal)
+double maMean(moving_avg_cbuf_handle_t p_ma, double new_val)
 {
     // Update sum of array
-    p_ma->sum = p_ma->sum - p_ma->cbuf_t.buffer[p_ma->cbuf_t.idx] + newVal;
-    // Update value in array
-    p_ma->cbuf_t.buffer[p_ma->cbuf_t.idx] = newVal;    
-    // Update idx
-    p_ma->cbuf_t.idx++;
-    if (p_ma->cbuf_t.idx >= p_ma->cbuf_t.len)
-    {
-        p_ma->cbuf_t.idx = 0;
-    }
+    p_ma->sum = p_ma->sum - cbGetTail(&p_ma->cbuf_t) + new_val;
+    
+    // Push new value onto buffer
+    cbPush(&p_ma->cbuf_t, new_val);
 
     // Return average
-    return p_ma->sum / p_ma->cbuf_t.len;
+    p_ma->mean = p_ma->sum / p_ma->cbuf_t.len;
+    return p_ma->mean;
+}
+
+/*!
+** @brief Computes the variance of an array using Welford's online algorithm.
+** @note The variance algorithm is equivalent to 
+**              var (X) = (1 / (N-1)) * SUM_i ((X(i) - mean(X))^2)
+**       Hence, it uses the unbiased (N-1) sample variance (Bessel's correction), rather than the population variance 
+**       used in the references below. This will yield a more conservative estimate especially for smaller sample size.
+**
+**       Information about the algorithm can be found here: 
+**              Theory: https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford's_online_algorithm
+**              Implementation: https://stackoverflow.com/a/6664212
+*/
+double maVariance(moving_avg_cbuf_handle_t p_ma, double new_val)
+{
+    double x_old = cbGetTail(&p_ma->cbuf_t);
+    double current_mean = p_ma->mean;
+
+    // Moving average (new_val is pushed onto circular buffer in maMean)
+    double new_mean = maMean(p_ma, new_val);
+
+    /* Variance numerator term 
+     * Standard notation is p_ma->varSum += (new_val-avg)*(new_val-newMean)-(x_old-avg)*(x_old-newMean)
+     * The expression below is a computationally lighter equivalent.  
+     */
+    p_ma->varSum += (new_val + x_old - current_mean - new_mean) * (new_val - x_old);
+
+    // Return sample variance (using Bessel's correction)
+    return (p_ma->varSum / (p_ma->cbuf_t.len - 1));
+}
+
+/*!
+** @brief Computes the moving standard deviation of an array in a circular fashion.
+**        Details of implementation described in maVariance.
+*/
+double maStdDeviation(moving_avg_cbuf_handle_t p_ma, double new_val)
+{
+    return sqrt(maVariance(p_ma, new_val));
 }
 
 /*!
