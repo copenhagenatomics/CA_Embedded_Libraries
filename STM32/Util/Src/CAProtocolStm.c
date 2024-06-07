@@ -42,7 +42,15 @@ void CAPrintHeader()
 
 void CAPrintStatus(bool printStart)
 {
+    if(printStart) {
+        USBnprintf("Start of Status");
+    }
+
     USBnprintf(statusInfo(printStart));
+
+    if(!printStart) {
+        USBnprintf("End of Status");
+    }
 }
 
 void CAotpRead()
