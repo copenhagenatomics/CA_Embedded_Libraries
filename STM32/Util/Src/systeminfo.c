@@ -163,13 +163,13 @@ const char* statusInfo(bool printStart)
         return buf;
     }
 
+    len += snprintf(&buf[len], sizeof(buf) - len, "Start of board status:\r\n");
     if (!(BS.boardStatus & BS_ERROR_Msk))
     {
-        len += snprintf(&buf[len], sizeof(buf) - len, "Board Status:\r\nThe board is operating normally.\r\n");
+        len += snprintf(&buf[len], sizeof(buf) - len, "The board is operating normally.\r\n");
         return buf;
     } 
-    len += snprintf(&buf[len], sizeof(buf) - len, "Board Status:\r\n");
-
+    
     if (BS.boardStatus & BS_OVER_TEMPERATURE_Msk)
     {
         len += snprintf(&buf[len], sizeof(buf) - len, 
