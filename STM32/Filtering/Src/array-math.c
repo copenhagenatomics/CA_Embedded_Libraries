@@ -131,10 +131,8 @@ double cbGetTail(double_cbuf_handle_t p_cb) {
 double maMean(moving_avg_cbuf_handle_t p_ma, double new_val)
 {
     // Update sum of array
-    p_ma->sum = p_ma->sum - p_ma->cbuf_t.buffer[p_ma->cbuf_t.idx] + new_val;
-    // Update value in array
-    p_ma->cbuf_t.buffer[p_ma->cbuf_t.idx] = new_val;    
-
+    p_ma->sum = p_ma->sum - cbGetTail(&p_ma->cbuf_t) + new_val;
+    
     // Push new value onto buffer
     cbPush(&p_ma->cbuf_t, new_val);
 
@@ -147,8 +145,8 @@ double maMean(moving_avg_cbuf_handle_t p_ma, double new_val)
 ** @brief Computes the variance of an array using Welford's online algorithm.
 ** @note The variance algorithm is equivalent to 
 **              var (X) = (1 / (N-1)) * SUM_i ((X(i) - mean(X))^2)
-**       Hence, it uses the unbiased (N-1) sample variance, rather than the population variance used in the references
-**       below. This will yield a more conservative estimate especially for smaller sample size.
+**       Hence, it uses the unbiased (N-1) sample variance (Bessel's correction), rather than the population variance 
+**       used in the references below. This will yield a more conservative estimate especially for smaller sample size.
 **
 **       Information about the algorithm can be found here: 
 **              Theory: https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford's_online_algorithm
@@ -168,7 +166,7 @@ double maVariance(moving_avg_cbuf_handle_t p_ma, double new_val)
      */
     p_ma->varSum += (new_val + x_old - current_mean - new_mean) * (new_val - x_old);
 
-    // Return sample variance
+    // Return sample variance (using Bessel's correction)
     return (p_ma->varSum / (p_ma->cbuf_t.len - 1));
 }
 
