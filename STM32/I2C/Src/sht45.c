@@ -34,7 +34,7 @@ static int checkCRC(uint8_t *buffer)
     return 0;
 }
 
-HAL_StatusTypeDef sht4x_set_mode(sht4x_handle_t *handle, sht4x_command_t command){
+HAL_StatusTypeDef sht4x_set_mode(sht4x_handle_t *handle, uint8_t command){
 
     if (HAL_I2C_Master_Transmit(handle->hi2c, handle->device_address << 1u, command, 1, 10) != HAL_OK) {
         return HAL_BUSY;
@@ -45,14 +45,14 @@ HAL_StatusTypeDef sht4x_set_mode(sht4x_handle_t *handle, sht4x_command_t command
 HAL_StatusTypeDef sht4x_soft_reset(sht4x_handle_t *handle)
 {
     // Soft reset the chip
-    sht4x_set_mode(handle, SHT4X_COMMAND_SOFT_RESET);
+    sht4x_set_mode(handle, SHT4X_SOFT_RESET);
 }
 
 
 HAL_StatusTypeDef sht4x_get_serial(sht4x_handle_t *handle, uint32_t *serial_number)
 {
     // Send serial read command to output serial from SHT45 at next read 
-    sht4x_set_mode(handle, SHT4X_COMMAND_READ_SERIAL);
+    sht4x_set_mode(handle, SHT4X_READ_SERIAL);
 
     uint8_t buffer[6];
     ret = HAL_I2C_Master_Receive(handle->hi2c, handle->device_address << 1u, buffer, sizeof(buffer), 50);
@@ -72,7 +72,7 @@ HAL_StatusTypeDef sht4x_get_serial(sht4x_handle_t *handle, uint32_t *serial_numb
 HAL_StatusTypeDef sht4x_get_measurement(sht4x_handle_t *handle, float *temperature, float *humidity){
     
     // Send measurement command to output temp and humidity from SHT45 at next read 
-    sht4x_set_mode(handle, SHT4X_COMMAND_MEASURE_HIGHREP);
+    sht4x_set_mode(handle, SHT4X_MEASURE_HIGHREP);
 
     uint8_t buffer[6];
     ret = HAL_I2C_Master_Receive(handle->hi2c, handle->device_address << 1u, buffer, sizeof(buffer), 50);
