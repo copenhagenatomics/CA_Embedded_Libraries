@@ -10,7 +10,8 @@
 #include "sht45.h"
 
 // CRC parameters can be found in section 4.4 of the datasheet 
-static uint8_t calculate_crc(const uint8_t *data, size_t length){
+static uint8_t calculate_crc(const uint8_t *data, size_t length)
+{
     uint8_t crc = 0xff;
     for (size_t i = 0; i < length; i++) {
         crc ^= data[i];
@@ -34,7 +35,8 @@ static int checkCRC(uint8_t *buffer)
     return 0;
 }
 
-HAL_StatusTypeDef sht4x_set_mode(sht4x_handle_t *handle, uint8_t command){
+HAL_StatusTypeDef sht4x_set_mode(sht4x_handle_t *handle, uint8_t command)
+{
 
     if (HAL_I2C_Master_Transmit(handle->hi2c, handle->device_address << 1u, command, 1, 10) != HAL_OK) {
         return HAL_BUSY;
@@ -48,6 +50,13 @@ HAL_StatusTypeDef sht4x_soft_reset(sht4x_handle_t *handle)
     sht4x_set_mode(handle, SHT4X_SOFT_RESET);
 }
 
+HAL_StatusTypeDef sht4x_abort_command(sht4x_handle_t *handle)
+{
+    if (HAL_I2C_Master_Transmit(handle->hi2c, 0x00, SHT4X_ABORT_CALL, 1, 10) != HAL_OK) {
+        return HAL_BUSY;
+    }
+    return HAL_OK;
+}
 
 HAL_StatusTypeDef sht4x_get_serial(sht4x_handle_t *handle, uint32_t *serial_number)
 {
@@ -69,8 +78,8 @@ HAL_StatusTypeDef sht4x_get_serial(sht4x_handle_t *handle, uint32_t *serial_numb
     return HAL_OK;
 }
 
-HAL_StatusTypeDef sht4x_get_measurement(sht4x_handle_t *handle, float *temperature, float *humidity){
-    
+HAL_StatusTypeDef sht4x_get_measurement(sht4x_handle_t *handle, float *temperature, float *humidity)
+{
     // Send measurement command to output temp and humidity from SHT45 at next read 
     sht4x_set_mode(handle, SHT4X_MEASURE_HIGHREP);
 
@@ -93,5 +102,36 @@ HAL_StatusTypeDef sht4x_get_measurement(sht4x_handle_t *handle, float *temperatu
     *temperature = -45.0f + 175.0f * temperature_adc / 65535.0f;
     *humidity = -6.0f + 125.0f * humidity_adc / 65535.0f;
 
+    return HAL_OK;
+}
+
+HAL_StatusTypeDef sht4x_turn_on_heater(sht4x_handle_t *handle, sht4x_heater_program program)
+{
+    HAL_StatusTypeDef ret = HAL_OK;
+    
+    switch (program)
+    {
+    case HEATER_200mW_1s:
+        ret = sht4x_set_mode(handle, SHT4X_HEATER_200mW_1s);
+        break;
+    case HEATER_200mW_100ms:
+        ret = sht4x_set_mode(handle, SHT4X_HEATER_200mW_100ms);
+        break;
+    case HEATER_110mW_1s:
+        ret = sht4x_set_mode(handle, SHT4X_HEATER_110mW_1s);
+        break;
+    case HEATER_110mW_100ms:
+        ret = sht4x_set_mode(handle, SHT4X_HEATER_110mW_100ms);
+        break;
+    case HEATER_20mW_1s:
+        ret = sht4x_set_mode(handle, SHT4X_HEATER_20mW_1s);
+        break;
+    case HEATER_20mW_100ms:
+        ret = sht4x_set_mode(handle, SHT4X_HEATER_20mW_100ms);
+        break;
+    default:
+        ret = HAL_ERROR;
+        break;
+    }
     return HAL_OK;
 }
