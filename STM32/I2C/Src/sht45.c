@@ -9,6 +9,10 @@
 
 #include "sht45.h"
 
+/***************************************************************************************************
+** PRIVATE FUNCTIONS
+***************************************************************************************************/
+
 // CRC parameters can be found in section 4.4 of the datasheet 
 static uint8_t calculate_crc(const uint8_t *data, size_t length)
 {
@@ -35,7 +39,7 @@ static int checkCRC(uint8_t *buffer)
     return 0;
 }
 
-HAL_StatusTypeDef sht4x_set_mode(sht4x_handle_t *handle, uint8_t command)
+static HAL_StatusTypeDef sht4x_set_mode(sht4x_handle_t *handle, uint8_t command)
 {
 
     if (HAL_I2C_Master_Transmit(handle->hi2c, handle->device_address << 1u, command, 1, 10) != HAL_OK) {
@@ -43,6 +47,10 @@ HAL_StatusTypeDef sht4x_set_mode(sht4x_handle_t *handle, uint8_t command)
     }
     return HAL_OK;
 }
+
+/***************************************************************************************************
+** PUBLIC FUNCTIONS
+***************************************************************************************************/
 
 HAL_StatusTypeDef sht4x_soft_reset(sht4x_handle_t *handle)
 {

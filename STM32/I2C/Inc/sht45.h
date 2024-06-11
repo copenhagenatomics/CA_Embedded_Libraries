@@ -15,12 +15,17 @@
 #elif defined(STM32H753xx)
 #include "stm32h7xx_hal.h"
 #endif
+
 #include <stdint.h>
+
+/***************************************************************************************************
+** DEFINES
+***************************************************************************************************/
 
 // I2C addresses for SHT45 devices
 #define SHT45_I2C_ADDR              0x44
 
-// Valid commands can be found in section 4.5 of the datasheet
+// List of valid commands (Section 4.5 of the datasheet)
 #define SHT4X_MEASURE_HIGHREP       0xFD
 #define SHT4X_MEASURE_MEDREP        0xF6
 #define SHT4X_MEASURE_LOWREP        0xE0
@@ -34,10 +39,18 @@
 #define SHT4X_HEATER_20mW_100ms     0x15
 #define SHT4X_ABORT_CALL            0x06
 
+/***************************************************************************************************
+** TYPEDEFS
+***************************************************************************************************/
+
 typedef struct {
     I2C_HandleTypeDef *hi2c;
     uint16_t device_address;
 } sht4x_handle_t;
+
+/***************************************************************************************************
+** PUBLIC FUNCTION DECLARATIONS
+***************************************************************************************************/
 
 HAL_StatusTypeDef sht4x_soft_reset(sht4x_handle_t *handle);
 HAL_StatusTypeDef sht4x_abort_command(sht4x_handle_t *handle);
