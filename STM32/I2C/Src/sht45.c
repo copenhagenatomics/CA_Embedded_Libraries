@@ -47,7 +47,7 @@ HAL_StatusTypeDef sht4x_set_mode(sht4x_handle_t *handle, uint8_t command)
 HAL_StatusTypeDef sht4x_soft_reset(sht4x_handle_t *handle)
 {
     // Soft reset the chip
-    sht4x_set_mode(handle, SHT4X_SOFT_RESET);
+    return sht4x_set_mode(handle, SHT4X_SOFT_RESET);
 }
 
 HAL_StatusTypeDef sht4x_abort_command(sht4x_handle_t *handle)
@@ -105,33 +105,7 @@ HAL_StatusTypeDef sht4x_get_measurement(sht4x_handle_t *handle, float *temperatu
     return HAL_OK;
 }
 
-HAL_StatusTypeDef sht4x_turn_on_heater(sht4x_handle_t *handle, sht4x_heater_program program)
+HAL_StatusTypeDef sht4x_turn_on_heater(sht4x_handle_t *handle, uint8_t heating_program)
 {
-    HAL_StatusTypeDef ret = HAL_OK;
-    
-    switch (program)
-    {
-    case HEATER_200mW_1s:
-        ret = sht4x_set_mode(handle, SHT4X_HEATER_200mW_1s);
-        break;
-    case HEATER_200mW_100ms:
-        ret = sht4x_set_mode(handle, SHT4X_HEATER_200mW_100ms);
-        break;
-    case HEATER_110mW_1s:
-        ret = sht4x_set_mode(handle, SHT4X_HEATER_110mW_1s);
-        break;
-    case HEATER_110mW_100ms:
-        ret = sht4x_set_mode(handle, SHT4X_HEATER_110mW_100ms);
-        break;
-    case HEATER_20mW_1s:
-        ret = sht4x_set_mode(handle, SHT4X_HEATER_20mW_1s);
-        break;
-    case HEATER_20mW_100ms:
-        ret = sht4x_set_mode(handle, SHT4X_HEATER_20mW_100ms);
-        break;
-    default:
-        ret = HAL_ERROR;
-        break;
-    }
-    return HAL_OK;
+    return sht4x_set_mode(handle, heating_program);
 }
