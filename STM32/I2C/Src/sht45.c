@@ -13,7 +13,10 @@
 ** PRIVATE FUNCTIONS
 ***************************************************************************************************/
 
-// CRC parameters can be found in section 4.4 of the datasheet 
+/*!
+** @brief Computes CRC of incoming data
+** @note CRC parameters can be found in section 4.4 of the datasheet 
+*/
 static uint8_t calculate_crc(const uint8_t *data, size_t length)
 {
     uint8_t crc = 0xff;
@@ -30,6 +33,10 @@ static uint8_t calculate_crc(const uint8_t *data, size_t length)
     return crc;
 }
 
+/*!
+** @brief Compares computed and received CRCs
+** @note For every transfer there are two CRCs.
+*/
 static int checkCRC(uint8_t *buffer)
 {
     // Ensure data is valid
@@ -39,6 +46,9 @@ static int checkCRC(uint8_t *buffer)
     return 0;
 }
 
+/*!
+** @brief Function to send any valid command to SHT4x chip (except for abort call)
+*/
 static HAL_StatusTypeDef sht4x_set_mode(sht4x_handle_t *handle, uint8_t command)
 {
 
@@ -52,12 +62,19 @@ static HAL_StatusTypeDef sht4x_set_mode(sht4x_handle_t *handle, uint8_t command)
 ** PUBLIC FUNCTIONS
 ***************************************************************************************************/
 
+/*!
+** @brief Soft reset of SHT4x chip
+** @note Soft reset takes approximately 1ms
+*/
 HAL_StatusTypeDef sht4x_soft_reset(sht4x_handle_t *handle)
 {
     // Soft reset the chip
     return sht4x_set_mode(handle, SHT4X_SOFT_RESET);
 }
 
+/*!
+** @brief Abort any ongoing command or heating process
+*/
 HAL_StatusTypeDef sht4x_abort_command(sht4x_handle_t *handle)
 {
     if (HAL_I2C_Master_Transmit(handle->hi2c, 0x00, SHT4X_ABORT_CALL, 1, 10) != HAL_OK) {
@@ -66,6 +83,10 @@ HAL_StatusTypeDef sht4x_abort_command(sht4x_handle_t *handle)
     return HAL_OK;
 }
 
+/*!
+** @brief Get serial number of SHT4x chip
+** @param serial_number: pointer to uint32_t
+*/
 HAL_StatusTypeDef sht4x_get_serial(sht4x_handle_t *handle, uint32_t *serial_number)
 {
     // Send serial read command to output serial from SHT45 at next read 
@@ -86,13 +107,18 @@ HAL_StatusTypeDef sht4x_get_serial(sht4x_handle_t *handle, uint32_t *serial_numb
     return HAL_OK;
 }
 
+/*!
+** @brief Get temperature and RH% measurement
+** @param temperature: pointer to float
+**        humidity:    pointer to float
+*/
 HAL_StatusTypeDef sht4x_get_measurement(sht4x_handle_t *handle, float *temperature, float *humidity)
 {
     // Send measurement command to output temp and humidity from SHT45 at next read 
     sht4x_set_mode(handle, SHT4X_MEASURE_HIGHREP);
 
     uint8_t buffer[6];
-    ret = HAL_I2C_Master_Receive(handle->hi2c, handle->device_address << 1u, buffer, sizeof(buffer), 50);
+    HAL_StatusTypeDef ret = HAL_I2C_Master_Receive(handle->hi2c, handle->device_address << 1u, buffer, sizeof(buffer), 50);
     if(ret != HAL_OK) {
         return ret;
     }
@@ -113,6 +139,17 @@ HAL_StatusTypeDef sht4x_get_measurement(sht4x_handle_t *handle, float *temperatu
     return HAL_OK;
 }
 
+/*!
+** @brief Turn on heating cycle
+** @param heating_program: Valid inputs can be found in sht45.h in defines of the form
+**                         SHT4x_HEATER_*.
+**                         Available heater powers: 20, 110, 200mW
+**                         Available heater durations: 100ms, 1s
+** @note The maximum duty cycle of the heater is 10%. Should only be used in ambient temperatures
+**       of <65C.  
+**       At the end of the heater cycle a new measurement is available. The user is responsible for
+**       waiting for heater duration + 10% before requesting the next measurement.
+*/
 HAL_StatusTypeDef sht4x_turn_on_heater(sht4x_handle_t *handle, uint8_t heating_program)
 {
     return sht4x_set_mode(handle, heating_program);
