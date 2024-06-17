@@ -42,13 +42,6 @@
 ** TYPEDEFS
 ***************************************************************************************************/
 
-typedef enum {
-    SET_MODE,
-    MEASURE_DATA,
-    HEAT_CYCLE,
-    SOFT_RESET
-} sht4x_status;
-
 typedef struct {
     float temperature;
     float relative_humidity;
@@ -60,7 +53,6 @@ typedef struct {
     uint8_t device_address;     // 0x44
     uint32_t serial_number;
     sht4x_data data;
-    sht4x_status status;
 } sht4x_handle_t;
 
 /***************************************************************************************************
