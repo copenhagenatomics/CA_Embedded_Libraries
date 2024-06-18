@@ -66,32 +66,6 @@ static HAL_StatusTypeDef sht4x_set_mode(sht4x_handle_t *dev, uint8_t command)
     return HAL_OK;
 }
 
-/*!
-** @brief Choose measurement mode and add corresponding delay
-*/
-HAL_StatusTypeDef sht4x_set_measurement_mode(sht4x_handle_t *dev, uint8_t command)
-{
-    HAL_StatusTypeDef ret = HAL_ERROR;
-    switch (command)
-    {
-    case SHT4X_MEASURE_HIGHREP:
-        ret = sht4x_set_mode(dev, SHT4X_MEASURE_HIGHREP);
-        HAL_Delay(9);   // Max duration of operation = 8.3 ms
-        break;
-    case SHT4X_MEASURE_MEDREP:
-        ret = sht4x_set_mode(dev, SHT4X_MEASURE_MEDREP);
-        HAL_Delay(5);   // Max duration of operation = 4.5 ms
-        break;
-    case SHT4X_MEASURE_LOWREP:
-        ret = sht4x_set_mode(dev, SHT4X_MEASURE_LOWREP);
-        HAL_Delay(2);   // Max duration of operation = 1.6 ms
-        break;
-    default:
-        break;
-    }
-    return ret;
-}
-
 /***************************************************************************************************
 ** PUBLIC FUNCTIONS
 ***************************************************************************************************/
@@ -123,8 +97,9 @@ HAL_StatusTypeDef sht4x_abort_command(sht4x_handle_t *dev)
 */
 HAL_StatusTypeDef sht4x_get_serial(sht4x_handle_t *dev)
 {
+    HAL_StatusTypeDef ret = HAL_ERROR;
     // Send serial read command to output serial from SHT45 at next read 
-    HAL_StatusTypeDef ret = sht4x_set_mode(dev, SHT4X_READ_SERIAL);
+    ret = sht4x_set_mode(dev, SHT4X_READ_SERIAL);
     HAL_Delay(1);
 
     if(ret != HAL_OK) {
@@ -132,7 +107,7 @@ HAL_StatusTypeDef sht4x_get_serial(sht4x_handle_t *dev)
     }
 
     uint8_t buffer[6];
-    ret = HAL_I2C_Master_Receive(dev->hi2c, dev->device_address << 1u, buffer, sizeof(buffer), 1);
+    ret = HAL_I2C_Master_Receive(dev->hi2c, dev->device_address << 1u, buffer, sizeof(buffer), 2);
     if(ret != HAL_OK) {
         return ret;
     }
@@ -154,17 +129,10 @@ HAL_StatusTypeDef sht4x_get_serial(sht4x_handle_t *dev)
 /*!
 ** @brief Get temperature and RH% measurement
 */
-HAL_StatusTypeDef sht4x_get_measurement(sht4x_handle_t *dev, uint8_t command)
-{
-    // Send measurement command to output temp and humidity from SHT45 at next read 
-    HAL_StatusTypeDef ret = sht4x_set_measurement_mode(dev, command);
-    
-    if(ret != HAL_OK) {
-        return ret;
-    }
-    
+HAL_StatusTypeDef sht4x_get_measurement(sht4x_handle_t *dev)
+{   
     uint8_t buffer[6];
-    ret = HAL_I2C_Master_Receive(dev->hi2c, dev->device_address << 1u, buffer, sizeof(buffer), 1);
+    HAL_StatusTypeDef ret = HAL_I2C_Master_Receive(dev->hi2c, dev->device_address << 1u, buffer, sizeof(buffer), 2);
     
     if(ret != HAL_OK) {
         return ret;
@@ -200,9 +168,24 @@ HAL_StatusTypeDef sht4x_get_measurement(sht4x_handle_t *dev, uint8_t command)
 }
 
 /*!
+** @brief Choose measurement mode
+** @param heating_program: Valid inputs can be found in sht45.h in defines of the form
+**                         SHT4X_MEASURE_*.
+** @note The user is responsible for waiting the time it takes for a specific conversion
+**       before calling the sht4x_get_measurement(sht4x_handle_t *dev)
+**          SHT4X_MEASURE_HIGHREP       Max conversion time 8.3 ms
+**          SHT4X_MEASURE_MEDREP        Max conversion time 4.5 ms
+**          SHT4X_MEASURE_LOWREP        Max conversion time 1.6 ms
+*/
+HAL_StatusTypeDef sht4x_initiate_measurement(sht4x_handle_t *dev, uint8_t command)
+{
+    return sht4x_set_mode(dev, command);
+}
+
+/*!
 ** @brief Turn on heating cycle
 ** @param heating_program: Valid inputs can be found in sht45.h in defines of the form
-**                         SHT4x_HEATER_*.
+**                         SHT4X_HEATER_*.
 **                         Available heater powers: 20, 110, 200mW
 **                         Available heater durations: 100ms, 1s
 ** @note The maximum duty cycle of the heater is 10%. Should only be used in ambient temperatures

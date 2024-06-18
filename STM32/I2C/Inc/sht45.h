@@ -62,7 +62,8 @@ typedef struct {
 HAL_StatusTypeDef sht4x_soft_reset(sht4x_handle_t *dev);
 HAL_StatusTypeDef sht4x_abort_command(sht4x_handle_t *dev);
 HAL_StatusTypeDef sht4x_get_serial(sht4x_handle_t *dev);
-HAL_StatusTypeDef sht4x_get_measurement(sht4x_handle_t *dev, uint8_t command);
+HAL_StatusTypeDef sht4x_get_measurement(sht4x_handle_t *dev);
+HAL_StatusTypeDef sht4x_initiate_measurement(sht4x_handle_t *dev, uint8_t command);
 HAL_StatusTypeDef sht4x_turn_on_heater(sht4x_handle_t *dev, uint8_t heating_program);
 
 #endif /* INC_SHT45_H_ */
