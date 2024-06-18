@@ -11,6 +11,15 @@
 #include <math.h>
 
 /***************************************************************************************************
+** PRIVATE FUNCTION PROTOTYPES
+***************************************************************************************************/
+
+static uint8_t calculate_crc(const uint8_t *data, size_t length);
+static int checkCRC(uint8_t *buffer);
+static void relativeToAbsolute(sht4x_handle_t *dev);
+static HAL_StatusTypeDef sht4x_set_mode(sht4x_handle_t *dev, uint8_t command);
+
+/***************************************************************************************************
 ** PRIVATE FUNCTIONS
 ***************************************************************************************************/
 
