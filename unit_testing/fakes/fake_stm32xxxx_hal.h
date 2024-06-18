@@ -8,7 +8,7 @@
 #ifndef __STM32xxxx_HAL_H
 #define __STM32xxxx_HAL_H
 #define __STM32F4xx_HAL_H
-#define __STM32H7xx_HAL_H
+#define STM32H7xx_HAL_H
 
 #include <stdint.h>
 
