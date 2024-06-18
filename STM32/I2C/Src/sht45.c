@@ -60,7 +60,7 @@ static void relativeToAbsolute(sht4x_handle_t *dev)
 */
 static HAL_StatusTypeDef sht4x_set_mode(sht4x_handle_t *dev, uint8_t command)
 {
-    if (HAL_I2C_Master_Transmit(dev->hi2c, dev->device_address << 1u, &command, 1, 10) != HAL_OK) {
+    if (HAL_I2C_Master_Transmit(dev->hi2c, dev->device_address << 1u, &command, 1, 1) != HAL_OK) {
         return HAL_BUSY;
     }
     return HAL_OK;
@@ -111,7 +111,7 @@ HAL_StatusTypeDef sht4x_soft_reset(sht4x_handle_t *dev)
 HAL_StatusTypeDef sht4x_abort_command(sht4x_handle_t *dev)
 {
     static uint8_t abort_call = 0x06;
-    if (HAL_I2C_Master_Transmit(dev->hi2c, 0x00, &abort_call, 1, 10) != HAL_OK) {
+    if (HAL_I2C_Master_Transmit(dev->hi2c, 0x00, &abort_call, 1, 1) != HAL_OK) {
         return HAL_BUSY;
     }
     return HAL_OK;
@@ -123,9 +123,8 @@ HAL_StatusTypeDef sht4x_abort_command(sht4x_handle_t *dev)
 */
 HAL_StatusTypeDef sht4x_get_serial(sht4x_handle_t *dev)
 {
-    HAL_StatusTypeDef ret = HAL_ERROR;
     // Send serial read command to output serial from SHT45 at next read 
-    ret = sht4x_set_mode(dev, SHT4X_READ_SERIAL);
+    HAL_StatusTypeDef ret = sht4x_set_mode(dev, SHT4X_READ_SERIAL);
     HAL_Delay(1);
 
     if(ret != HAL_OK) {
@@ -133,7 +132,7 @@ HAL_StatusTypeDef sht4x_get_serial(sht4x_handle_t *dev)
     }
 
     uint8_t buffer[6];
-    ret = HAL_I2C_Master_Receive(dev->hi2c, dev->device_address << 1u, buffer, sizeof(buffer), 50);
+    ret = HAL_I2C_Master_Receive(dev->hi2c, dev->device_address << 1u, buffer, sizeof(buffer), 1);
     if(ret != HAL_OK) {
         return ret;
     }
@@ -166,7 +165,7 @@ HAL_StatusTypeDef sht4x_get_measurement(sht4x_handle_t *dev, uint8_t command)
     }
     
     uint8_t buffer[6];
-    ret = HAL_I2C_Master_Receive(dev->hi2c, dev->device_address << 1u, buffer, sizeof(buffer), 50);
+    ret = HAL_I2C_Master_Receive(dev->hi2c, dev->device_address << 1u, buffer, sizeof(buffer), 1);
     
     if(ret != HAL_OK) {
         return ret;
