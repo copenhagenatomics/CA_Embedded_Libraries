@@ -156,9 +156,8 @@ HAL_StatusTypeDef sht4x_get_serial(sht4x_handle_t *dev)
 */
 HAL_StatusTypeDef sht4x_get_measurement(sht4x_handle_t *dev, uint8_t command)
 {
-    HAL_StatusTypeDef ret = HAL_ERROR;
     // Send measurement command to output temp and humidity from SHT45 at next read 
-    ret = sht4x_set_measurement_mode(dev, command);
+    HAL_StatusTypeDef ret = sht4x_set_measurement_mode(dev, command);
     
     if(ret != HAL_OK) {
         return ret;
