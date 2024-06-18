@@ -110,8 +110,8 @@ HAL_StatusTypeDef sht4x_soft_reset(sht4x_handle_t *dev)
 */
 HAL_StatusTypeDef sht4x_abort_command(sht4x_handle_t *dev)
 {
-    static const uint8_t ABORT_CALL = 0x06;
-    if (HAL_I2C_Master_Transmit(dev->hi2c, 0x00, &ABORT_CALL, 1, 10) != HAL_OK) {
+    static uint8_t abort_call = 0x06;
+    if (HAL_I2C_Master_Transmit(dev->hi2c, 0x00, &abort_call, 1, 10) != HAL_OK) {
         return HAL_BUSY;
     }
     return HAL_OK;
