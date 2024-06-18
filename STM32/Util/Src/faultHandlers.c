@@ -11,7 +11,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-#include "stm32h7xx_hal.h"
+#include "stm32f4xx_hal.h"
 
 #include "faultHandlers.h"
 #include "FLASH_readwrite.h"
