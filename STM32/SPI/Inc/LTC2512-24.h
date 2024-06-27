@@ -52,8 +52,10 @@ typedef struct LTC2512Device {
 
 // Read the down-sampling factor stored in the LTC2512 Device.
 uint8_t getDownsamplingFactor(LTC2512Device *dev);
+int32_t transform2sComplement(int32_t value, const int MODULO, const int MAX_VALUE);
 
 // Measure filtered output
+int measureChannelA_IT(LTC2512Device *dev, uint8_t *buffer);
 int measureChannelA(LTC2512Device *dev);
 void measureChannelB(LTC2512Device *dev, int32_t* differential, uint32_t* common);
 void syncConversion(LTC2512Device *dev);

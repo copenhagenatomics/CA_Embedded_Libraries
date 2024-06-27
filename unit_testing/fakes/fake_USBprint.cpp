@@ -171,3 +171,8 @@ void hostUSBDisconnect()
 {
     connected = false;
 }
+
+void itoa(int n, char* s, int radix)
+{
+    
+}

@@ -8,7 +8,7 @@
 #ifndef __STM32xxxx_HAL_H
 #define __STM32xxxx_HAL_H
 #define __STM32F4xx_HAL_H
-#define __STM32H7xx_HAL_H
+#define STM32H7xx_HAL_H
 
 #include <stdint.h>
 
@@ -140,6 +140,7 @@ HAL_StatusTypeDef HAL_TIM_Base_Start_IT(TIM_HandleTypeDef *htim);
 
 /* SPI */
 HAL_StatusTypeDef HAL_SPI_Receive(SPI_HandleTypeDef *hspi, uint8_t *pData, uint16_t Size, uint32_t Timeout);
+HAL_StatusTypeDef HAL_SPI_Receive_IT(SPI_HandleTypeDef *hspi, uint8_t *pData, uint16_t Size);
 
 /* HAL */
 void forceTick(uint32_t next_val);
