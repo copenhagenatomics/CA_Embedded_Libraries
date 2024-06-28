@@ -326,7 +326,13 @@ int boardSetup(BoardType type, pcbVersion breaking_version) {
     }
 
     pcbVersion ver;
-    if (getPcbVersion(&ver) || ver.major < breaking_version.major || ver.minor < breaking_version.minor) {
+    if (getPcbVersion(&ver)) {
+        bsSetError(BS_VERSION_ERROR_Msk);
+    }
+    else if(ver.major < breaking_version.major) {
+        bsSetError(BS_VERSION_ERROR_Msk);
+    }
+    else if(ver.major == breaking_version.major && ver.minor < breaking_version.minor) {
         bsSetError(BS_VERSION_ERROR_Msk);
     }
 
