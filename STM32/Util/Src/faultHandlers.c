@@ -57,7 +57,7 @@ void recordFaultType(contextStateFrame_t* frame, faultType_t faultType) {
         faultInfo.ABFS   = SCB->AFSR;
         faultInfo.sFrame = *frame;
 
-        writeToFlash((uint32_t)(&_FlashAddr), sizeof(faultInfo_t), (void*)&faultInfo);
+        writeToFlash(0, sizeof(faultInfo_t), (void*)&faultInfo);
     }
 }
 
@@ -66,14 +66,14 @@ void recordFaultType(contextStateFrame_t* frame, faultType_t faultType) {
 */
 void clearFaultInfo() {
     faultInfo_t faultInfo = {.fault = -1};
-    writeToFlash((uint32_t)(&_FlashAddr), sizeof(faultInfo_t), (void*)&faultInfo);
+    writeToFlash(0, sizeof(faultInfo_t), (void*)&faultInfo);
 }
 
 /*!
 ** @brief This function returns most recent fault Info as a struct
 */
 void getFaultInfo(faultInfo_t* faultInfo) {
-    readFromFlash((uint32_t)(&_FlashAddr), sizeof(faultInfo_t), (void*)faultInfo);
+    readFromFlash(0, sizeof(faultInfo_t), (void*)faultInfo);
 }
 
 /*!
@@ -86,7 +86,7 @@ bool printFaultInfo() {
     getFaultInfo(&fi);
 
     if(fi.fault != NO_FAULT) {
-        len += snprintf(&buf[len], BUF_LEN - len, "\r\nStart of fault info\r\n");
+        len += snprintf(&buf[len], BUF_LEN - len, "\nStart of fault info\r\n");
         len += snprintf(&buf[len], BUF_LEN - len, "Last fault was: %d\r\n", fi.fault);
         len += snprintf(&buf[len], BUF_LEN - len, "CFSR was: 0x%08lX\r\n",  fi.CFSR);
         len += snprintf(&buf[len], BUF_LEN - len, "HFSR was: 0x%08lX\r\n",  fi.HFSR);
@@ -98,7 +98,7 @@ bool printFaultInfo() {
             fi.sFrame.r0, fi.sFrame.r1, fi.sFrame.r2, fi.sFrame.r3);
         len += snprintf(&buf[len], BUF_LEN - len, "0x%08lX, 0x%08lX, 0x%08lX, 0x%08lX\r\n",
             fi.sFrame.r12, fi.sFrame.lr, fi.sFrame.return_address, fi.sFrame.xpsr);
-        len += snprintf(&buf[len], BUF_LEN - len, "End of fault info");
+        len += snprintf(&buf[len], BUF_LEN - len, "End of fault info\r\n");
 
         writeUSB(buf, len);
 
