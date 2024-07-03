@@ -20,7 +20,6 @@
 #include "stm32f4xx_hal_gpio.h"
 #include "stm32f4xx_hal_rcc.h"
 #include "stm32f4xx_hal_tim.h"
-#include "stm32f4xx_hal_wwdg.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -46,7 +45,11 @@ typedef struct ADC_HandleTypeDef
     uint32_t* dma_address;
     uint32_t  dma_length;
 } ADC_HandleTypeDef;
+
+typedef uint32_t CRC_HandleTypeDef;
 typedef uint32_t SPI_HandleTypeDef;
+typedef uint32_t WWDG_HandleTypeDef;
+
 /***************************************************************************************************
 ** PUBLIC OBJECTS
 ***************************************************************************************************/
@@ -57,9 +60,13 @@ typedef uint32_t SPI_HandleTypeDef;
 ***************************************************************************************************/
 /* ADC */
 HAL_StatusTypeDef HAL_ADC_Start_DMA(ADC_HandleTypeDef* hadc, uint32_t* pData, uint32_t Length);
+
 /* SPI */
 HAL_StatusTypeDef HAL_SPI_Receive(SPI_HandleTypeDef *hspi, uint8_t *pData, uint16_t Size, uint32_t Timeout);
 HAL_StatusTypeDef HAL_SPI_Receive_IT(SPI_HandleTypeDef *hspi, uint8_t *pData, uint16_t Size);
+
+/* Watchdog */
+HAL_StatusTypeDef HAL_WWDG_Refresh(WWDG_HandleTypeDef *hwwdg);
 
 /* HAL */
 void forceTick(uint32_t next_val);
