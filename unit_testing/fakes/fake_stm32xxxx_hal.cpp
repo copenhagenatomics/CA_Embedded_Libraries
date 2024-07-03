@@ -8,9 +8,64 @@ using namespace std::chrono;
 ** PUBLIC OBJECTS
 ***************************************************************************************************/
 
-RCC_TypeDef RCC_obj;
+TIM_TypeDef TIM2_obj;
+TIM_TypeDef TIM3_obj;
 TIM_TypeDef TIM4_obj;
 TIM_TypeDef TIM5_obj;
+RTC_TypeDef RTC_obj;
+WWDG_TypeDef WWDG_obj;
+IWDG_TypeDef IWDG_obj;
+SPI_TypeDef I2S2ext_obj;
+SPI_TypeDef SPI2_obj;
+SPI_TypeDef SPI3_obj;
+SPI_TypeDef I2S3ext_obj;
+USART_TypeDef USART2_obj;
+I2C_TypeDef I2C1_obj;
+I2C_TypeDef I2C2_obj;
+I2C_TypeDef I2C3_obj;
+PWR_TypeDef PWR_obj;
+TIM_TypeDef TIM1_obj;
+USART_TypeDef USART1_obj;
+USART_TypeDef USART6_obj;
+ADC_TypeDef ADC1_obj;
+ADC_Common_TypeDef ADC1_COMMON_obj;
+//SDIO_TypeDef SDIO_obj;
+SPI_TypeDef SPI1_obj;
+SPI_TypeDef SPI4_obj;
+SYSCFG_TypeDef SYSCFG_obj;
+EXTI_TypeDef EXTI_obj;
+TIM_TypeDef TIM9_obj;
+TIM_TypeDef TIM10_obj;
+TIM_TypeDef TIM11_obj;
+GPIO_TypeDef GPIOA_obj;
+GPIO_TypeDef GPIOB_obj;
+GPIO_TypeDef GPIOC_obj;
+GPIO_TypeDef GPIOD_obj;
+GPIO_TypeDef GPIOE_obj;
+GPIO_TypeDef GPIOH_obj;
+CRC_TypeDef CRC_obj;
+RCC_TypeDef RCC_obj;
+FLASH_TypeDef FLASH_obj;
+DMA_TypeDef DMA1_obj;
+DMA_Stream_TypeDef DMA1_Stream0_obj;
+DMA_Stream_TypeDef DMA1_Stream1_obj;
+DMA_Stream_TypeDef DMA1_Stream2_obj;
+DMA_Stream_TypeDef DMA1_Stream3_obj;
+DMA_Stream_TypeDef DMA1_Stream4_obj;
+DMA_Stream_TypeDef DMA1_Stream5_obj;
+DMA_Stream_TypeDef DMA1_Stream6_obj;
+DMA_Stream_TypeDef DMA1_Stream7_obj;
+DMA_TypeDef DMA2_obj;
+DMA_Stream_TypeDef DMA2_Stream0_obj;
+DMA_Stream_TypeDef DMA2_Stream1_obj;
+DMA_Stream_TypeDef DMA2_Stream2_obj;
+DMA_Stream_TypeDef DMA2_Stream3_obj;
+DMA_Stream_TypeDef DMA2_Stream4_obj;
+DMA_Stream_TypeDef DMA2_Stream5_obj;
+DMA_Stream_TypeDef DMA2_Stream6_obj;
+DMA_Stream_TypeDef DMA2_Stream7_obj;
+DBGMCU_TypeDef DBGMCU_obj;
+USB_OTG_GlobalTypeDef USB_OTG_FS_obj;
 
 /***************************************************************************************************
 ** PRIVATE MEMBERS
@@ -46,6 +101,22 @@ HAL_StatusTypeDef HAL_TIM_Base_Start(TIM_HandleTypeDef *htim) {
 HAL_StatusTypeDef HAL_TIM_Base_Start_IT(TIM_HandleTypeDef *htim)
 {
     /* Do nothing */
+    return HAL_OK;
+}
+
+HAL_StatusTypeDef HAL_TIM_PWM_Start(TIM_HandleTypeDef *htim, uint32_t Channel) {
+    return HAL_OK;
+}
+
+HAL_StatusTypeDef HAL_TIM_PWM_Stop(TIM_HandleTypeDef *htim, uint32_t Channel) {
+    return HAL_OK;
+}
+
+HAL_StatusTypeDef HAL_TIM_PWM_Start_IT(TIM_HandleTypeDef *htim, uint32_t Channel) {
+    return HAL_OK;
+}
+
+HAL_StatusTypeDef HAL_TIM_PWM_Stop_IT(TIM_HandleTypeDef *htim, uint32_t Channel) {
     return HAL_OK;
 }
 
