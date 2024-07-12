@@ -16,10 +16,8 @@
 ** reducing the amount of duplication this file requires */
 #include "fake_stm32f401xc.h"
 #define STM32F401xC
-#include "stm32f4xx_hal_dma.h"
-#include "stm32f4xx_hal_gpio.h"
-#include "stm32f4xx_hal_rcc.h"
-#include "stm32f4xx_hal_tim.h"
+#define __STM32F4xx_ADC_H
+#include "stm32f4xx_hal_conf.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -46,10 +44,6 @@ typedef struct ADC_HandleTypeDef
     uint32_t  dma_length;
 } ADC_HandleTypeDef;
 
-typedef uint32_t CRC_HandleTypeDef;
-typedef uint32_t SPI_HandleTypeDef;
-typedef uint32_t WWDG_HandleTypeDef;
-
 /***************************************************************************************************
 ** PUBLIC OBJECTS
 ***************************************************************************************************/
@@ -60,13 +54,6 @@ typedef uint32_t WWDG_HandleTypeDef;
 ***************************************************************************************************/
 /* ADC */
 HAL_StatusTypeDef HAL_ADC_Start_DMA(ADC_HandleTypeDef* hadc, uint32_t* pData, uint32_t Length);
-
-/* SPI */
-HAL_StatusTypeDef HAL_SPI_Receive(SPI_HandleTypeDef *hspi, uint8_t *pData, uint16_t Size, uint32_t Timeout);
-HAL_StatusTypeDef HAL_SPI_Receive_IT(SPI_HandleTypeDef *hspi, uint8_t *pData, uint16_t Size);
-
-/* Watchdog */
-HAL_StatusTypeDef HAL_WWDG_Refresh(WWDG_HandleTypeDef *hwwdg);
 
 /* HAL */
 void forceTick(uint32_t next_val);

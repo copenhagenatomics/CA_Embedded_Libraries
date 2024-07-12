@@ -79,6 +79,8 @@ static uint32_t next_tick = 0;
 ** PUBLIC FUNCTIONS
 ***************************************************************************************************/
 
+#ifdef HAL_ADC_MODULE_ENABLED
+
 HAL_StatusTypeDef HAL_ADC_Start_DMA(ADC_HandleTypeDef* hadc, uint32_t* pData, uint32_t Length)
 {
     /* Do nothing */
@@ -87,11 +89,19 @@ HAL_StatusTypeDef HAL_ADC_Start_DMA(ADC_HandleTypeDef* hadc, uint32_t* pData, ui
     return HAL_OK;
 }
 
+#endif
+
+#ifdef HAL_WWDG_MODULE_ENABLED
+
 HAL_StatusTypeDef HAL_WWDG_Refresh(WWDG_HandleTypeDef *hwwdg)
 {
     /* Do nothing */
     return HAL_OK;
 }
+
+#endif
+
+#ifdef HAL_TIM_MODULE_ENABLED
 
 HAL_StatusTypeDef HAL_TIM_Base_Start(TIM_HandleTypeDef *htim) {
     /* Do nothing */
@@ -125,6 +135,10 @@ HAL_TIM_StateTypeDef HAL_TIM_Base_GetState(TIM_HandleTypeDef *htim) {
     return htim->State;
 }
 
+#endif
+
+#ifdef HAL_SPI_MODULE_ENABLED
+
 HAL_StatusTypeDef HAL_SPI_Receive(SPI_HandleTypeDef *hspi, uint8_t *pData, uint16_t Size, uint32_t Timeout)
 {
     /* Do nothing */
@@ -136,6 +150,8 @@ HAL_StatusTypeDef HAL_SPI_Receive_IT(SPI_HandleTypeDef *hspi, uint8_t *pData, ui
     /* Do nothing */
     return HAL_OK;
 }
+
+#endif
 
 void forceTick(uint32_t next_val)
 {
