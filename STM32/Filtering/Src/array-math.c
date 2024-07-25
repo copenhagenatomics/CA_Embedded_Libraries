@@ -119,6 +119,28 @@ double cbGetHead(double_cbuf_handle_t p_cb) {
 }
 
 /*!
+** @brief Get the element at index X of the circular buffer. 
+**
+** 0 is the tail, len-1 = head
+*/
+int cbGetIdx(double_cbuf_handle_t p_cb, int idx, double* ret) {
+    if(idx >= p_cb->len) {
+        return -1;
+    }
+    else {
+        idx += p_cb->idx;
+
+        if(idx >= p_cb->len) {
+            idx -= p_cb->len;
+        }
+
+        *ret = p_cb->buffer[idx];
+
+        return 0;
+    }
+}
+
+/*!
 ** @brief Get the oldest element of the circular buffer
 */
 double cbGetTail(double_cbuf_handle_t p_cb) {
