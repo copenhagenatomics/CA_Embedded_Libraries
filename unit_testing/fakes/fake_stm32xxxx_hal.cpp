@@ -89,6 +89,24 @@ HAL_StatusTypeDef HAL_ADC_Start_DMA(ADC_HandleTypeDef* hadc, uint32_t* pData, ui
     return HAL_OK;
 }
 
+__weak void HAL_ADC_ConvHalfCpltCallback(ADC_HandleTypeDef* hadc)
+{
+  /* Prevent unused argument(s) compilation warning */
+  UNUSED(hadc);
+  /* NOTE : This function Should not be modified, when the callback is needed,
+            the HAL_ADC_ConvHalfCpltCallback could be implemented in the user file
+   */
+}
+
+__weak void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
+{
+  /* Prevent unused argument(s) compilation warning */
+  UNUSED(hadc);
+  /* NOTE : This function Should not be modified, when the callback is needed,
+            the HAL_ADC_ConvHalfCpltCallback could be implemented in the user file
+   */
+}
+
 #endif
 
 #ifdef HAL_WWDG_MODULE_ENABLED
@@ -187,6 +205,11 @@ uint32_t HAL_GetTick(void)
 }
 
 void HAL_Delay(uint32_t Delay)
+{
+
+}
+
+void HAL_NVIC_SystemReset(void)
 {
 
 }
