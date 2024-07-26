@@ -27,7 +27,19 @@ extern "C" {
 ** DEFINES
 ***************************************************************************************************/
 
+/** @defgroup ADC_Resolution ADC Resolution
+  * @{
+  */ 
+#define ADC_RESOLUTION_12B  0x00000000U
+#define ADC_RESOLUTION_10B  ((uint32_t)ADC_CR1_RES_0)
+#define ADC_RESOLUTION_8B   ((uint32_t)ADC_CR1_RES_1)
+#define ADC_RESOLUTION_6B   ((uint32_t)ADC_CR1_RES)
 
+#define IS_ADC_RANGE(RESOLUTION, ADC_VALUE)                                     \
+   ((((RESOLUTION) == ADC_RESOLUTION_12B) && ((ADC_VALUE) <= 0x0FFFU)) || \
+    (((RESOLUTION) == ADC_RESOLUTION_10B) && ((ADC_VALUE) <= 0x03FFU)) || \
+    (((RESOLUTION) == ADC_RESOLUTION_8B)  && ((ADC_VALUE) <= 0x00FFU)) || \
+    (((RESOLUTION) == ADC_RESOLUTION_6B)  && ((ADC_VALUE) <= 0x003FU)))
 
 /***************************************************************************************************
 ** PUBLIC TYPEDEFS
@@ -54,6 +66,8 @@ typedef struct ADC_HandleTypeDef
 ***************************************************************************************************/
 /* ADC */
 HAL_StatusTypeDef HAL_ADC_Start_DMA(ADC_HandleTypeDef* hadc, uint32_t* pData, uint32_t Length);
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc);
+void HAL_ADC_ConvHalfCpltCallback(ADC_HandleTypeDef* hadc);
 
 /* HAL */
 void forceTick(uint32_t next_val);
