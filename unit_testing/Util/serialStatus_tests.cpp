@@ -16,17 +16,17 @@ using namespace std;
 ** TESTS
 ***************************************************************************************************/
 
-void goldenPathTest(SerialStatusTest& sst, const char* pass_string) {
+void goldenPathTest(SerialStatusTest& sst, const char* pass_string, int firstPrintTick) {
     sst.boundInit();
 
     /* This should force a print on the USB bus */
-    sst.testFixture->goToTick(100);
+    sst.testFixture->goToTick(firstPrintTick);
 
     /* Check the printout is correct */
     EXPECT_READ_USB(::testing::Contains(pass_string));
 }
 
-void incorrectBoardTest(SerialStatusTest& sst) {
+void incorrectBoardTest(SerialStatusTest& sst, int firstPrintTick) {
     /* Update OTP with incorrect board number */
     if(BREAKING_MINOR != 0) {
         sst.testFixture->bi.v2.pcbVersion.minor = BREAKING_MINOR - 1;
@@ -43,7 +43,7 @@ void incorrectBoardTest(SerialStatusTest& sst) {
     sst.boundInit();
 
     /* This should force a print on the USB bus */
-    sst.testFixture->goToTick(100);
+    sst.testFixture->goToTick(firstPrintTick);
 
     /* Check the printout is correct */
     EXPECT_READ_USB(::testing::Contains(::testing::HasSubstr("0x84")));

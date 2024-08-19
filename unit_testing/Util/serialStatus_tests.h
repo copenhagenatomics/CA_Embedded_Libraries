@@ -34,8 +34,8 @@ class SerialStatusTest {
 ** * TEST_F(TestFixture, TestName) {}
 */
 
-void goldenPathTest(SerialStatusTest& sst, const char* pass_string);
-void incorrectBoardTest(SerialStatusTest& sst);
+void goldenPathTest(SerialStatusTest& sst, const char* pass_string, int firstPrintTick=100);
+void incorrectBoardTest(SerialStatusTest& sst, int firstPrintTick=100);
 void statusPrintoutTest(SerialStatusTest& sst, std::vector<const char*> pass_string);
 void serialPrintoutTest(SerialStatusTest& sst, const char* boardName, const char* cal_string=nullptr);
 
