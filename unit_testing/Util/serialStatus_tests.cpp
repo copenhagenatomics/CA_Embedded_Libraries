@@ -1,7 +1,7 @@
 /*!
-** @file   ll_tests.cpp
+** @file   serialStatus_tests.cpp
 ** @author Luke W
-** @date   26/07/2024
+** @date   16/08/2024
 */
 
 #include <vector>
@@ -16,6 +16,24 @@ using namespace std;
 ** TESTS
 ***************************************************************************************************/
 
+/*!
+** @brief Tests the golden path startup for a CA board
+**
+** @param[in] sst            Test data object
+** @param[in] pass_string    The expected string printed for normal startup
+** @param[in] firstPrintTick The tick at which the first successful print should be made. 100 ms by 
+**                           default
+**
+** Initialises the board, runs until the requested tick and verifies the string is printed. External
+** influences, e.g. ADC data should be filled before this test if the printout depends on it.
+**
+** Note: when filling ADC data, the board should be initialised first, the ADC data filled, then 
+** this test called:
+**
+** 1. boardInit();
+** 2. fillAdcData();
+** 3. goldenPathTest(); //Performs re-initialisation
+*/
 void goldenPathTest(SerialStatusTest& sst, const char* pass_string, int firstPrintTick) {
     sst.boundInit();
 
@@ -26,6 +44,17 @@ void goldenPathTest(SerialStatusTest& sst, const char* pass_string, int firstPri
     EXPECT_READ_USB(::testing::Contains(pass_string));
 }
 
+/*!
+** @brief Tests for if the code is downloaded to the wrong board
+**
+** @param[in] sst            Test data object
+** @param[in] firstPrintTick The tick at which the first successful print should be made. 100 ms by 
+**                           default
+**
+** Programs the board to be the latest non-compatible version and runs. Verifies that the status bit
+** has version error and error bit set. TODO: Currently the test will fail if other error bits are 
+** also set. Fix this.
+*/
 void incorrectBoardTest(SerialStatusTest& sst, int firstPrintTick) {
     /* Update OTP with incorrect board number */
     if(BREAKING_MINOR != 0) {
@@ -49,6 +78,15 @@ void incorrectBoardTest(SerialStatusTest& sst, int firstPrintTick) {
     EXPECT_READ_USB(::testing::Contains(::testing::HasSubstr("0x84")));
 }
 
+/*!
+** @brief Tests that the status printout matches the correct format
+**
+** @param[in] sst         Test data object
+** @param[in] pass_string The board specific part of the status printout
+**
+** Initialises the board then sends the 'Status' command. Checks the response matches the protocol 
+** template and the supplied board specific string.
+*/
 void statusPrintoutTest(SerialStatusTest& sst, vector<const char*> pass_string) {
     sst.boundInit();
     /* Note: usb RX buffer is flushed during the first loop, so a single loop must be done before
@@ -70,6 +108,16 @@ void statusPrintoutTest(SerialStatusTest& sst, vector<const char*> pass_string) 
     EXPECT_FLUSH_USB(::testing::ElementsAreArray(bs_pre));
 }
 
+/*!
+** @brief Tests that the serial printout matches the correct format
+**
+** @param[in] sst         Test data object
+** @param[in] boardName   The name of the board as a string
+** @param[in] pass_string The board specific calibration string. Optional, default: Null.
+**
+** Initialises the board then sends the 'Serial' command. Checks the response matches the protocol 
+** template and the supplied board specific calibration string.
+*/
 void serialPrintoutTest(SerialStatusTest& sst, const char* boardName, const char* cal_string) {
     sst.boundInit();
 
