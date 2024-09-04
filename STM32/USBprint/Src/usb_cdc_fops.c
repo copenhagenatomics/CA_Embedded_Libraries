@@ -132,12 +132,15 @@ ssize_t usb_cdc_transmit(const uint8_t* Buf, uint16_t Len)
     if (hcdc->TxState != 0)
     {
         // USB CDC is transmitting data to the network. Leave transmit handling to CDC_TransmitCplt_FS
-        for (int len = 0;len < Len; len++)
-        {
-            if (circular_buf_put(usb_cdc_if.tx.ctx, *Buf))
-                return len; // len < Len since not enough space in buffer. Leave error handling to caller.
-            Buf++;
+        if (!circular_buf_full(usb_cdc_if.tx.ctx) && (circular_buf_size(usb_cdc_if.tx.ctx) > Len)) {
+            for (int len = 0;len < Len; len++)
+            {
+                if (circular_buf_put(usb_cdc_if.tx.ctx, *Buf))
+                    return len; // len < Len since not enough space in buffer. Leave error handling to caller.
+                Buf++;
+            }
         }
+
         return Len;
     }
 
@@ -146,8 +149,8 @@ ssize_t usb_cdc_transmit(const uint8_t* Buf, uint16_t Len)
     {
         // remaining bytes could be moved to circular buffer but in this case,
         // system is possible in a lack of resources. That problem can not be solved hear.
-        Len = sizeof(usb_cdc_if.tx.irqBuf);
         usb_error |= CDC_ERROR_CROPPED_TRANSMIT;
+        return -1;
     }
     else {
         usb_error &= ~CDC_ERROR_CROPPED_TRANSMIT;
