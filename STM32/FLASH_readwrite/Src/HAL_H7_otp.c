@@ -40,7 +40,7 @@ int removeOTP(FLASH_OBProgramInitTypeDef *OB, const BoardInfo *boardInfo)
     if (HAL_FLASH_Unlock() != HAL_OK)
         return OTP_WRITE_FAIL;
 
-    // Unlock Flash OPT registry that allows removal of write protection of FLASH section
+    // Unlock Flash options bytes register that allows removal of write protection of FLASH section
     if (HAL_FLASH_OB_Unlock() != HAL_OK)
         return OTP_WRITE_FAIL;
 
@@ -107,7 +107,7 @@ const int HAL_otpWrite(const BoardInfo *boardInfo)
     if (HAL_FLASH_Unlock() != HAL_OK)
         return OTP_WRITE_FAIL;
 
-    // Unlock Flash OPT registry that allows removal of write protection of FLASH section
+    // Unlock Flash options bytes register that allows removal of write protection of FLASH section
     if (HAL_FLASH_OB_Unlock() != HAL_OK)
         return OTP_WRITE_FAIL;
 
