@@ -71,6 +71,7 @@ static const char* mcuType()
     {
     case 0x423: len += snprintf(&mcu[len], sizeof(mcu) -len, "STM32F401xB/C");        break;
     case 0x433: len += snprintf(&mcu[len], sizeof(mcu) -len, "STM32F401xD/E");        break;
+    case 0x450: len += snprintf(&mcu[len], sizeof(mcu) -len, "STM32H753IIT6");        break;
     default:    len += snprintf(&mcu[len], sizeof(mcu) -len, "Unknown 0x%3X", idCode); break;
     }
 
