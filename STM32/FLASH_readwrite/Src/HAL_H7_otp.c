@@ -28,7 +28,7 @@
 static int isOTPAvailable(FLASH_OBProgramInitTypeDef *OB)
 {
     if (OB->WRPSector & OB_WRP_SECTOR)
-    	return 0;
+        return 0;
 
     // OTP sector is write-protected
     return 1;
@@ -42,12 +42,12 @@ int removeOTP(FLASH_OBProgramInitTypeDef *OB, const BoardInfo *boardInfo)
 
     // Unlock Flash OPT registry that allows removal of write protection of FLASH section
     if (HAL_FLASH_OB_Unlock() != HAL_OK)
-    	return OTP_WRITE_FAIL;
+        return OTP_WRITE_FAIL;
 
     // Disable write-protection for OB_WRP_SECTOR in FLASH_BANK_1
     OB->OptionType = OPTIONBYTE_WRP;
-	OB->WRPState = OB_WRPSTATE_DISABLE;
-	OB->Banks = FLASH_BANK_1;
+    OB->WRPState = OB_WRPSTATE_DISABLE;
+    OB->Banks = FLASH_BANK_1;
     OB->WRPSector = OB_WRP_SECTOR;
 
     // Write and update new settings to the FLASH memory option bytes
@@ -55,7 +55,7 @@ int removeOTP(FLASH_OBProgramInitTypeDef *OB, const BoardInfo *boardInfo)
     HAL_FLASH_OB_Launch();
 
     if (eraseSectors(FLASH_OTP_BASE, sizeof(boardInfo->data)/sizeof(uint32_t)) != 0)
-    		return OTP_WRITE_FAIL;
+            return OTP_WRITE_FAIL;
 
     return OTP_SUCCESS;
 }
@@ -68,9 +68,9 @@ int HAL_otpRead(BoardInfo *boardInfo)
     static FLASH_OBProgramInitTypeDef OB;
 
     /* Fetch all OB type configuration (we need WRP sectors)
-	 * This step is to check if write protection is already set
-	 */
-	HAL_FLASHEx_OBGetConfig(&OB);
+     * This step is to check if write protection is already set
+     */
+    HAL_FLASHEx_OBGetConfig(&OB);
     if (!isOTPAvailable(&OB))
         return OTP_EMPTY; // Nothing has been written to OTP area.
 
@@ -89,9 +89,9 @@ const int HAL_otpWrite(const BoardInfo *boardInfo)
     static FLASH_OBProgramInitTypeDef OB;
 
     /* Fetch all OB type configuration (we need WRP sectors)
-	 * This step is to check if write protection is already set
-	 */
-	HAL_FLASHEx_OBGetConfig(&OB);
+     * This step is to check if write protection is already set
+     */
+    HAL_FLASHEx_OBGetConfig(&OB);
 
     // Check the version of the Board info
     if (boardInfo->otpVersion > OTP_VERSION || boardInfo->otpVersion == 0) {
@@ -101,7 +101,7 @@ const int HAL_otpWrite(const BoardInfo *boardInfo)
     // If sector has already been written to erase first.
     if (isOTPAvailable(&OB))
     {
-    	removeOTP(&OB, boardInfo);
+        removeOTP(&OB, boardInfo);
     }
 
     if (HAL_FLASH_Unlock() != HAL_OK)
@@ -109,7 +109,7 @@ const int HAL_otpWrite(const BoardInfo *boardInfo)
 
     // Unlock Flash OPT registry that allows removal of write protection of FLASH section
     if (HAL_FLASH_OB_Unlock() != HAL_OK)
-    	return OTP_WRITE_FAIL;
+        return OTP_WRITE_FAIL;
 
     // Write board info to sector using word size.
     uint32_t otpStartAddress = FLASH_OTP_BASE;
@@ -124,8 +124,8 @@ const int HAL_otpWrite(const BoardInfo *boardInfo)
 
     // Enable write-protection for OB_WRP_SECTOR in FLASH_BANK_1
     OB.OptionType = OPTIONBYTE_WRP;
-	OB.WRPState = OB_WRPSTATE_ENABLE;
-	OB.Banks = FLASH_BANK_1;
+    OB.WRPState = OB_WRPSTATE_ENABLE;
+    OB.Banks = FLASH_BANK_1;
     OB.WRPSector = OB_WRP_SECTOR;
 
     // Write and update new settings to the FLASH memory option bytes
@@ -133,7 +133,7 @@ const int HAL_otpWrite(const BoardInfo *boardInfo)
     HAL_FLASH_OB_Launch();
 
     if (HAL_FLASH_OB_Lock() != HAL_OK)
-    	return OTP_WRITE_FAIL;
+        return OTP_WRITE_FAIL;
 
     HAL_FLASH_Lock();
     return OTP_SUCCESS;
