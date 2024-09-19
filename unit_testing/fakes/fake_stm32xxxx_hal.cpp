@@ -1,5 +1,5 @@
 #include <chrono>
-
+#include <vector>
 #include "fake_stm32xxxx_hal.h"
 
 using namespace std::chrono;
@@ -74,6 +74,9 @@ USB_OTG_GlobalTypeDef USB_OTG_FS_obj;
 static bool force_tick = false;
 static bool auto_tick = false;
 static uint32_t next_tick = 0;
+
+/* For simulating I2C devices */
+std::vector<stm32I2cTestDevice*>* devices = nullptr;
 
 /***************************************************************************************************
 ** PUBLIC FUNCTIONS
@@ -167,6 +170,44 @@ HAL_StatusTypeDef HAL_SPI_Receive_IT(SPI_HandleTypeDef *hspi, uint8_t *pData, ui
 {
     /* Do nothing */
     return HAL_OK;
+}
+
+#endif
+
+#ifdef HAL_I2C_MODULE_ENABLED
+
+void fakeHAL_I2C_addDevice(stm32I2cTestDevice* new_device) {
+    if(!devices) {
+        devices = new std::vector<stm32I2cTestDevice*>();
+    }
+
+    devices->push_back(new_device);
+}
+
+HAL_StatusTypeDef HAL_I2C_Master_Transmit(I2C_HandleTypeDef *hi2c, uint16_t DevAddress, uint8_t *pData, uint16_t Size, uint32_t Timeout)
+{
+    if(devices) {
+        for(const auto& i : *devices) {
+            if((i->bus == hi2c->Instance) && (i->addr == DevAddress)) {
+                return i->transmit(pData, Size);
+            }
+        }
+    }
+
+    return HAL_ERROR;
+}
+
+HAL_StatusTypeDef HAL_I2C_Master_Receive(I2C_HandleTypeDef *hi2c, uint16_t DevAddress, uint8_t *pData, uint16_t Size, uint32_t Timeout)
+{
+    if(devices) {
+        for(const auto& i : *devices) {
+            if((i->bus == hi2c->Instance) && (i->addr == DevAddress)) {
+                return i->recv(pData, Size);
+            }
+        }
+    }
+
+    return HAL_ERROR;
 }
 
 #endif
