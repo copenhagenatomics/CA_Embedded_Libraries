@@ -56,6 +56,15 @@ typedef struct ADC_HandleTypeDef
     uint32_t  dma_length;
 } ADC_HandleTypeDef;
 
+/* For simulating I2C devices */
+class stm32I2cTestDevice {
+    public:
+        I2C_TypeDef*    bus;
+        uint16_t        addr;
+        virtual HAL_StatusTypeDef transmit(uint8_t* buf, uint8_t size) = 0;
+        virtual HAL_StatusTypeDef recv(uint8_t* buf, uint8_t size) = 0;
+};
+
 /***************************************************************************************************
 ** PUBLIC OBJECTS
 ***************************************************************************************************/
@@ -74,6 +83,8 @@ void forceTick(uint32_t next_val);
 void autoIncTick(uint32_t next_val, bool disable=false);
 uint32_t HAL_GetTick(void);
 void HAL_Delay(uint32_t Delay);
+
+void fakeHAL_I2C_addDevice(stm32I2cTestDevice* new_device);
 
 #ifdef __cplusplus
 }
