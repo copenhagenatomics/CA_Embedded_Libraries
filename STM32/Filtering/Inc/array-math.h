@@ -54,6 +54,7 @@ int cbMax(double_cbuf_handle_t p_cb, int elements, double* result);
 
 double cbGetHead(double_cbuf_handle_t p_cb);
 int cbGetIdx(double_cbuf_handle_t p_cb, int idx, double* ret);
+double cbGetTail(double_cbuf_handle_t p_cb);
 
 #ifdef __cplusplus
 }
