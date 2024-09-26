@@ -124,6 +124,42 @@ TEST_F(ArrayMathTest, testMeanElement)
     EXPECT_DOUBLE_EQ(-DBL_MAX, result);
 }
 
+TEST_F(ArrayMathTest, testSumElement)
+{
+    double testBuf[100] = {0};
+
+    for(int i = 0; i < 100; i++) {
+        testBuf[i] = 100 * std::sin(2.0 * M_PI * i / 100.0);
+    }
+
+    double result;
+    EXPECT_EQ(0, sum_element(testBuf, 100, &result));
+    /* Due to floating point errors, the result is not quite zero. This is acceptable */
+    EXPECT_NEAR(0.0, result, 1E-10);
+
+    /* Check some other numbers influence the outcome */
+    testBuf[0] = -DBL_MAX;
+    EXPECT_EQ(0, sum_element(testBuf, 100, &result));
+    EXPECT_DOUBLE_EQ(-DBL_MAX, result);
+
+    /* Try a different larger positive number */
+    testBuf[0] = 5000;
+    EXPECT_EQ(0, sum_element(testBuf, 100, &result));
+    EXPECT_DOUBLE_EQ(5000, result);
+
+    /* Check error returned if 0 length selected */
+    result = -DBL_MAX;
+    EXPECT_EQ(-1, sum_element(testBuf, 0, &result));
+    EXPECT_DOUBLE_EQ(-DBL_MAX, result);
+
+    for(int i = 0; i < 100; i++) {
+        testBuf[i] = 1.5 * i;
+    }
+
+    EXPECT_EQ(0, sum_element(testBuf, 100, &result));
+    EXPECT_DOUBLE_EQ(4950*1.5, result);
+}
+
 TEST_F(ArrayMathTest, testMvgAverage)
 {
     unsigned int len = 100;
@@ -282,6 +318,10 @@ TEST_F(ArrayMathTest, testCbMean)
     correct1 += - (13 * 225) - (13 * 25);
     EXPECT_EQ(0, cbMean(&test_cb, 100, &result));
     EXPECT_EQ((correct1 + correct2)/100, result);
+
+    /* Check the sum of the overlapping region is correct */
+    EXPECT_EQ(0, cbMean(&test_cb, 50, &result));
+    EXPECT_EQ(7.5, result); /* Calculated with octave */
 }
 
 TEST_F(ArrayMathTest, testCbMeanErrors)
