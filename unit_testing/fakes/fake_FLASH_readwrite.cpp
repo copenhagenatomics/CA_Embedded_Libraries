@@ -29,7 +29,7 @@ static uint8_t mem_sector[SIZE_OF_MEM_ARRAY] = {0};
 
 // Write data to FLASH_ADDR+indx directly. This method does not
 // ensure any data integrity as data validation is performed.
-void writeToFlash(uint32_t indx, uint32_t size, uint8_t *data)
+void writeToFlash(uint32_t flash_address, uint8_t *data, uint32_t size)
 {
     if(init_flag) {
         std::fill_n(mem_sector, SIZE_OF_MEM_ARRAY, 0xFF);
@@ -43,7 +43,7 @@ void writeToFlash(uint32_t indx, uint32_t size, uint8_t *data)
 
 // Read from flash without checking data integrity if CRC module
 // is not enabled in project.
-void readFromFlash(uint32_t indx, uint32_t size, uint8_t *data)
+void readFromFlash(uint32_t flash_address, uint8_t *data, uint32_t size)
 {
     if(init_flag) {
         std::fill_n(mem_sector, SIZE_OF_MEM_ARRAY, 0xFF);
@@ -60,7 +60,7 @@ void readFromFlash(uint32_t indx, uint32_t size, uint8_t *data)
 // error for projects where CRC module is not enabled
 #ifdef HAL_CRC_MODULE_ENABLED
 // Write data to FLASH_ADDR+indx including CRC.
-void writeToFlashSafe(CRC_HandleTypeDef *hcrc, uint32_t indx, uint32_t size, uint8_t *data)
+void writeToFlashCRC(CRC_HandleTypeDef *hcrc, uint32_t flash_address, uint8_t *data, uint32_t size)
 {
     writeToFlash(indx, size, data);
 }
@@ -68,7 +68,7 @@ void writeToFlashSafe(CRC_HandleTypeDef *hcrc, uint32_t indx, uint32_t size, uin
 
 // Read from flash without checking data integrity if CRC module
 // is not enabled in project.
-void readFromFlashSafe(CRC_HandleTypeDef *hcrc, uint32_t indx, uint32_t size, uint8_t *data)
+void readFromFlashCRC(CRC_HandleTypeDef *hcrc, uint32_t flash_address, uint8_t *data, uint32_t size)
 {
     readFromFlash(indx, size, data);
 }
