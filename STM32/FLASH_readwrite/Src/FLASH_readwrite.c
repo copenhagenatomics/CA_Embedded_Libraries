@@ -4,8 +4,6 @@
  *  Description:		Provides an interface to read and write FLASH memory.
 */
 #if defined(STM32F401xC)
-
-#include <stm32f4xx_hal.h>
 #include <FLASH_readwrite.h>
 #include <string.h>
 
@@ -65,7 +63,7 @@ void readFromFlash(uint32_t flash_address, uint8_t *data, uint32_t size)
 {
     for(uint32_t i=0; i<size; i++)
     {
-        *(data + i) = *( (uint8_t *)(flash_address+i) );
+        *(data + i) = *( (uint8_t *)(&flash_address+i) );
     }
 }
 
@@ -103,7 +101,7 @@ void writeToFlashCRC(CRC_HandleTypeDef *hcrc, uint32_t flash_address, uint8_t *d
     __HAL_RCC_WWDG_CLK_ENABLE();
 
     // Compute CRC of data to be saved.
-    uint32_t crcVal = computeCRC(hcrc, size, data);
+    uint32_t crcVal = computeCRC(hcrc, data, size);
 
     // Append CRC converted to uint8_t to data
     uint8_t crcData[4] = {0};
@@ -141,15 +139,15 @@ void readFromFlashCRC(CRC_HandleTypeDef *hcrc, uint32_t flash_address, uint8_t *
     // Read data including CRC value
     for(uint32_t i=0; i<size; i++)
     {
-        *(data + i) = *( (uint8_t *)(flash_address+i) );
+        *(data + i) = *( (uint8_t *)(&flash_address+i) );
     }
 
     // Compute CRC of data read.
-    uint32_t crcVal = computeCRC(hcrc, size, data);
+    uint32_t crcVal = computeCRC(hcrc, data, size);
 
     // Retrieve stored CRC value in flash.
     uint32_t crcStored = 0;
-    memcpy(&crcStored, (uint8_t *)(flash_address+size), sizeof(uint32_t));
+    memcpy(&crcStored, (uint8_t *)(&flash_address+size), sizeof(uint32_t));
 
     // If computed and stored CRC value does not match
     // set data[0]=0xFF which resembles a clean FLASH i.e.

@@ -7,7 +7,7 @@
 #define INC_FLASH_READWRITE_H_
 
 #include <stdint.h>
-#if defined(HAL_CRC_MODULE_ENABLED) && defined(STM32F401xC)
+#if defined(HAL_CRC_MODULE_ENABLED) && defined(STM32F401xC) && !defined(__LIBRARY_TEST)
   #include "stm32f4xx_hal.h"
 #endif
 
@@ -36,12 +36,20 @@
 /***************************************************************************************************
 ** PUBLIC FUNCTION PROTOTYPES
 ***************************************************************************************************/
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 void writeToFlash(uint32_t flash_address, uint8_t *data, uint32_t size);
 void readFromFlash(uint32_t flash_address, uint8_t *data, uint32_t size);
 
-#ifdef HAL_CRC_MODULE_ENABLED
+//#ifdef HAL_CRC_MODULE_ENABLED
     void writeToFlashCRC(CRC_HandleTypeDef *hcrc, uint32_t flash_address, uint8_t *data, uint32_t size);
     void readFromFlashCRC(CRC_HandleTypeDef *hcrc, uint32_t flash_address, uint8_t *data, uint32_t size);
+//#endif
+
+#ifdef __cplusplus
+}
 #endif
+
 #endif /* INC_FLASH_READWRITE_H_ */

@@ -1,0 +1,1 @@
+#include "fake_stm32f4xx_hal_flash.h"

@@ -27,7 +27,7 @@
 static bool init_flag = true;
 static uint8_t mem_sector[SIZE_OF_MEM_ARRAY] = {0};
 
-// Write data to FLASH_ADDR+indx directly. This method does not
+// Write data to flash_address directly. This method does not
 // ensure any data integrity as data validation is performed.
 void writeToFlash(uint32_t flash_address, uint8_t *data, uint32_t size)
 {
@@ -36,8 +36,8 @@ void writeToFlash(uint32_t flash_address, uint8_t *data, uint32_t size)
         init_flag = false;
     }
 
-    if((indx + size) < SIZE_OF_MEM_ARRAY) {
-        memcpy(&mem_sector[indx], data, size);
+    if (size < SIZE_OF_MEM_ARRAY) {
+        memcpy(&mem_sector, data, size);
     }
 }
 
@@ -50,8 +50,8 @@ void readFromFlash(uint32_t flash_address, uint8_t *data, uint32_t size)
         init_flag = false;
     }
 
-    if((indx + size) < SIZE_OF_MEM_ARRAY) {
-        memcpy(data, &mem_sector[indx], size);
+    if (size < SIZE_OF_MEM_ARRAY) {
+        memcpy(data, &mem_sector, size);
     }
 }
 
@@ -62,14 +62,14 @@ void readFromFlash(uint32_t flash_address, uint8_t *data, uint32_t size)
 // Write data to FLASH_ADDR+indx including CRC.
 void writeToFlashCRC(CRC_HandleTypeDef *hcrc, uint32_t flash_address, uint8_t *data, uint32_t size)
 {
-    writeToFlash(indx, size, data);
+    writeToFlash(flash_address, data, size);
 }
 
 
-// Read from flash without checking data integrity if CRC module
+// Read from flash without checking data integrity if  CRC module
 // is not enabled in project.
 void readFromFlashCRC(CRC_HandleTypeDef *hcrc, uint32_t flash_address, uint8_t *data, uint32_t size)
 {
-    readFromFlash(indx, size, data);
+    readFromFlash(flash_address, data, size);
 }
 #endif
