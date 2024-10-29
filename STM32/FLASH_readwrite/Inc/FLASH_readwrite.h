@@ -43,10 +43,10 @@ extern "C" {
 void writeToFlash(uint32_t flash_address, uint8_t *data, uint32_t size);
 void readFromFlash(uint32_t flash_address, uint8_t *data, uint32_t size);
 
-//#ifdef HAL_CRC_MODULE_ENABLED
+#ifdef HAL_CRC_MODULE_ENABLED
     void writeToFlashCRC(CRC_HandleTypeDef *hcrc, uint32_t flash_address, uint8_t *data, uint32_t size);
     void readFromFlashCRC(CRC_HandleTypeDef *hcrc, uint32_t flash_address, uint8_t *data, uint32_t size);
-//#endif
+#endif
 
 #ifdef __cplusplus
 }
