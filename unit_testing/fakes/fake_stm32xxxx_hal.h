@@ -22,6 +22,8 @@
     #include "stm32f4xx_hal_conf.h"
 #else
     #include "fake_stm32f4xx_hal_conf.h"
+    #define __HAL_RCC_WWDG_CLK_DISABLE() {}
+    #define __HAL_RCC_WWDG_CLK_ENABLE() {}
 #endif
 
 #ifdef __cplusplus
@@ -46,12 +48,6 @@ extern "C" {
     (((RESOLUTION) == ADC_RESOLUTION_8B)  && ((ADC_VALUE) <= 0x00FFU)) || \
     (((RESOLUTION) == ADC_RESOLUTION_6B)  && ((ADC_VALUE) <= 0x003FU)))
 
-
-/** @defgroup RCC WWDG timer macros
-  * @{
-  */ 
-#define __HAL_RCC_WWDG_CLK_DISABLE() {}
-#define __HAL_RCC_WWDG_CLK_ENABLE() {}
 
 /***************************************************************************************************
 ** PUBLIC TYPEDEFS

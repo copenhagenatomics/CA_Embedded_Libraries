@@ -63,7 +63,7 @@ void readFromFlash(uint32_t flash_address, uint8_t *data, uint32_t size)
 {
     for(uint32_t i=0; i<size; i++)
     {
-        *(data + i) = *( (uint8_t *)(&flash_address+i) );
+        *(data + i) = *( (uint8_t *)(flash_address+i) );
     }
 }
 
