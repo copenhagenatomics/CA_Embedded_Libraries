@@ -139,7 +139,7 @@ void readFromFlashCRC(CRC_HandleTypeDef *hcrc, uint32_t flash_address, uint8_t *
     // Read data including CRC value
     for(uint32_t i=0; i<size; i++)
     {
-        *(data + i) = *( (uint8_t *)(&flash_address+i) );
+        *(data + i) = *( (uint8_t *)(flash_address+i) );
     }
 
     // Compute CRC of data read.
@@ -147,7 +147,7 @@ void readFromFlashCRC(CRC_HandleTypeDef *hcrc, uint32_t flash_address, uint8_t *
 
     // Retrieve stored CRC value in flash.
     uint32_t crcStored = 0;
-    memcpy(&crcStored, (uint8_t *)(&flash_address+size), sizeof(uint32_t));
+    memcpy(&crcStored, (uint8_t *)(flash_address+size), sizeof(uint32_t));
 
     // If computed and stored CRC value does not match
     // set data[0]=0xFF which resembles a clean FLASH i.e.
