@@ -7,7 +7,7 @@
 #define INC_FLASH_READWRITE_H_
 
 #include <stdint.h>
-#if defined(HAL_CRC_MODULE_ENABLED) && defined(STM32F401xC) && !defined(__LIBRARY_TEST)
+#if !defined(__LIBRARY_TEST)
   #include "stm32f4xx_hal.h"
 #endif
 
