@@ -14,12 +14,12 @@ extern "C" {
 static uint32_t getFlashSector(uint32_t address)
 {
     uint32_t address_offset = address - START_SECTOR_0;
-    uint32_t address_sectors_start[8] = {START_SECTOR_0, START_SECTOR_1, START_SECTOR_2, START_SECTOR_3,
-                                         START_SECTOR_4, START_SECTOR_5, START_SECTOR_6, START_SECTOR_7};
+    uint32_t address_sectors_start[6] = {START_SECTOR_0, START_SECTOR_1, START_SECTOR_2, START_SECTOR_3,
+                                         START_SECTOR_4, START_SECTOR_5};
 
-    uint32_t address_sectors_end[8] = {END_SECTOR_0, END_SECTOR_1, END_SECTOR_2, END_SECTOR_3,
-                                       END_SECTOR_4, END_SECTOR_5, END_SECTOR_6, END_SECTOR_7};                                         
-    for (int i = 0; i<=7; i++)
+    uint32_t address_sectors_end[6] = {END_SECTOR_0, END_SECTOR_1, END_SECTOR_2, END_SECTOR_3,
+                                       END_SECTOR_4, END_SECTOR_5};                                         
+    for (int i = 0; i < 6; i++)
     {
         if (address_offset >= address_sectors_start[i]-START_SECTOR_0 &&
             address_offset <= address_sectors_end[i]-START_SECTOR_0)

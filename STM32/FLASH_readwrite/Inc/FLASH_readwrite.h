@@ -28,10 +28,6 @@
 #define END_SECTOR_4		0x0801FFFF
 #define START_SECTOR_5		0x08020000 // 128 kBytes
 #define END_SECTOR_5		0x0803FFFF
-#define START_SECTOR_6		0x08040000 // 128 kBytes
-#define END_SECTOR_6		0x0805FFFF
-#define START_SECTOR_7		0x08060000 // 128 kBytes
-#define END_SECTOR_7		0x0807FFFF
 
 /***************************************************************************************************
 ** PUBLIC FUNCTION PROTOTYPES

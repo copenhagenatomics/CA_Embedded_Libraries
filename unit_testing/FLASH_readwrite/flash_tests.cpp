@@ -37,10 +37,10 @@ class FlashTest: public ::testing::Test
 TEST_F(FlashTest, testGetSector)
 {
     // Use test addresses on the border and inside of FLASH sectors
-    uint32_t test_address[8] = {0x08000000, 0x08004040, 0x08008000, 0x0800CC00,
-                                0x08010100, 0x08020000, 0x08050000, 0x08070000};
+    uint32_t test_address[6] = {0x08000000, 0x08004040, 0x08008000, 0x0800CC00,
+                                0x08010100, 0x08020000};
 
-    for (int i = 0; i<8; i++)
+    for (int i = 0; i<6; i++)
     {
         uint32_t sector = getFlashSector(test_address[i]);
         EXPECT_EQ(sector, i);
