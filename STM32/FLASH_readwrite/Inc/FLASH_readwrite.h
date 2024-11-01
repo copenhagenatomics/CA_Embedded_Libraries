@@ -11,13 +11,23 @@
   #include "stm32f4xx_hal.h"
 #endif
 
+// NOTE: extern values must be defined in the .ld linker script
+extern uint32_t _ProgramMemoryStart;   // Starting address of main program in FLASH
+extern uint32_t _ProgramMemoryEnd;     // Ending address of main program in FLASH
+
 /***************************************************************************************************
 ** DEFINES
 ***************************************************************************************************/
 
-// FLASH sector memory layout for STM32F401xC
-#define START_SECTOR_0		0x08000000 // 16 kBytes
-#define END_SECTOR_0		0x08003FFF	
+#define PROGRAM_START_ADDR ((uintptr_t) &_ProgramMemoryStart)
+#define PROGRAM_END_ADDR ((uintptr_t) &_ProgramMemoryEnd)
+
+#define VALID_SECTORS 5
+
+/* FLASH sector memory layout for STM32F401xC
+** NOTE: Sector 0 is not defined here, as it will always be occupied by the ISR 
+**       and should never be overwritten by a user. */
+
 #define START_SECTOR_1		0x08004000 // 16 kBytes
 #define END_SECTOR_1		0x08007FFF
 #define START_SECTOR_2		0x08008000 // 16 kBytes
@@ -36,12 +46,12 @@
 extern "C" {
 #endif
 
-void writeToFlash(uint32_t flash_address, uint8_t *data, uint32_t size);
-void readFromFlash(uint32_t flash_address, uint8_t *data, uint32_t size);
+int writeToFlash(uint32_t flash_address, uint8_t *data, uint32_t size);
+int readFromFlash(uint32_t flash_address, uint8_t *data, uint32_t size);
 
 #ifdef HAL_CRC_MODULE_ENABLED
-    void writeToFlashCRC(CRC_HandleTypeDef *hcrc, uint32_t flash_address, uint8_t *data, uint32_t size);
-    void readFromFlashCRC(CRC_HandleTypeDef *hcrc, uint32_t flash_address, uint8_t *data, uint32_t size);
+    int writeToFlashCRC(CRC_HandleTypeDef *hcrc, uint32_t flash_address, uint8_t *data, uint32_t size);
+    int readFromFlashCRC(CRC_HandleTypeDef *hcrc, uint32_t flash_address, uint8_t *data, uint32_t size);
 #endif
 
 #ifdef __cplusplus
