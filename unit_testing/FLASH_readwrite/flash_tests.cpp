@@ -13,6 +13,10 @@ extern "C" {
     uint32_t _ProgramMemoryEnd = 0x0800BFFF;
 }
 
+#define PROGRAM_START_ADDR  ((uintptr_t) 0x08004000)
+#define PROGRAM_END_ADDR    ((uintptr_t) 0x0800BFFF)
+
+
 /* Fakes */
 #include "fake_stm32xxxx_hal.h"
 /* Real supporting units */
@@ -96,27 +100,27 @@ TEST_F(FlashTest, testIsWriteWithinSector)
 
 TEST_F(FlashTest, testIsProgramMemory)
 {
-    uint32_t legal_addresses[5] = {START_SECTOR_1, START_SECTOR_2, START_SECTOR_3, START_SECTOR_4, START_SECTOR_5};
+    uint32_t legal_addresses[3] = {START_SECTOR_3, START_SECTOR_4, START_SECTOR_5};
     uint32_t writeSize = 0x3FFF; 
 
     int ret = 0;
-    for (int i = 0; i < 5; i++)
+    for (int i = 0; i < 3; i++)
     {
         ret = isProgramMemory(legal_addresses[i], writeSize);
         EXPECT_EQ(ret, 0);
     }
 
-    // // Test that when starting in program memory, but ending in user memory
-    // // the function throws an error
-    // uint32_t illegal_start_address = 0x08005000;
-    // uint32_t legal_end = 0x7FFF;
-    // ret = isProgramMemory(illegal_start_address, legal_end);
-    // EXPECT_EQ(ret, 1);
+    // Test that when starting in program memory, but ending in user memory
+    // the function throws an error
+    uint32_t illegal_start_address = 0x08005000;
+    uint32_t legal_end = 0x7FFF;
+    ret = isProgramMemory(illegal_start_address, legal_end);
+    EXPECT_EQ(ret, 1);
 
-    // // Test that when starting in user memory, but ending in program memory
-    // // the function throws an error 
-    // uint32_t legal_start_address = 0x08002000;
-    // uint32_t illegal_end = 0x3FFF;
-    // ret = isProgramMemory(legal_start_address, illegal_end);
-    // EXPECT_EQ(ret, 1);
+    // Test that when starting in user memory, but ending in program memory
+    // the function throws an error 
+    uint32_t legal_start_address = 0x08002000;
+    uint32_t illegal_end = 0x3FFF;
+    ret = isProgramMemory(legal_start_address, illegal_end);
+    EXPECT_EQ(ret, 1);
 }

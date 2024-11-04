@@ -18,9 +18,13 @@ extern uint32_t _ProgramMemoryEnd;     // Ending address of main program in FLAS
 /***************************************************************************************************
 ** DEFINES
 ***************************************************************************************************/
+#ifndef PROGRAM_START_ADDR
+  #define PROGRAM_START_ADDR ((uintptr_t) &_ProgramMemoryStart)
+#endif
 
-#define PROGRAM_START_ADDR ((uintptr_t) &_ProgramMemoryStart)
-#define PROGRAM_END_ADDR ((uintptr_t) &_ProgramMemoryEnd)
+#ifndef PROGRAM_END_ADDR
+  #define PROGRAM_END_ADDR ((uintptr_t) &_ProgramMemoryEnd)
+#endif
 
 #define VALID_SECTORS 5
 
