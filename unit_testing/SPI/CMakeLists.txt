@@ -9,6 +9,12 @@ project(unit_testing)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Set timestamp policy to avoid warning (default value)
+if(POLICY CMP0135)
+	cmake_policy(SET CMP0135 NEW)
+	set(CMAKE_POLICY_DEFAULT_CMP0135 NEW)
+endif()
+
 include(FetchContent)
 FetchContent_Declare(
   googletest
@@ -28,7 +34,9 @@ set(LIB ../../STM32)
 set(INC_LIB ${LIB}/SPI/Inc ${LIB}/SPI/Src ${LIB}/Util/Inc)
 set(UT_FAKES ../fakes)
 set(UT_STUBS ../stubs)
-
+set(DRIVERS ../../STM32/Drivers/STM32F4xx_HAL_Driver/Inc)
+set(CMSIS ../../STM32/Drivers/CMSIS/Device/ST/STM32F4xx/Include)
+set(CMSIS_DRIVER ../../STM32/Drivers/CMSIS/Include)
 
 ####################################################################################################
 ## List of tests to run
@@ -40,6 +48,7 @@ include(GoogleTest)
 
 # LTC2512-24 tests
 add_executable(ltc2512_test ltc2512_tests.cpp ${UT_FAKES}/fake_stm32xxxx_hal.cpp ${UT_FAKES}/fake_StmGpio.cpp)
-target_include_directories(ltc2512_test PRIVATE ${UT_FAKES} ${UT_STUBS} ${INC_LIB})
+target_include_directories(ltc2512_test PRIVATE ${UT_FAKES} ${UT_STUBS} ${INC_LIB} ${DRIVERS} ${CMSIS} ${CMSIS_DRIVER} Inc)
 target_link_libraries(ltc2512_test GTest::gtest_main gmock_main)
+target_compile_definitions(ltc2512_test PUBLIC __LIBRARY_TEST)
 gtest_discover_tests(ltc2512_test)

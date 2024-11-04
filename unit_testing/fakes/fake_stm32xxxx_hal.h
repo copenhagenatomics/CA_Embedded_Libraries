@@ -41,10 +41,8 @@ extern "C" {
     (((RESOLUTION) == ADC_RESOLUTION_8B)  && ((ADC_VALUE) <= 0x00FFU)) || \
     (((RESOLUTION) == ADC_RESOLUTION_6B)  && ((ADC_VALUE) <= 0x003FU)))
 
-
 #ifdef __LIBRARY_TEST
-    #define __HAL_RCC_WWDG_CLK_DISABLE() {}
-    #define __HAL_RCC_WWDG_CLK_ENABLE() {}
+    #define __NOP() {}
 #endif
 
 /***************************************************************************************************
