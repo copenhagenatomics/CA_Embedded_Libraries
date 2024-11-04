@@ -34,7 +34,9 @@ set(LIB ../../STM32)
 set(INC_LIB ${LIB}/FLASH_readwrite/Inc ${LIB}/FLASH_readwrite/Src)
 set(UT_FAKES ../fakes)
 set(UT_STUBS ../stubs)
-set(UT_REDIRECTS ../redirects)
+set(DRIVERS ../../STM32/Drivers/STM32F4xx_HAL_Driver/Inc)
+set(CMSIS ../../STM32/Drivers/CMSIS/Device/ST/STM32F4xx/Include)
+
 
 ####################################################################################################
 ## List of tests to run
@@ -46,7 +48,7 @@ include(GoogleTest)
 
 # FLASH test
 add_executable(flash_test flash_tests.cpp ${UT_FAKES}/fake_stm32xxxx_hal.cpp)
-target_include_directories(flash_test PRIVATE ${UT_FAKES} ${UT_STUBS} ${INC_LIB} ${UT_REDIRECTS})
+target_include_directories(flash_test PRIVATE ${UT_FAKES} ${UT_STUBS} ${INC_LIB} ${DRIVERS} ${CMSIS} Inc)
 target_link_libraries(flash_test GTest::gtest_main gmock_main)
 target_compile_definitions(flash_test PUBLIC __LIBRARY_TEST)
 gtest_discover_tests(flash_test)

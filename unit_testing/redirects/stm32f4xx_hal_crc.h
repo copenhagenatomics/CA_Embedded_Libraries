@@ -1,1 +1,0 @@
-#include "fake_stm32f4xx_hal_crc.h"

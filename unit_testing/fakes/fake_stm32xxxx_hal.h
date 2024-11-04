@@ -17,14 +17,7 @@
 #include "fake_stm32f401xc.h"
 #define STM32F401xC
 #define __STM32F4xx_ADC_H
-
-#ifndef __LIBRARY_TEST
-    #include "stm32f4xx_hal_conf.h"
-#else
-    #include "fake_stm32f4xx_hal_conf.h"
-    #define __HAL_RCC_WWDG_CLK_DISABLE() {}
-    #define __HAL_RCC_WWDG_CLK_ENABLE() {}
-#endif
+#include "stm32f4xx_hal_conf.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -48,6 +41,11 @@ extern "C" {
     (((RESOLUTION) == ADC_RESOLUTION_8B)  && ((ADC_VALUE) <= 0x00FFU)) || \
     (((RESOLUTION) == ADC_RESOLUTION_6B)  && ((ADC_VALUE) <= 0x003FU)))
 
+
+#ifdef __LIBRARY_TEST
+    #define __HAL_RCC_WWDG_CLK_DISABLE() {}
+    #define __HAL_RCC_WWDG_CLK_ENABLE() {}
+#endif
 
 /***************************************************************************************************
 ** PUBLIC TYPEDEFS
