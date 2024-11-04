@@ -46,10 +46,10 @@ TEST_F(FlashTest, testGetSector)
     uint32_t test_addresses[5] = {0x08004040, 0x08008000, 0x0800CC00, 0x08010100, 0x08020000};
 
     uint32_t sector = 0;
-    for (int i = 1; i<=5; i++)
+    for (int i = 0; i<5; i++)
     {
         sector = getFlashSector(test_addresses[i]);
-        EXPECT_EQ(sector, i);
+        EXPECT_EQ(sector, i+1);
     }
 
     // Test invalid address

@@ -36,12 +36,12 @@ static uint32_t getFlashSector(uint32_t address)
     uint32_t address_sectors_end[VALID_SECTORS] = {END_SECTOR_1, END_SECTOR_2, END_SECTOR_3,
                                                    END_SECTOR_4, END_SECTOR_5};                                         
     
-    for (int i = 1; i <= VALID_SECTORS; i++)
+    for (int i = 0; i < VALID_SECTORS; i++)
     {
         if (address >= address_sectors_start[i] &&
             address <= address_sectors_end[i])
         {
-            return i;
+            return i+1;
         }
     }
     // This should never occur - return non-existing sector.
