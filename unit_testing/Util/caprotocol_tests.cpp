@@ -13,7 +13,6 @@
 #include <queue>
 
 /* Fakes */
-#include "fake_stm32xxxx_hal.h"
 
 /* Real supporting units */
 

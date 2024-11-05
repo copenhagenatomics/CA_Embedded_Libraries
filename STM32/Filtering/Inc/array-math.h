@@ -52,6 +52,9 @@ void cbPush(double_cbuf_handle_t p_cb, double new_val);
 int cbMean(double_cbuf_handle_t p_cb, int elements, double* result);
 int cbMax(double_cbuf_handle_t p_cb, int elements, double* result);
 
+double cbGetHead(double_cbuf_handle_t p_cb);
+int cbGetIdx(double_cbuf_handle_t p_cb, int idx, double* ret);
+
 #ifdef __cplusplus
 }
 #endif

@@ -20,6 +20,10 @@ extern uint32_t _FlashAddr;   // Variable defined in ld linker script.
 #define FLASH_SECTOR ((uint32_t) &_FlashSector)
 #define FLASH_ADDR   ((uint32_t) &_FlashAddr)
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // Write data to FLASH_ADDR+indx directly. This method does not
 // ensure any data integrity as data validation is performed.
 void writeToFlash(uint32_t indx, uint32_t size, uint8_t *data)
@@ -133,4 +137,9 @@ void readFromFlashSafe(CRC_HandleTypeDef *hcrc, uint32_t indx, uint32_t size, ui
     	*data = 0xFF;
 }
 #endif
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif

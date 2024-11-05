@@ -104,6 +104,13 @@ int usbRx(uint8_t* buf)
 }
 
 /*!
+** @brief Returns if there has been an error in the USB stack
+*/
+uint32_t isUsbError() {
+    return 0;
+}
+
+/*!
 ** @brief Sends data to the USB device
 */
 void hostUSBprintf(const char * format, ...)
@@ -170,4 +177,9 @@ void hostUSBConnect()
 void hostUSBDisconnect()
 {
     connected = false;
+}
+
+void itoa(int n, char* s, int radix)
+{
+    
 }

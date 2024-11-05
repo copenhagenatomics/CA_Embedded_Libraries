@@ -9,9 +9,9 @@ Description:		Provides an interface to read and write FLASH memory.
 
 #include <stdint.h>
 #if defined(HAL_CRC_MODULE_ENABLED) && defined(STM32F401xC)
-  #include "stm32f4xx_hal_crc.h"
+  #include "stm32f4xx_hal.h"
 #elif defined(HAL_CRC_MODULE_ENABLED) && defined(STM32H753xx)
-  #include "stm32h7xx_hal_crc.h"
+  #include "stm32h7xx_hal.h"
 #endif
 
 
