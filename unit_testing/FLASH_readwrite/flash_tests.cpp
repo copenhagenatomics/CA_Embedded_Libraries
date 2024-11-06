@@ -82,11 +82,11 @@ TEST_F(FlashTest, testIsWriteWithinSector)
     **              Anything above it should return 1. This denotes the first row of 
     **              returnValues. 
     */
-    int returnValues[25] = {0, 0, 1, 1, 1,
-                            0, 0, 1, 1, 1,
-                            0, 0, 1, 1, 1,
-                            0, 0, 0, 0, 1,
-                            0, 0, 0, 0, 0};
+    int returnValues[25] = {1, 1, 0, 0, 0,
+                            1, 1, 0, 0, 0,
+                            1, 1, 0, 0, 0,
+                            1, 1, 1, 1, 0,
+                            1, 1, 1, 1, 1};
     int ret = 0;
     for (int i = 0; i < 5; i++)
     {
@@ -122,5 +122,11 @@ TEST_F(FlashTest, testIsProgramMemory)
     uint32_t legal_start_address = 0x08002000;
     uint32_t illegal_end = 0x3FFF;
     ret = isProgramMemory(legal_start_address, illegal_end);
+    EXPECT_EQ(ret, 1);
+
+    // Test that if program memory is contained in range the function throws and error
+    uint32_t start_address = 0x08003FFF;
+    uint32_t end_address_offset = 0x5000;
+    ret = isProgramMemory(start_address, end_address_offset);
     EXPECT_EQ(ret, 1);
 }
