@@ -49,12 +49,26 @@ int min_element(double arr[], unsigned len, double* result) {
 ** @brief Returns the average value of an array of double
 */
 int mean_element(double arr[], unsigned len, double* result) {
+    double tmp;
+    int ret = sum_element(arr, len, &tmp);
+    
+    if(ret == 0) {
+        *result = tmp / len;
+    }
+
+    return ret;
+}
+
+/*!
+** @brief Returns the sum of an array of double
+*/
+int sum_element(double arr[], unsigned len, double* result) {
     if(len != 0) {
         double ret_val = arr[0];
         for(int i = 1; i < len; i++) {
             ret_val += arr[i];
         }
-        *result = ret_val / len;
+        *result = ret_val;
         return 0;
     }
 
@@ -221,16 +235,16 @@ int cbMean(double_cbuf_handle_t p_cb, int elements, double* result) {
     }
     else {
         double p1, p2;
-        int err = mean_element(p_cb->buffer, p_cb->idx, &p1);
+        int err = sum_element(p_cb->buffer, p_cb->idx, &p1);
 
         if(err != 0) {
             return err;
         }
 
         int remaining = elements - p_cb->idx;
-        err = mean_element(&p_cb->buffer[p_cb->len - remaining], remaining, &p2);
+        err = sum_element(&p_cb->buffer[p_cb->len - remaining], remaining, &p2);
 
-        *result = p1 + p2;
+        *result = (p1 + p2) / elements;
         return 0;
     }
 }

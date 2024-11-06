@@ -41,6 +41,7 @@ extern "C" {
 int max_element(double arr[], unsigned len, double* result);
 int min_element(double arr[], unsigned len, double* result);
 int mean_element(double arr[], unsigned len, double* result);
+int sum_element(double arr[], unsigned len, double* result);
 
 /* Functions for moving average filters */
 int maInit(moving_avg_cbuf_handle_t p_ma, double* buf, unsigned len);
@@ -54,6 +55,7 @@ int cbMax(double_cbuf_handle_t p_cb, int elements, double* result);
 
 double cbGetHead(double_cbuf_handle_t p_cb);
 int cbGetIdx(double_cbuf_handle_t p_cb, int idx, double* ret);
+double cbGetTail(double_cbuf_handle_t p_cb);
 
 #ifdef __cplusplus
 }
