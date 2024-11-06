@@ -39,9 +39,16 @@ enable_testing()
 
 include(GoogleTest)
 
-# ADCMonitor tests
+# CAProtocol tests
 add_executable(caprotocol_test caprotocol_tests.cpp ${UT_STUBS}/stub_CAProtocolStm.cpp)
 target_include_directories(caprotocol_test PRIVATE ${UT_FAKES} ${UT_STUBS} ${INC_LIB})
 target_link_libraries(caprotocol_test GTest::gtest_main gmock_main)
 target_compile_definitions(caprotocol_test PUBLIC UNIT_TESTING)
 gtest_discover_tests(caprotocol_test)
+
+# Systeminfo tests
+add_executable(systeminfo_test systeminfo_tests.cpp ${UT_FAKES}/fake_HAL_otp.cpp)
+target_include_directories(systeminfo_test PRIVATE ${UT_FAKES} ${UT_STUBS} ${INC_LIB})
+target_link_libraries(systeminfo_test GTest::gtest_main gmock_main)
+target_compile_definitions(systeminfo_test PUBLIC UNIT_TESTING)
+gtest_discover_tests(systeminfo_test)

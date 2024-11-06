@@ -10,8 +10,16 @@
 #include "stm32h7xx_hal.h"
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // Get sensor serial number
 HAL_StatusTypeDef honeywellZephyrSerial(I2C_HandleTypeDef* hi2c, uint32_t *serialNB);
 
 // read measured value.
 HAL_StatusTypeDef honeywellZephyrRead(I2C_HandleTypeDef *hi2c, float *flowData);
+
+#ifdef __cplusplus
+}
+#endif

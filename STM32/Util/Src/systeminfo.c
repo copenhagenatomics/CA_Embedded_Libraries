@@ -71,6 +71,7 @@ static const char* mcuType()
     {
     case 0x423: len += snprintf(&mcu[len], sizeof(mcu) -len, "STM32F401xB/C");        break;
     case 0x433: len += snprintf(&mcu[len], sizeof(mcu) -len, "STM32F401xD/E");        break;
+    case 0x450: len += snprintf(&mcu[len], sizeof(mcu) -len, "STM32H753IIT6");        break;
     default:    len += snprintf(&mcu[len], sizeof(mcu) -len, "Unknown 0x%3X", idCode); break;
     }
 
@@ -79,7 +80,7 @@ static const char* mcuType()
     return mcu;
 }
 
-static char* productType(uint8_t id)
+static const char* productType(uint8_t id)
 {
     switch(id)
     {
@@ -163,13 +164,13 @@ const char* statusInfo(bool printStart)
         return buf;
     }
 
+    len += snprintf(&buf[len], sizeof(buf) - len, "Start of board status:\r\n");
     if (!(BS.boardStatus & BS_ERROR_Msk))
     {
-        len += snprintf(&buf[len], sizeof(buf) - len, "Board Status:\r\nThe board is operating normally.\r\n");
+        len += snprintf(&buf[len], sizeof(buf) - len, "The board is operating normally.\r\n");
         return buf;
     } 
-    len += snprintf(&buf[len], sizeof(buf) - len, "Board Status:\r\n");
-
+    
     if (BS.boardStatus & BS_OVER_TEMPERATURE_Msk)
     {
         len += snprintf(&buf[len], sizeof(buf) - len, 
@@ -196,7 +197,7 @@ const char* statusInfo(bool printStart)
 
     if (BS.boardStatus & BS_VERSION_ERROR_Msk)
     {
-        BoardType bt = {0};
+        BoardType bt = (BoardType)0;
         pcbVersion pv = {0};
         (void) getBoardInfo(&bt, NULL);
         (void) getPcbVersion(&pv);
@@ -227,14 +228,14 @@ int getBoardInfo(BoardType *bdt, SubBoardType *sbdt)
 
     if (info.otpVersion == OTP_VERSION_1)
     {
-        if (bdt)  { *bdt  = info.v1.boardType; }
+        if (bdt)  { *bdt  = (BoardType)info.v1.boardType; }
         if (sbdt) { *sbdt = 0; } // Sub board type is not included in version 1
         return 0;
     }
 
     if (info.otpVersion == OTP_VERSION_2)
     {
-        if (bdt)  { *bdt  = info.v2.boardType; }
+        if (bdt)  { *bdt  = (BoardType)info.v2.boardType; }
         if (sbdt) { *sbdt = info.v2.subBoardType; }
         return 0;
     }
@@ -326,7 +327,10 @@ int boardSetup(BoardType type, pcbVersion breaking_version) {
     }
 
     pcbVersion ver;
-    if (getPcbVersion(&ver) || ver.major < breaking_version.major || ver.minor < breaking_version.minor) {
+    if (getPcbVersion(&ver) || ver.major < breaking_version.major) {
+        bsSetError(BS_VERSION_ERROR_Msk);
+    }
+    else if(ver.major == breaking_version.major && ver.minor < breaking_version.minor) {
         bsSetError(BS_VERSION_ERROR_Msk);
     }
 
