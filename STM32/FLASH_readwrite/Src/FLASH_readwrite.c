@@ -19,6 +19,7 @@ extern "C" {
 static uint32_t getFlashSector(uint32_t address);
 static int isWriteWithinSector(uint32_t address, uint32_t size);
 static int isProgramMemory(uint32_t address, uint32_t size);
+static int isAddressValid(uint32_t flash_address, uint32_t size, uint32_t *flash_sector);
 
 /***************************************************************************************************
 ** PRIVATE FUNCTIONS
@@ -92,6 +93,22 @@ static int isProgramMemory(uint32_t address, uint32_t size)
     return 0;
 }
 
+static int isAddressValid(uint32_t flash_address, uint32_t size, uint32_t *flash_sector)
+{
+    // User is trying to write to an address containing program data
+    if (isProgramMemory(flash_address, size)) { return 0; }
+
+    *flash_sector = getFlashSector(flash_address);
+
+    // User is trying to write to non-valid sector
+    if (*flash_sector == 10) { return 0; }
+
+    // User is trying to write to more than one sector
+    if (!isWriteWithinSector(flash_address, size)){ return 0; }
+
+    return 1;
+}
+
 /***************************************************************************************************
 ** PUBLIC FUNCTIONS
 ***************************************************************************************************/
@@ -104,16 +121,8 @@ static int isProgramMemory(uint32_t address, uint32_t size)
 */
 int writeToFlash(uint32_t flash_address, uint8_t *data, uint32_t size)
 {
-    // User is trying to write to an address containing program data
-    if (isProgramMemory(flash_address, size)) { return -1; }
-
-    uint32_t flash_sector = getFlashSector(flash_address);
-
-    // User is trying to write to non-valid sector
-    if (flash_sector == 10) { return -1; }
-
-    // User is trying to write to more than one sector
-    if (!isWriteWithinSector(flash_address, size)){ return -1; }
+    uint32_t flash_sector;
+    if (!isAddressValid(flash_address, size, &flash_sector)) { return -1; }
 
     // If !HAL_OK FLASH unlock failed and cannot be erased or written to
     if (HAL_FLASH_Unlock() != HAL_OK) { return -1; }
@@ -175,16 +184,8 @@ uint32_t computeCRC(CRC_HandleTypeDef *hcrc, uint8_t *data, uint32_t size)
 */
 int writeToFlashCRC(CRC_HandleTypeDef *hcrc, uint32_t flash_address, uint8_t *data, uint32_t size)
 {    
-    // User is trying to write to an address containing program data
-    if (isProgramMemory(flash_address, size)) { return -1; }
-
-    uint32_t flash_sector = getFlashSector(flash_address);
-
-    // User is trying to write to non-valid sector
-    if (flash_sector == 10) { return -1; }
-
-    // User is trying to write to more than one sector
-    if (!isWriteWithinSector(flash_address, size)){ return -1; }
+    uint32_t flash_sector;
+    if (!isAddressValid(flash_address, size, &flash_sector)) { return -1; }
 
     // If !HAL_OK FLASH unlock failed and cannot be erased or written to
     if (HAL_FLASH_Unlock() != HAL_OK) { return -1; }
