@@ -66,6 +66,7 @@ DMA_Stream_TypeDef DMA2_Stream6_obj;
 DMA_Stream_TypeDef DMA2_Stream7_obj;
 DBGMCU_TypeDef DBGMCU_obj;
 USB_OTG_GlobalTypeDef USB_OTG_FS_obj;
+SCB_Type SCB_obj;
 
 /***************************************************************************************************
 ** PRIVATE MEMBERS
