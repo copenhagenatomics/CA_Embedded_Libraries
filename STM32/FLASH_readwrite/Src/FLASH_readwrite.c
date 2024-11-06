@@ -93,6 +93,10 @@ static int isProgramMemory(uint32_t address, uint32_t size)
     return 0;
 }
 
+/*!
+** @brief Checks whether the address is valid for FLASH operations
+** @return Returns 1 if the memory range is valid for FLASH operations, otherwise 0.
+*/
 static int isAddressValid(uint32_t flash_address, uint32_t size, uint32_t *flash_sector)
 {
     // User is trying to write to an address containing program data
