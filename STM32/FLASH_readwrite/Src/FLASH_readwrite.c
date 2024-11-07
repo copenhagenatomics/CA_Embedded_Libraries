@@ -140,7 +140,10 @@ int writeToFlash(uint32_t flash_address, uint8_t *data, uint32_t size)
     for(uint32_t i=0; i<size; i++)
     {
         // If the FLASH write operation fails we should still lock the FLASH and re-enable the watch dog. 
-        if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_BYTE, flash_address+i , data[i]) != HAL_OK) { ret = -1; }
+        if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_BYTE, flash_address+i , data[i]) != HAL_OK) { 
+            ret = -1;
+            break;    
+        }
     }
 
     HAL_FLASH_Lock();
@@ -206,7 +209,10 @@ int writeToFlashCRC(CRC_HandleTypeDef *hcrc, uint32_t flash_address, uint8_t *da
     for(uint32_t i=0; i<size; i++)
     {
         // If the FLASH write operation fails we should still lock the FLASH and re-enable the watch dog.
-        if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_BYTE, flash_address+i , data[i]) != HAL_OK) { ret = -1; }
+        if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_BYTE, flash_address+i , data[i]) != HAL_OK) { 
+            ret = -1;
+            break; 
+        }
     }
 
     // Store CRC value
