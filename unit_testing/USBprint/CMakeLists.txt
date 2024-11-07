@@ -9,6 +9,12 @@ project(unit_testing)
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+# Set timestamp policy to avoid warning (default value)
+if(POLICY CMP0135)
+	cmake_policy(SET CMP0135 NEW)
+	set(CMAKE_POLICY_DEFAULT_CMP0135 NEW)
+endif()
+
 include(FetchContent)
 FetchContent_Declare(
   googletest
@@ -29,6 +35,8 @@ set(INC_LIB ${LIB}/USBprint/Inc ${LIB}/USBprint/Src ${LIB}/circularBuffer/Inc)
 set(UT_FAKES ../fakes)
 set(UT_STUBS ../stubs)
 set(UT_REDIRECTS ../redirects)
+set(DRIVERS ../../STM32/Drivers/STM32F4xx_HAL_Driver/Inc)
+set(CMSIS ../../STM32/Drivers/CMSIS/Device/ST/STM32F4xx/Include)
 
 
 ####################################################################################################
@@ -41,7 +49,7 @@ include(GoogleTest)
 
 # USBprint tests
 add_executable(usbprint_test usbprint_tests.cpp ${LIB}/circularBuffer/Src/circular_buffer.c ${UT_FAKES}/fake_stm32xxxx_hal.cpp ${UT_FAKES}/fake_usbd_cdc.cpp)
-target_include_directories(usbprint_test PRIVATE ${UT_FAKES} ${UT_STUBS} ${UT_REDIRECTS} ${INC_LIB})
+target_include_directories(usbprint_test PRIVATE ${UT_FAKES} ${UT_STUBS} ${UT_REDIRECTS} ${INC_LIB} ${DRIVERS} ${CMSIS} Inc)
 target_link_libraries(usbprint_test GTest::gtest_main gmock_main)
 target_compile_definitions(usbprint_test PUBLIC UNIT_TESTING)
 gtest_discover_tests(usbprint_test)
