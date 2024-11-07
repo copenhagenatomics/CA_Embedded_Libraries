@@ -301,7 +301,7 @@ void inputCAProtocol(CAProtocolCtx* ctx)
     {
         if (ctx->allOn) ctx->allOn(false, -1);
     }
-    else if (input[0] == 'p' && strnlen(input, 13) <= 13) // 13 since that is length of pX on YY ZZZ%
+    else if (input[0] == 'p' && strnlen(input, 14) <= 14) // 14 since that is length of pXX on YY ZZZ%
     {
         char cmd[13];
         int port;

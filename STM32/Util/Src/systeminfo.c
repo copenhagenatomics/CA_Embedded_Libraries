@@ -104,6 +104,7 @@ static const char* productType(uint8_t id)
     case ERHC             :  return "ERHC";            	 break;
     case VFD              :  return "VFD";            	 break;
     case Tachometer       :  return "Tachometer";     	 break;
+    case ACTenChannel     :  return "ACTenChannel";    	 break;
     }
     return "NA";
 }
