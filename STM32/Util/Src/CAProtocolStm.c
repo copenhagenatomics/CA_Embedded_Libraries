@@ -80,9 +80,10 @@ void CAotpRead()
     }
 }
 
-void CAhandleUserInputs(CAProtocolCtx* ctx, const char* startMsg)
+bool CAhandleUserInputs(CAProtocolCtx* ctx, const char* startMsg)
 {
     static bool isFirstWrite = true;
+    bool firstWriteHappened = false;
     if (isUsbPortOpen())
     {
         // Upon first write print line and reset circular buffer to ensure no faulty misreads occurs.
@@ -92,6 +93,7 @@ void CAhandleUserInputs(CAProtocolCtx* ctx, const char* startMsg)
             flushCAProtocol(ctx);
             usbFlush();
             isFirstWrite = false;
+            firstWriteHappened = true;
         }
     }
     else
@@ -100,6 +102,8 @@ void CAhandleUserInputs(CAProtocolCtx* ctx, const char* startMsg)
     }
 
     inputCAProtocol(ctx);
+
+    return firstWriteHappened;
 }
 
 const char* CAonBoot()
