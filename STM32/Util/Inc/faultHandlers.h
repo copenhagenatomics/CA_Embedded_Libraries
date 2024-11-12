@@ -82,7 +82,8 @@ typedef struct {
 
 void recordFaultType(contextStateFrame_t* frame, faultType_t faultType);
 void clearFaultInfo();
-void getFaultInfo(faultInfo_t* faultInfo);
+faultInfo_t* getFaultInfo();
 bool printFaultInfo();
+void setLocalFaultInfo(faultInfo_t* localFaultInfo);
 
 #endif /* FAULT_HANDLERS_H_ */

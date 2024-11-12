@@ -15,7 +15,6 @@
 #include "stm32f4xx_hal.h"
 
 #include "faultHandlers.h"
-#include "FLASH_readwrite.h"
 #include "USBprint.h"
 
 /***************************************************************************************************
@@ -34,8 +33,7 @@
 ** PRIVATE VARIABLES
 ***************************************************************************************************/
 
-/* Defined in the linker script */
-extern uint32_t _FlashAddr;
+static faultInfo_t* _localFaultInfo = NULL;
 
 /***************************************************************************************************
 ** PUBLIC FUNCTION DEFINITIONS
@@ -48,17 +46,13 @@ extern uint32_t _FlashAddr;
 */
 void recordFaultType(contextStateFrame_t* frame, faultType_t faultType) {
     if(faultType != NO_FAULT) {
-        faultInfo_t faultInfo = {
-            .fault  = faultType,
-            .CFSR   = SCB->CFSR,
-            .HFSR   = SCB->HFSR,
-            .MMFA   = SCB->MMFAR,
-            .BFA    = SCB->BFAR,
-            .ABFS   = SCB->AFSR,
-            .sFrame = *frame,
-        };
-
-        writeToFlash(0, sizeof(faultInfo_t), (uint8_t*)&faultInfo);
+        _localFaultInfo->fault  = faultType;
+        _localFaultInfo->CFSR   = SCB->CFSR;
+        _localFaultInfo->HFSR   = SCB->HFSR;
+        _localFaultInfo->MMFA   = SCB->MMFAR;
+        _localFaultInfo->BFA    = SCB->BFAR;
+        _localFaultInfo->ABFS   = SCB->AFSR;
+        _localFaultInfo->sFrame = *frame;
     }
 }
 
@@ -66,15 +60,14 @@ void recordFaultType(contextStateFrame_t* frame, faultType_t faultType) {
 ** @brief This function clears any information on faults from flash memory
 */
 void clearFaultInfo() {
-    faultInfo_t faultInfo = {.fault = NO_FAULT};
-    writeToFlash(0, sizeof(faultInfo_t), (uint8_t*)&faultInfo);
+    _localFaultInfo->fault = NO_FAULT;
 }
 
 /*!
-** @brief This function returns most recent fault Info as a struct
+** @brief Returns the address of the fault info structure
 */
-void getFaultInfo(faultInfo_t* faultInfo) {
-    readFromFlash(0, sizeof(faultInfo_t), (uint8_t*)faultInfo);
+faultInfo_t* getFaultInfo() {
+    return _localFaultInfo;
 }
 
 /*!
@@ -83,22 +76,20 @@ void getFaultInfo(faultInfo_t* faultInfo) {
 bool printFaultInfo() {
     static char buf[BUF_LEN] = {0};
     int len = 0;
-    faultInfo_t fi;
-    getFaultInfo(&fi);
 
-    if(fi.fault != NO_FAULT) {
+    if(_localFaultInfo->fault != NO_FAULT) {
         len += snprintf(&buf[len], BUF_LEN - len, "\nStart of fault info\r\n");
-        len += snprintf(&buf[len], BUF_LEN - len, "Last fault was: %d\r\n", fi.fault);
-        len += snprintf(&buf[len], BUF_LEN - len, "CFSR was: 0x%08" PRIx32 "\r\n",  fi.CFSR);
-        len += snprintf(&buf[len], BUF_LEN - len, "HFSR was: 0x%08" PRIx32 "\r\n",  fi.HFSR);
-        len += snprintf(&buf[len], BUF_LEN - len, "MMFA was: 0x%08" PRIx32 "\r\n",  fi.MMFA);
-        len += snprintf(&buf[len], BUF_LEN - len, "BFA was:  0x%08" PRIx32 "\r\n",  fi.BFA);
-        len += snprintf(&buf[len], BUF_LEN - len, "AFSR was: 0x%08" PRIx32 "\r\n",  fi.ABFS);
+        len += snprintf(&buf[len], BUF_LEN - len, "Last fault was: %d\r\n", _localFaultInfo->fault);
+        len += snprintf(&buf[len], BUF_LEN - len, "CFSR was: 0x%08" PRIx32 "\r\n",  _localFaultInfo->CFSR);
+        len += snprintf(&buf[len], BUF_LEN - len, "HFSR was: 0x%08" PRIx32 "\r\n",  _localFaultInfo->HFSR);
+        len += snprintf(&buf[len], BUF_LEN - len, "MMFA was: 0x%08" PRIx32 "\r\n",  _localFaultInfo->MMFA);
+        len += snprintf(&buf[len], BUF_LEN - len, "BFA was:  0x%08" PRIx32 "\r\n",  _localFaultInfo->BFA);
+        len += snprintf(&buf[len], BUF_LEN - len, "AFSR was: 0x%08" PRIx32 "\r\n",  _localFaultInfo->ABFS);
         len += snprintf(&buf[len], BUF_LEN - len, "Stack Frame was:\r\n");
         len += snprintf(&buf[len], BUF_LEN - len, "0x%08" PRIx32 ", 0x%08" PRIx32 ", 0x%08" PRIx32 ", 0x%08" PRIx32 "\r\n", 
-            fi.sFrame.r0, fi.sFrame.r1, fi.sFrame.r2, fi.sFrame.r3);
+            _localFaultInfo->sFrame.r0, _localFaultInfo->sFrame.r1, _localFaultInfo->sFrame.r2, _localFaultInfo->sFrame.r3);
         len += snprintf(&buf[len], BUF_LEN - len, "0x%08" PRIx32 ", 0x%08" PRIx32 ", 0x%08" PRIx32 ", 0x%08" PRIx32 "\r\n",
-            fi.sFrame.r12, fi.sFrame.lr, fi.sFrame.return_address, fi.sFrame.xpsr);
+            _localFaultInfo->sFrame.r12, _localFaultInfo->sFrame.lr, _localFaultInfo->sFrame.return_address, _localFaultInfo->sFrame.xpsr);
         len += snprintf(&buf[len], BUF_LEN - len, "End of fault info\r\n");
 
         writeUSB(buf, len);
@@ -107,4 +98,14 @@ bool printFaultInfo() {
     }
 
     return false;
+}
+
+/*!
+** @brief Sets the address of the variable to use to communicate fault information.
+**
+** It is the user's responsibility to ensure the fault information is written/loaded from flash as 
+** required for the proper operation of these functions
+*/
+void setLocalFaultInfo(faultInfo_t* localFaultInfo) {
+    _localFaultInfo = localFaultInfo;
 }
