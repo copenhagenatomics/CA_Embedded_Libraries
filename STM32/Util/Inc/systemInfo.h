@@ -30,6 +30,9 @@ extern "C" {
 #define BS_USB_ERROR_Pos                    25U
 #define BS_USB_ERROR_Msk                    (1UL << BS_USB_ERROR_Pos)
 
+#define BS_FLASH_ONGOING_Pos                24U
+#define BS_FLASH_ONGOING_Msk                (1UL << BS_FLASH_ONGOING_Pos)
+
 /* Used for defining which bits are errors, and which are statuses */
 #define BS_SYSTEM_ERRORS_Msk                (BS_OVER_TEMPERATURE_Msk | BS_UNDER_VOLTAGE_Msk | \
                                              BS_OVER_VOLTAGE_Msk | BS_OVER_CURRENT_Msk | \

@@ -24,35 +24,59 @@
 ** PRIVATE OBJECTS
 ***************************************************************************************************/
 
-static bool init_flag = true;
-static uint8_t mem_sector[SIZE_OF_MEM_ARRAY] = {0};
+static bool init_flag[VALID_SECTORS] = {true, true, true, true, true};
+static uint8_t mem_sectors[VALID_SECTORS][SIZE_OF_MEM_ARRAY] = {0}; 
+static uint32_t addresses[VALID_SECTORS] = {0}; 
+static int num_addresses_used = 0;
 
-// Write data to FLASH_ADDR+indx directly. This method does not
-// ensure any data integrity as data validation is performed.
-void writeToFlash(uint32_t indx, uint32_t size, uint8_t *data)
+// Get the flash_address index to be used in mem_sectors
+// Assigns a "sector" in the mem_sectors array if not already initialised.
+int getFakeSector(uint32_t flash_address)
 {
-    if(init_flag) {
-        std::fill_n(mem_sector, SIZE_OF_MEM_ARRAY, 0xFF);
-        init_flag = false;
+    for (int i = 0; i < VALID_SECTORS; i++)
+    {
+        if (addresses[i] == flash_address)
+        {
+            return i;
+        }
     }
 
-    if((indx + size) < SIZE_OF_MEM_ARRAY) {
-        memcpy(&mem_sector[indx], data, size);
+    // Add the flash addresses to array of flash_address already indexed.
+    addresses[num_addresses_used] = flash_address;
+    return num_addresses_used++;
+}
+
+// Write data to flash_address directly. This method does not
+// ensure any data integrity as data validation is performed.
+int writeToFlash(uint32_t flash_address, uint8_t *data, uint32_t size)
+{
+    uint32_t sector = getFakeSector(flash_address);
+    if(init_flag[sector]) {
+        std::fill_n(mem_sectors[sector], SIZE_OF_MEM_ARRAY, 0xFF);
+        init_flag[sector] = false;
     }
+
+    if (size < SIZE_OF_MEM_ARRAY) {
+        memcpy(mem_sectors[sector], data, size);
+    }
+    return 0;
 }
 
 // Read from flash without checking data integrity if CRC module
 // is not enabled in project.
-void readFromFlash(uint32_t indx, uint32_t size, uint8_t *data)
+int readFromFlash(uint32_t flash_address, uint8_t *data, uint32_t size)
 {
-    if(init_flag) {
-        std::fill_n(mem_sector, SIZE_OF_MEM_ARRAY, 0xFF);
-        init_flag = false;
+    uint32_t sector = getFakeSector(flash_address);
+    if(init_flag[sector]) {
+        std::fill_n(mem_sectors[sector], SIZE_OF_MEM_ARRAY, 0xFF);
+        init_flag[sector] = false;
+        return 1;
     }
 
-    if((indx + size) < SIZE_OF_MEM_ARRAY) {
-        memcpy(data, &mem_sector[indx], size);
+    if (size < SIZE_OF_MEM_ARRAY) {
+        memcpy(data, mem_sectors[sector], size);
     }
+    return 0;
 }
 
 
@@ -60,16 +84,18 @@ void readFromFlash(uint32_t indx, uint32_t size, uint8_t *data)
 // error for projects where CRC module is not enabled
 #ifdef HAL_CRC_MODULE_ENABLED
 // Write data to FLASH_ADDR+indx including CRC.
-void writeToFlashSafe(CRC_HandleTypeDef *hcrc, uint32_t indx, uint32_t size, uint8_t *data)
+int writeToFlashCRC(CRC_HandleTypeDef *hcrc, uint32_t flash_address, uint8_t *data, uint32_t size)
 {
-    writeToFlash(indx, size, data);
+    int ret = writeToFlash(flash_address, data, size);
+    return ret;
 }
 
 
-// Read from flash without checking data integrity if CRC module
+// Read from flash without checking data integrity if  CRC module
 // is not enabled in project.
-void readFromFlashSafe(CRC_HandleTypeDef *hcrc, uint32_t indx, uint32_t size, uint8_t *data)
+int readFromFlashCRC(CRC_HandleTypeDef *hcrc, uint32_t flash_address, uint8_t *data, uint32_t size)
 {
-    readFromFlash(indx, size, data);
+    int ret = readFromFlash(flash_address, data, size);
+    return ret;
 }
 #endif
