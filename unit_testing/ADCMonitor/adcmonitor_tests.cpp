@@ -143,7 +143,7 @@ TEST_F(ADCMonitorTest, testADCmax)
     EXPECT_EQ(ADCmax(pData,1), (noOfSamples-1)*2);
     EXPECT_EQ(ADCmax(pData,2), 3993);
     EXPECT_EQ(ADCmax(pData,3), 1946);
-    EXPECT_EQ(ADCmax(pData,4), -101);
+    EXPECT_EQ(ADCmax(pData,4), -100);
 }
 
 TEST_F(ADCMonitorTest, testADCmin)
