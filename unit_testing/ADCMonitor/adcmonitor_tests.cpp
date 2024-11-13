@@ -143,7 +143,7 @@ TEST_F(ADCMonitorTest, testADCmax)
     EXPECT_EQ(ADCmax(pData,1), (noOfSamples-1)*2);
     EXPECT_EQ(ADCmax(pData,2), 3993);
     EXPECT_EQ(ADCmax(pData,3), 1946);
-    EXPECT_EQ(ADCmax(pData,3), -101);
+    EXPECT_EQ(ADCmax(pData,4), -101);
 }
 
 TEST_F(ADCMonitorTest, testADCmin)
@@ -174,7 +174,7 @@ TEST_F(ADCMonitorTest, testADCmin)
     EXPECT_EQ(ADCmin(pData,1), (1-noOfSamples)*2);
     EXPECT_EQ(ADCmin(pData,2), 100);
     EXPECT_EQ(ADCmin(pData,3), -1947);
-    EXPECT_EQ(ADCmin(pData,3), -3994);
+    EXPECT_EQ(ADCmin(pData,4), -3994);
 }
 
 TEST_F(ADCMonitorTest, testADCSetOffset)
