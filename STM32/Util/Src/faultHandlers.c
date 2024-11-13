@@ -78,7 +78,7 @@ bool printFaultInfo() {
     int len = 0;
 
     if(_localFaultInfo->fault != NO_FAULT) {
-        len += snprintf(&buf[len], BUF_LEN - len, "\nStart of fault info\r\n");
+        len += snprintf(&buf[len], BUF_LEN - len, "\r\nStart of fault info\r\n");
         len += snprintf(&buf[len], BUF_LEN - len, "Last fault was: %d\r\n", _localFaultInfo->fault);
         len += snprintf(&buf[len], BUF_LEN - len, "CFSR was: 0x%08" PRIx32 "\r\n",  _localFaultInfo->CFSR);
         len += snprintf(&buf[len], BUF_LEN - len, "HFSR was: 0x%08" PRIx32 "\r\n",  _localFaultInfo->HFSR);
