@@ -8,7 +8,7 @@ import sys
 def run_tests_in_subdirectory(dir, regex, verbose):
 
     if os.name == 'nt':
-        subprocess.run("cmake -S . -B build -G \"MinGW Makefiles\"", shell=True, cwd=dir)
+        subprocess.run("cmake -S . -B build -G \"MinGW Makefiles\" -Wno-deprecated", shell=True, cwd=dir)
     else:
         subprocess.run("cmake -S . -B build", shell=True, cwd=dir)
         
