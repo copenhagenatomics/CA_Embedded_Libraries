@@ -12,4 +12,4 @@ void CAotpRead();
 const char* CAonBoot();
 
 // Generic handler for a CAProtocolCtx handler.
-void CAhandleUserInputs(CAProtocolCtx* ctx, const char* startMsg);
+bool CAhandleUserInputs(CAProtocolCtx* ctx, const char* startMsg);
