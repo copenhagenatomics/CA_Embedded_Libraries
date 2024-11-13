@@ -41,7 +41,8 @@ int16_t cmaAvarage(int16_t *pData, uint16_t channel, int16_t cma, int k);
 double ADCMean(const int16_t *pData, uint16_t channel);
 double ADCAbsMean(const int16_t *pData, uint16_t channel);
 double ADCrms(const int16_t *pData, uint16_t channel);
-uint16_t ADCmax(const int16_t *pData, uint16_t channel);
+int16_t ADCmax(const int16_t *pData, uint16_t channel);
+int16_t ADCmin(const int16_t *pData, uint16_t channel);
 
 // @Description Compute fast mean using bit shift (NOTE: Can only be used if array length is multiple of 2)
 // @Param pData Pointer to buffer from callback function
