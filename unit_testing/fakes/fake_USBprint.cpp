@@ -179,7 +179,7 @@ void hostUSBDisconnect()
     connected = false;
 }
 
-void itoa(int n, char* s, int radix)
+void intToA(int n, char* s, int radix)
 {
     
 }

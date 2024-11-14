@@ -58,9 +58,9 @@ static USBD_CDC_LineCodingTypeDef LineCoding = {
 };
 
 typedef enum {
-        closed,
-        preOpen,
-        open
+        comClosed,
+        comPreOpen,
+        comOpen
     } comport_t;
 
 // Internal data for rx/tx
@@ -72,7 +72,7 @@ static struct
     } tx, rx;
     comport_t isComPortOpen;
     unsigned long portOpenTime;
-} usb_cdc_if = { {0}, {0}, closed, 0};
+} usb_cdc_if = { {0}, {0}, comClosed, 0};
 
 static volatile uint32_t usb_error = CDC_ERROR_NONE;
 
@@ -88,10 +88,10 @@ static uint8_t          rx_buf[CIRCULAR_BUFFER_SIZE] = {0};
 
 bool isComPortOpen() {
     // The USB CDC needs to be initialised and open for some time before the COM port is opened properly
-    if (usb_cdc_if.isComPortOpen == open ||
-       (HAL_GetTick() - usb_cdc_if.portOpenTime > CDC_INIT_TIME && usb_cdc_if.isComPortOpen == preOpen))
+    if (usb_cdc_if.isComPortOpen == comOpen ||
+       (HAL_GetTick() - usb_cdc_if.portOpenTime > CDC_INIT_TIME && usb_cdc_if.isComPortOpen == comPreOpen))
     {
-        usb_cdc_if.isComPortOpen = open;
+        usb_cdc_if.isComPortOpen = comOpen;
         return true;
     }
     return false;
@@ -203,7 +203,7 @@ static int8_t CDC_Init_FS(void)
     usb_cdc_if.rx.ctx = circular_buf_init_static(&rx_cb, rx_buf, CIRCULAR_BUFFER_SIZE);
 
     // Default is no host attached.
-    usb_cdc_if.isComPortOpen = closed;
+    usb_cdc_if.isComPortOpen = comClosed;
 
     return (USBD_OK);
 }
@@ -273,11 +273,11 @@ static int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length)
     case CDC_SET_CONTROL_LINE_STATE:
         if ((((USBD_SetupReqTypedef *) pbuf)->wValue & 0x0001) == 0)
         {
-            usb_cdc_if.isComPortOpen = closed;
+            usb_cdc_if.isComPortOpen = comClosed;
         }
         else
         {
-            usb_cdc_if.isComPortOpen = preOpen;
+            usb_cdc_if.isComPortOpen = comPreOpen;
             usb_cdc_if.portOpenTime = HAL_GetTick();
         }
     break;

@@ -37,6 +37,6 @@ std::vector<std::string>* hostUSBread(bool flush=false);
 
 void hostUSBConnect();
 void hostUSBDisconnect();
-void itoa(int n, char* s, int radix);
+void intToA(int n, char* s, int radix);
 
 #endif /* FAKE_USBPRINT_H_ */
