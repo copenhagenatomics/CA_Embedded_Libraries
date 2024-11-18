@@ -188,7 +188,7 @@ void ADCSetOffset(int16_t* pData, int16_t offset, uint16_t channel)
 
     for (uint32_t sampleId = 0; sampleId < ADCMonitorData.noOfSamples; sampleId++)
     {
-        // No need to addjust for overflow since ADC is 12 bits.
+        // No need to adjust for overflow since ADC is 12 bits.
         pData[sampleId*ADCMonitorData.noOfChannels + channel] += offset;
     }
 }
