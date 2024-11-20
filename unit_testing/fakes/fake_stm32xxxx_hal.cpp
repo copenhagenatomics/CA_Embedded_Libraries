@@ -66,6 +66,7 @@ DMA_Stream_TypeDef DMA2_Stream6_obj;
 DMA_Stream_TypeDef DMA2_Stream7_obj;
 DBGMCU_TypeDef DBGMCU_obj;
 USB_OTG_GlobalTypeDef USB_OTG_FS_obj;
+SCB_Type SCB_obj;
 
 /***************************************************************************************************
 ** PRIVATE MEMBERS
@@ -217,6 +218,41 @@ HAL_StatusTypeDef HAL_I2C_Master_Receive(I2C_HandleTypeDef *hi2c, uint16_t DevAd
 
 #endif
 
+#ifdef HAL_FLASH_MODULE_ENABLED
+HAL_StatusTypeDef HAL_FLASH_Lock(void)
+{
+    /* Do nothing */
+    return HAL_OK;
+}
+
+HAL_StatusTypeDef HAL_FLASH_Unlock(void)
+{
+    /* Do nothing */
+    return HAL_OK;
+}
+
+HAL_StatusTypeDef HAL_FLASH_Program(uint32_t TypeProgram, uint32_t Address, uint64_t Data)
+{
+    /* Do nothing */
+    return HAL_OK;
+}
+
+void FLASH_Erase_Sector(uint32_t Sector, uint8_t VoltageRange)
+{
+    /* Do nothing */
+    return;
+}
+#endif
+
+#ifdef HAL_CRC_MODULE_ENABLED
+
+uint32_t HAL_CRC_Calculate(CRC_HandleTypeDef *hcrc, uint32_t pBuffer[], uint32_t BufferLength)
+{
+    /* Do nothing */
+    return 0;
+}
+
+#endif
 void forceTick(uint32_t next_val)
 {
     force_tick = true;

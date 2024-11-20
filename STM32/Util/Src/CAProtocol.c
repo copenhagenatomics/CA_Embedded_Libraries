@@ -7,7 +7,6 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
-#include <strings.h>
 #include <stdlib.h>
 #include <inttypes.h>
 
@@ -46,7 +45,7 @@ static int getArgs(const char * input, char delim, char ** args, int max_len);
 
 static void calibration(CAProtocolCtx* ctx, const char* input)
 {
-    char* idx = index((char*)input, ' ');
+    char* idx = strchr((char*)input, ' ');
     CACalibration cal[MAX_NO_CALIBRATION];
     int noOfCalibrations = 0;
 
@@ -76,7 +75,7 @@ static void calibration(CAProtocolCtx* ctx, const char* input)
             cal[noOfCalibrations] = (CACalibration) { port, alpha, beta, threshold };
             noOfCalibrations++;
         }
-        idx = index(idx, ' '); // get the next space.
+        idx = strchr(idx, ' '); // get the next space.
     }
 
     if (noOfCalibrations != 0)
@@ -89,7 +88,7 @@ static void calibration(CAProtocolCtx* ctx, const char* input)
 
 static void logging(CAProtocolCtx* ctx, const char *input)
 {
-    char* idx = index((char*)input, ' ');
+    char* idx = strchr((char*)input, ' ');
     int port;
 
     if (!idx) {
@@ -301,7 +300,7 @@ void inputCAProtocol(CAProtocolCtx* ctx)
     {
         if (ctx->allOn) ctx->allOn(false, -1);
     }
-    else if (input[0] == 'p' && strnlen(input, 13) <= 13) // 13 since that is length of pX on YY ZZZ%
+    else if (input[0] == 'p' && strnlen(input, 14) <= 14) // 14 since that is length of pXX on YY ZZZ%
     {
         char cmd[13];
         int port;

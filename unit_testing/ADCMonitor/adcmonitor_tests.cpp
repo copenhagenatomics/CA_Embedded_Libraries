@@ -118,7 +118,7 @@ TEST_F(ADCMonitorTest, testADCAbsMean)
 TEST_F(ADCMonitorTest, testADCmax)
 {
     const int noOfSamples = 1000;
-    const int noOfChannels = 3;
+    const int noOfChannels = 5;
     int16_t pData[noOfSamples*noOfChannels*2] = {0};
 
     for (int i = 0; i<noOfSamples; i++)
@@ -128,16 +128,54 @@ TEST_F(ADCMonitorTest, testADCmax)
     }
 
     const int AMPLITUDE = 2047; 
-    const int OFFSET = 2047;
-    generateSine(pData, noOfChannels, noOfSamples, 2, OFFSET, AMPLITUDE, 1000);
+    const int OFFSET_1 = 2047;
+    const int OFFSET_2 = 0;
+    const int OFFSET_3 = -2047;
+
+    generateSine(pData, noOfChannels, noOfSamples, 2, OFFSET_1, AMPLITUDE, 1000);
+    generateSine(pData, noOfChannels, noOfSamples, 3, OFFSET_2, AMPLITUDE, 1000);
+    generateSine(pData, noOfChannels, noOfSamples, 4, OFFSET_3, AMPLITUDE, 1000);
 
     ADC_HandleTypeDef dummy = { { noOfChannels } };
     ADCMonitorInit(&dummy, pData, noOfSamples*noOfChannels*2);
     HAL_ADC_ConvHalfCpltCallback(&dummy); 
 
     EXPECT_EQ(ADCmax(pData,0), noOfSamples-1);
-    EXPECT_EQ(ADCmax(pData,1), (noOfSamples-1)*2); 
-    EXPECT_EQ(ADCmax(pData,2), 3993);    
+    EXPECT_EQ(ADCmax(pData,1), (noOfSamples-1)*2);
+    EXPECT_EQ(ADCmax(pData,2), 3993);
+    EXPECT_EQ(ADCmax(pData,3), 1946);
+    EXPECT_EQ(ADCmax(pData,4), -100);
+}
+
+TEST_F(ADCMonitorTest, testADCmin)
+{
+    const int noOfSamples = 1000;
+    const int noOfChannels = 5;
+    int16_t pData[noOfSamples*noOfChannels*2] = {0};
+
+    for (int i = 0; i<noOfSamples; i++)
+    {
+        pData[noOfChannels*i] = i*1 + 12;
+        pData[noOfChannels*i+1] = -i*2;
+    }
+
+    const int AMPLITUDE = 2047;
+    const int OFFSET_1 = 2047;
+    const int OFFSET_2 = 0;
+    const int OFFSET_3 = -2047;
+    generateSine(pData, noOfChannels, noOfSamples, 2, OFFSET_1, AMPLITUDE, 1000);
+    generateSine(pData, noOfChannels, noOfSamples, 3, OFFSET_2, AMPLITUDE, 1000);
+    generateSine(pData, noOfChannels, noOfSamples, 4, OFFSET_3, AMPLITUDE, 1000);
+
+    ADC_HandleTypeDef dummy = { { noOfChannels } };
+    ADCMonitorInit(&dummy, pData, noOfSamples*noOfChannels*2);
+    HAL_ADC_ConvHalfCpltCallback(&dummy);
+
+    EXPECT_EQ(ADCmin(pData,0), 12);
+    EXPECT_EQ(ADCmin(pData,1), (1-noOfSamples)*2);
+    EXPECT_EQ(ADCmin(pData,2), 100);
+    EXPECT_EQ(ADCmin(pData,3), -1946);
+    EXPECT_EQ(ADCmin(pData,4), -3993);
 }
 
 TEST_F(ADCMonitorTest, testADCSetOffset)

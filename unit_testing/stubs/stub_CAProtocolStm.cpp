@@ -31,9 +31,9 @@ void CAotpRead()
 
 }
 
-void CAhandleUserInputs(CAProtocolCtx* ctx, const char* startMsg)
+bool CAhandleUserInputs(CAProtocolCtx* ctx, const char* startMsg)
 {
-
+    return false;
 }
 
 const char* CAonBoot()
