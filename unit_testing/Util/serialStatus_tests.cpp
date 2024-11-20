@@ -59,8 +59,10 @@ void incorrectBoardTest(SerialStatusTest& sst, int firstPrintTick) {
     /* Update OTP with incorrect board number */
     if(BREAKING_MINOR != 0) {
         sst.testFixture->bi.v2.pcbVersion.minor = BREAKING_MINOR - 1;
+        sst.testFixture->bi.v2.pcbVersion.major = BREAKING_MAJOR;
     }
     else if(BREAKING_MAJOR != 0) {
+        sst.testFixture->bi.v2.pcbVersion.minor = 0;
         sst.testFixture->bi.v2.pcbVersion.major = BREAKING_MAJOR - 1;
     }
     else {

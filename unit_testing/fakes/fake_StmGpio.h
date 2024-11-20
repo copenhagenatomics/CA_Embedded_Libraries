@@ -43,12 +43,12 @@ typedef enum
 
 typedef struct StmGpio
 {
+    StmGpioMode_t   mode;
+    uint8_t         state;
+
     void (*set)(struct StmGpio* gpio, bool activate);
     bool (*get)(struct StmGpio* gpio);
     void (*toggle)(struct StmGpio* gpio);
-
-    StmGpioMode_t   mode;
-    uint8_t         state;
 } StmGpio;
 
 /***************************************************************************************************
