@@ -10,7 +10,6 @@
 #ifndef __FAKE_DS18B20_H_
 #define __FAKE_DS18B20_H_
 
-#include "DS18B20.h"
 #include "fake_stm32xxxx_hal.h"
 
 #endif

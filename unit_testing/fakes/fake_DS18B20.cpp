@@ -6,7 +6,7 @@
 */
 
 #include "fake_DS18B20.h"
-
+#include "fake_stm32xxxx_hal.h"
 
 float getTemp()
 {
