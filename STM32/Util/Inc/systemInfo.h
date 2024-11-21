@@ -8,6 +8,10 @@
 extern "C" {
 #endif
 
+/***************************************************************************************************
+** DEFINES
+***************************************************************************************************/
+
 /* General Board Status register definitions */
 #define BS_ERROR_Pos                        31U
 #define BS_ERROR_Msk                        (1UL << BS_ERROR_Pos)
@@ -37,6 +41,10 @@ extern "C" {
 #define BS_SYSTEM_ERRORS_Msk                (BS_OVER_TEMPERATURE_Msk | BS_UNDER_VOLTAGE_Msk | \
                                              BS_OVER_VOLTAGE_Msk | BS_OVER_CURRENT_Msk | \
                                              BS_VERSION_ERROR_Msk | BS_USB_ERROR_Msk)
+
+/***************************************************************************************************
+** STRUCTURES
+***************************************************************************************************/
 
 // NOTE!! Do not change order or values since this list must match ALL OTP programmers.
 typedef enum {
@@ -69,6 +77,10 @@ typedef struct {
     uint8_t minor;
 } pcbVersion;
 
+/***************************************************************************************************
+** PUBLIC FUNCTION DECLARATIONS
+***************************************************************************************************/
+
 /* Generic info about PCB and git build system/data.
  * @return info about system in null terminated string. */
 const char* systemInfo();
@@ -76,6 +88,10 @@ const char* systemInfo();
 /* Generic info about system status.
  * @return info about system in null terminated string. */
 const char* statusInfo(bool printStart);
+
+/* Generic info about system status definition.
+ * @return info about system in null terminated string. */
+const char* statusDefInfo(bool printStart);
 
 // Description: Get Boardinfo. If input values are NULL these are ignored.
 // @param bdt:  Boardtype used in the SW running
