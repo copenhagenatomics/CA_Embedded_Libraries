@@ -234,6 +234,7 @@ const char* statusDefInfo(bool printStart)
 
     len += snprintf(&buf[len], sizeof(buf) - len, "Start of board status definition:\r\n");
 
+    len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",System errors\r\n", BS_SYSTEM_ERRORS_Msk);
     len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",Error\r\n", BS_ERROR_Msk);
     len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",Over temperature\r\n", BS_OVER_TEMPERATURE_Msk);
     len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",Under voltage\r\n", BS_UNDER_VOLTAGE_Msk);
@@ -241,7 +242,7 @@ const char* statusDefInfo(bool printStart)
     len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",Over current\r\n", BS_OVER_CURRENT_Msk);
     len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",Version error\r\n", BS_VERSION_ERROR_Msk);
     len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",USB error\r\n", BS_USB_ERROR_Msk);
-    len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",Flash ongoing\r\n", BS_USB_ERROR_Msk);
+    len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",Flash ongoing\r\n", BS_FLASH_ONGOING_Msk);
 
     return buf;
 }

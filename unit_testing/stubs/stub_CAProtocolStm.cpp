@@ -26,6 +26,11 @@ void CAPrintStatus(bool printStart)
 
 }
 
+void CAPrintStatusDef(bool printStart)
+{
+
+}
+
 void CAotpRead()
 {
 

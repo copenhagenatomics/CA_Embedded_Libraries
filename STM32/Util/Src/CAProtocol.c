@@ -247,19 +247,19 @@ void inputCAProtocol(CAProtocolCtx* ctx)
         if (ctx->printHeader)
             ctx->printHeader();
     }
-    else if(strncmp(input, "Status", 6) == 0)
-    {
-        CAPrintStatus(true); // Print start of status message
-        if (ctx->printStatus)
-            ctx->printStatus(); // Print board specific part of status message
-        CAPrintStatus(false); // Print end of status message
-    }
     else if(strncmp(input, "StatusDef", 9) == 0)
     {
         CAPrintStatusDef(true); // Print start of status definition message
         if (ctx->printStatusDef)
             ctx->printStatusDef(); // Print board specific part of statusdefinition message
         CAPrintStatusDef(false); // Print end of status definition message
+    }
+    else if(strncmp(input, "Status", 6) == 0)
+    {
+        CAPrintStatus(true); // Print start of status message
+        if (ctx->printStatus)
+            ctx->printStatus(); // Print board specific part of status message
+        CAPrintStatus(false); // Print end of status message
     }
     else if(strncmp(input, "DFU", 3) == 0)
     {
