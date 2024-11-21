@@ -9,10 +9,10 @@
 
 float getTemp()
 {
-
+    return 0;
 }
 
 void DS18B20Init(TIM_HandleTypeDef* htim, StmGpio* gpio, GPIO_TypeDef *blk, uint16_t pin)
 {
-
+    return;
 }
