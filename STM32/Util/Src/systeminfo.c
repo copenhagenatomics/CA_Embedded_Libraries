@@ -161,11 +161,11 @@ const char* statusInfo(bool printStart)
     // Print end of message and return
     if (!printStart)
     {
-        len += snprintf(&buf[len], sizeof(buf) - len, "End of board status. \r\n");
+        len += snprintf(&buf[len], sizeof(buf) - len, "\r\nEnd of board status. \r\n");
         return buf;
     }
 
-    len += snprintf(&buf[len], sizeof(buf) - len, "Start of board status:\r\n");
+    len += snprintf(&buf[len], sizeof(buf) - len, "\r\nStart of board status:\r\n");
     if (!(BS.boardStatus & BS_ERROR_Msk))
     {
         len += snprintf(&buf[len], sizeof(buf) - len, "The board is operating normally.\r\n");
@@ -221,16 +221,15 @@ const char* statusInfo(bool printStart)
     return buf;
 }
 
-bufferStructure statusDefInfo(bool printStart)
+const char* statusDefInfo(bool printStart)
 {
     int len = 0;
 
     // Print end of message and return
     if (!printStart)
     {
-        len += snprintf(&buf[len], sizeof(buf) - len, "\r\nEnd of board status definition. \r\n");
-        bufferStructure bufStruct = {buf, len};
-        return bufStruct;
+        len += snprintf(&buf[len], sizeof(buf) - len, "\r\nEnd of board status definition.\r\n");
+        return buf;
     }
 
     len += snprintf(&buf[len], sizeof(buf) - len, "\r\nStart of board status definition:\r\n");
@@ -245,8 +244,7 @@ bufferStructure statusDefInfo(bool printStart)
     len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",USB error\r\n", BS_USB_ERROR_Msk);
     len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",Flash ongoing\r\n", BS_FLASH_ONGOING_Msk);
     
-    bufferStructure bufStruct = {buf, len};
-    return bufStruct;
+    return buf;
 }
 
 int getBoardInfo(BoardType *bdt, SubBoardType *sbdt)

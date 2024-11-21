@@ -46,13 +46,14 @@ void CAPrintHeader()
 
 void CAPrintStatus(bool printStart)
 {
-    USBnprintf(statusInfo(printStart));
+    const char* buf = statusInfo(printStart);
+    writeUSB(buf, strlen(buf));
 }
 
 void CAPrintStatusDef(bool printStart)
 {
-    bufferStructure bufStruct = statusDefInfo(printStart);
-    writeUSB(bufStruct.buf, bufStruct.len);
+    const char* buf = statusDefInfo(printStart);
+    writeUSB(buf, strlen(buf));
 }
 
 void CAotpRead()
