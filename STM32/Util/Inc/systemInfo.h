@@ -77,6 +77,12 @@ typedef struct {
     uint8_t minor;
 } pcbVersion;
 
+typedef struct
+{
+    char* buf;
+    int len;
+} bufferStructure;
+
 /***************************************************************************************************
 ** PUBLIC FUNCTION DECLARATIONS
 ***************************************************************************************************/
@@ -90,8 +96,8 @@ const char* systemInfo();
 const char* statusInfo(bool printStart);
 
 /* Generic info about system status definition.
- * @return info about system in null terminated string. */
-const char* statusDefInfo(bool printStart);
+ * @return buffer structure. */
+bufferStructure statusDefInfo(bool printStart);
 
 // Description: Get Boardinfo. If input values are NULL these are ignored.
 // @param bdt:  Boardtype used in the SW running

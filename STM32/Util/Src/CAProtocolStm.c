@@ -51,7 +51,8 @@ void CAPrintStatus(bool printStart)
 
 void CAPrintStatusDef(bool printStart)
 {
-    USBnprintf(statusDefInfo(printStart));
+    bufferStructure bufStruct = statusDefInfo(printStart);
+    writeUSB(bufStruct.buf, bufStruct.len);
 }
 
 void CAotpRead()
