@@ -11,6 +11,10 @@
 #include <stdbool.h>
 #include "HAL_otp.h"
 
+/***************************************************************************************************
+** STRUCTURES
+***************************************************************************************************/
+
 typedef struct
 {
     int port;
@@ -30,6 +34,9 @@ typedef struct
     // system info request using "Status". These should be overwritten with additional 
     // board specific status codes.
     void (*printStatus)();
+    // system info request using "StatusDef". These should be overwritten with additional 
+    // board specific status codes.
+    void (*printStatusDef)();
     void (*jumpToBootLoader)();
 
     // Calibration request.
@@ -50,6 +57,10 @@ typedef struct
 
     struct CAProtocolData *data; // Private data for CAProtocol.
 } CAProtocolCtx;
+
+/***************************************************************************************************
+** PUBLIC FUNCTION DECLARATIONS
+***************************************************************************************************/
 
 void inputCAProtocol(CAProtocolCtx* ctx);
 void initCAProtocol(CAProtocolCtx* ctx, ReaderFn fn);

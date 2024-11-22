@@ -19,6 +19,10 @@
 #define RCC_FLAG_IWDGRST RCC_FLAG_IWDG1RST
 #endif
 
+/***************************************************************************************************
+** PUBLIC FUNCTION DEFINITIONS
+***************************************************************************************************/
+
 void HALundefined(const char *input)
 {
     if(strcmp(input, "\0"))
@@ -42,7 +46,14 @@ void CAPrintHeader()
 
 void CAPrintStatus(bool printStart)
 {
-    USBnprintf(statusInfo(printStart));
+    const char* buf = statusInfo(printStart);
+    writeUSB(buf, strlen(buf));
+}
+
+void CAPrintStatusDef(bool printStart)
+{
+    const char* buf = statusDefInfo(printStart);
+    writeUSB(buf, strlen(buf));
 }
 
 void CAotpRead()

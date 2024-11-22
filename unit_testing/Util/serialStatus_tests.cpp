@@ -111,6 +111,35 @@ void statusPrintoutTest(SerialStatusTest& sst, vector<const char*> pass_string) 
 }
 
 /*!
+** @brief Tests that the status definition printout matches the correct format
+**
+** @param[in] sst         Test data object
+** @param[in] pass_string The board specific part of the status definition printout
+**
+** Initialises the board then sends the 'StatusDef' command. Checks the response matches the protocol 
+** template and the supplied board specific string.
+*/
+void statusDefPrintoutTest(SerialStatusTest& sst, vector<const char*> pass_string) {
+    sst.boundInit();
+    /* Note: usb RX buffer is flushed during the first loop, so a single loop must be done before
+    ** printing anything */
+    sst.testFixture->_loopFunction(sst.testFixture->bootMsg);
+    sst.testFixture->writeBoardMessage("StatusDef\n");
+
+    vector<const char*> bsd_pre = {"\r", 
+        "Boot Unit Test\r", 
+        "Start of board status definition:\r"};
+    vector<const char*> bsd_post = {"\r", 
+        "End of board status definition. \r"
+    };
+
+    bsd_pre.insert(bsd_pre.end(), pass_string.begin(), pass_string.end());
+    bsd_pre.insert(bsd_pre.end(), bsd_post.begin(), bsd_post.end());
+
+    EXPECT_FLUSH_USB(::testing::ElementsAreArray(bs_pre));
+}
+
+/*!
 ** @brief Tests that the serial printout matches the correct format
 **
 ** @param[in] sst         Test data object

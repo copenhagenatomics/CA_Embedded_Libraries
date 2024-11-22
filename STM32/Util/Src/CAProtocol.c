@@ -40,7 +40,7 @@ static int CAgetMsg(CAProtocolCtx* ctx);
 static int getArgs(const char * input, char delim, char ** args, int max_len);
 
 /***************************************************************************************************
-** FUNCTION DEFINITIONS
+** PRIVATE FUNCTION DEFINITIONS
 ***************************************************************************************************/
 
 static void calibration(CAProtocolCtx* ctx, const char* input)
@@ -228,6 +228,10 @@ static int getArgs(const char * input, char delim, char ** argv, int max_len)
     return count;
 }
 
+/***************************************************************************************************
+** PUBLIC FUNCTION DEFINITIONS
+***************************************************************************************************/
+
 void inputCAProtocol(CAProtocolCtx* ctx)
 {
     int msgLen = CAgetMsg(ctx);
@@ -242,6 +246,13 @@ void inputCAProtocol(CAProtocolCtx* ctx)
     {
         if (ctx->printHeader)
             ctx->printHeader();
+    }
+    else if(strncmp(input, "StatusDef", 9) == 0)
+    {
+        CAPrintStatusDef(true); // Print start of status definition message
+        if (ctx->printStatusDef)
+            ctx->printStatusDef(); // Print board specific part of statusdefinition message
+        CAPrintStatusDef(false); // Print end of status definition message
     }
     else if(strncmp(input, "Status", 6) == 0)
     {
