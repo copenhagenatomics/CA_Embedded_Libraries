@@ -5,7 +5,7 @@
 ** @date   21/11/2024
 */
 
-#include "fake_DS18B20.h"
+#include "DS18B20.h"
 
 float getTemp()
 {
