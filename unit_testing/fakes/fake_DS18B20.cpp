@@ -4,7 +4,8 @@
 ** @author Matias
 ** @date   21/11/2024
 */
-
+#include <cstdint>
+#include "fake_StmGpio.h"
 #include "DS18B20.h"
 
 float getTemp()
