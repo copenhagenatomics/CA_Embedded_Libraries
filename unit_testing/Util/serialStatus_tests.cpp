@@ -136,7 +136,7 @@ void statusDefPrintoutTest(SerialStatusTest& sst, vector<const char*> pass_strin
     bsd_pre.insert(bsd_pre.end(), pass_string.begin(), pass_string.end());
     bsd_pre.insert(bsd_pre.end(), bsd_post.begin(), bsd_post.end());
 
-    EXPECT_FLUSH_USB(::testing::ElementsAreArray(bs_pre));
+    EXPECT_FLUSH_USB(::testing::ElementsAreArray(bsd_pre));
 }
 
 /*!
