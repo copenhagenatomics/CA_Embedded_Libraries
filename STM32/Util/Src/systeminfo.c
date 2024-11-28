@@ -35,7 +35,7 @@ static struct BS
     pcbVersion pcb_version;
 } BS = {0};
 
-// Print buffer for systemInfo & statusInfo
+// Print buffer for systemInfo, statusInfo and statusDefInfo
 static char buf[600] = { 0 };
 
 // F4xx UID
@@ -161,11 +161,11 @@ const char* statusInfo(bool printStart)
     // Print end of message and return
     if (!printStart)
     {
-        len += snprintf(&buf[len], sizeof(buf) - len, "End of board status. \r\n");
+        len += snprintf(&buf[len], sizeof(buf) - len, "\r\nEnd of board status. \r\n");
         return buf;
     }
 
-    len += snprintf(&buf[len], sizeof(buf) - len, "Start of board status:\r\n");
+    len += snprintf(&buf[len], sizeof(buf) - len, "\r\nStart of board status:\r\n");
     if (!(BS.boardStatus & BS_ERROR_Msk))
     {
         len += snprintf(&buf[len], sizeof(buf) - len, "The board is operating normally.\r\n");
@@ -218,6 +218,32 @@ const char* statusInfo(bool printStart)
         BS.usb = 0U;
     }
 
+    return buf;
+}
+
+const char* statusDefInfo(bool printStart)
+{
+    int len = 0;
+
+    // Print end of message and return
+    if (!printStart)
+    {
+        len += snprintf(&buf[len], sizeof(buf) - len, "\r\nEnd of board status definition.\r\n");
+        return buf;
+    }
+
+    len += snprintf(&buf[len], sizeof(buf) - len, "\r\nStart of board status definition:\r\n");
+
+    len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",System errors\r\n", BS_SYSTEM_ERRORS_Msk);
+    len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",Error\r\n", BS_ERROR_Msk);
+    len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",Over temperature\r\n", BS_OVER_TEMPERATURE_Msk);
+    len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",Under voltage\r\n", BS_UNDER_VOLTAGE_Msk);
+    len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",Over voltage\r\n", BS_OVER_VOLTAGE_Msk);
+    len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",Over current\r\n", BS_OVER_CURRENT_Msk);
+    len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",Version error\r\n", BS_VERSION_ERROR_Msk);
+    len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",USB error\r\n", BS_USB_ERROR_Msk);
+    len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",Flash ongoing\r\n", BS_FLASH_ONGOING_Msk);
+    
     return buf;
 }
 

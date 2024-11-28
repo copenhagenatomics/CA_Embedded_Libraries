@@ -7,7 +7,6 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <string.h>
-#include <strings.h>
 #include <stdlib.h>
 #include <inttypes.h>
 
@@ -41,12 +40,12 @@ static int CAgetMsg(CAProtocolCtx* ctx);
 static int getArgs(const char * input, char delim, char ** args, int max_len);
 
 /***************************************************************************************************
-** FUNCTION DEFINITIONS
+** PRIVATE FUNCTION DEFINITIONS
 ***************************************************************************************************/
 
 static void calibration(CAProtocolCtx* ctx, const char* input)
 {
-    char* idx = index((char*)input, ' ');
+    char* idx = strchr((char*)input, ' ');
     CACalibration cal[MAX_NO_CALIBRATION];
     int noOfCalibrations = 0;
 
@@ -76,7 +75,7 @@ static void calibration(CAProtocolCtx* ctx, const char* input)
             cal[noOfCalibrations] = (CACalibration) { port, alpha, beta, threshold };
             noOfCalibrations++;
         }
-        idx = index(idx, ' '); // get the next space.
+        idx = strchr(idx, ' '); // get the next space.
     }
 
     if (noOfCalibrations != 0)
@@ -89,7 +88,7 @@ static void calibration(CAProtocolCtx* ctx, const char* input)
 
 static void logging(CAProtocolCtx* ctx, const char *input)
 {
-    char* idx = index((char*)input, ' ');
+    char* idx = strchr((char*)input, ' ');
     int port;
 
     if (!idx) {
@@ -229,6 +228,10 @@ static int getArgs(const char * input, char delim, char ** argv, int max_len)
     return count;
 }
 
+/***************************************************************************************************
+** PUBLIC FUNCTION DEFINITIONS
+***************************************************************************************************/
+
 void inputCAProtocol(CAProtocolCtx* ctx)
 {
     int msgLen = CAgetMsg(ctx);
@@ -243,6 +246,13 @@ void inputCAProtocol(CAProtocolCtx* ctx)
     {
         if (ctx->printHeader)
             ctx->printHeader();
+    }
+    else if(strncmp(input, "StatusDef", 9) == 0)
+    {
+        CAPrintStatusDef(true); // Print start of status definition message
+        if (ctx->printStatusDef)
+            ctx->printStatusDef(); // Print board specific part of statusdefinition message
+        CAPrintStatusDef(false); // Print end of status definition message
     }
     else if(strncmp(input, "Status", 6) == 0)
     {

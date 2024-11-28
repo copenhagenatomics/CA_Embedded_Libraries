@@ -1,4 +1,5 @@
-#pragma once
+#ifndef ADS_1120_H_
+#define ADS_1120_H_
 
 #if defined(STM32F401xC)
 #include "stm32f4xx_hal.h"
@@ -6,6 +7,10 @@
 #include "stm32h7xx_hal.h"
 #endif
 #include <StmGpio.h>
+
+#ifdef __cplusplus
+    extern "C" {
+#endif
 
 // Specific structure for the current setup of the ADS1120.
 typedef enum
@@ -47,3 +52,9 @@ int ADS1120Init(ADS1120Device *dev);
 // called before this function. It will not break bu result is undefined.
 // Device will run in a loop { calibrate, temperature, CHA, CHB }
 int ADS1120Loop(ADS1120Device *dev, float *type_calibration);
+
+#ifdef __cplusplus
+    }
+#endif
+
+#endif

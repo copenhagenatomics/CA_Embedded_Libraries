@@ -139,7 +139,7 @@ double ADCAbsMean(const int16_t *pData, uint16_t channel)
     return ( ((double) sum) / ((double) ADCMonitorData.noOfSamples) );
 }
 
-uint16_t ADCmax(const int16_t *pData, uint16_t channel)
+int16_t ADCmax(const int16_t *pData, uint16_t channel)
 {
     if (ADCMonitorData.activeBuffer == NotAvailable ||
         pData == NULL ||
@@ -148,14 +148,33 @@ uint16_t ADCmax(const int16_t *pData, uint16_t channel)
         return 0;
     }
 
-    uint16_t max = 0;
-    for (uint32_t sampleId = 0; sampleId < ADCMonitorData.noOfSamples; sampleId++)
+    int16_t max = pData[channel];
+    for (uint32_t sampleId = 1; sampleId < ADCMonitorData.noOfSamples; sampleId++)
     {
         int16_t sample = pData[sampleId*ADCMonitorData.noOfChannels + channel];
         if (max < sample)
             max = sample;
     }
     return max;
+}
+
+int16_t ADCmin(const int16_t *pData, uint16_t channel)
+{
+    if (ADCMonitorData.activeBuffer == NotAvailable ||
+        pData == NULL ||
+        channel >= ADCMonitorData.noOfChannels)
+    {
+        return 0;
+    }
+
+    int16_t min = pData[channel];
+    for (uint32_t sampleId = 1; sampleId < ADCMonitorData.noOfSamples; sampleId++)
+    {
+        int16_t sample = pData[sampleId*ADCMonitorData.noOfChannels + channel];
+        if (min > sample)
+            min = sample;
+    }
+    return min;
 }
 
 void ADCSetOffset(int16_t* pData, int16_t offset, uint16_t channel)
@@ -169,7 +188,7 @@ void ADCSetOffset(int16_t* pData, int16_t offset, uint16_t channel)
 
     for (uint32_t sampleId = 0; sampleId < ADCMonitorData.noOfSamples; sampleId++)
     {
-        // No need to addjust for overflow since ADC is 12 bits.
+        // No need to adjust for overflow since ADC is 12 bits.
         pData[sampleId*ADCMonitorData.noOfChannels + channel] += offset;
     }
 }

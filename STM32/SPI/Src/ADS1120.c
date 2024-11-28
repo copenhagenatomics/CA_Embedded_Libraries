@@ -151,7 +151,7 @@ static HAL_StatusTypeDef ADCSync(ADS1120Device *dev)
 // Read data by command
 static HAL_StatusTypeDef readADC(ADS1120Device *dev, uint16_t* value)
 {
-    ADS1120Cmd cmd = { .rwcmd = 1, .regBegin = 0, .count = 0 };
+    ADS1120Cmd cmd = {.count = 0, .regBegin = 0, .rwcmd = 1};
     if (!isDataReady(dev))
         return HAL_ERROR; // No data from chip.
 
@@ -182,7 +182,7 @@ static HAL_StatusTypeDef writeRegister(ADS1120Device *dev, const ADS1120_RegConf
     if ((count+offset) > 4)
         return HAL_ERROR; // Only 4 bytes is available.
 
-    ADS1120Cmd cmd = { .count = (count - 1), .regBegin = offset,  .rwcmd = 4 };
+    ADS1120Cmd cmd = { .count = (uint8_t)(count - 1U), .regBegin = offset,  .rwcmd = 4 };
     uint8_t spiReq[1 + 4] = { cmd.byte, 0 };
     memcpy(&spiReq[1], &regs->regs[offset], count);
     if (HAL_SPI_Transmit(dev->hspi, spiReq, 1 + count, ADS_TIMEOUT) != HAL_OK)
@@ -220,8 +220,8 @@ static int setInput(ADS1120Device *dev, ADS1120_input selectedInput)
 
             .nop        = 0,
             .drdym      = 0, // The dedicated DRDY pin is used to indicate when data are ready
-            .i1mux      = 0, // not routed, since idac is 0
             .i2mux      = 0, // not routed, since idac is 0
+            .i1mux      = 0, // not routed, since idac is 0
     };
 
     // Alter config to match the selected type.
