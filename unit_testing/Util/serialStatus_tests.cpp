@@ -126,11 +126,21 @@ void statusDefPrintoutTest(SerialStatusTest& sst, vector<const char*> pass_strin
     sst.testFixture->_loopFunction(sst.testFixture->bootMsg);
     sst.testFixture->writeBoardMessage("StatusDef\n");
 
-    vector<const char*> bsd_pre = {"\r", 
-        "Boot Unit Test\r", 
-        "Start of board status definition:\r"};
-    vector<const char*> bsd_post = {"\r", 
-        "End of board status definition. \r"
+    vector<const char*> bsd_pre = {"\r",
+        "Boot Unit Test\r",
+        "Start of board status definition:\r",
+        "0x7e000000,System errors\r",
+        "0x80000000,Error\r",
+        "0x40000000,Over temperature\r",
+        "0x20000000,Under voltage\r",
+        "0x10000000,Over voltage\r",
+        "0x08000000,Over current\r",
+        "0x04000000,Version error\r",
+        "0x02000000,USB error\r",
+        "0x01000000,Flash ongoing\r",
+        };
+    vector<const char*> bsd_post = {"\r",
+        "End of board status definition.\r"
     };
 
     bsd_pre.insert(bsd_pre.end(), pass_string.begin(), pass_string.end());
