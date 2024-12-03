@@ -41,6 +41,7 @@ int16_t cmaAvarage(int16_t *pData, uint16_t channel, int16_t cma, int k);
 double ADCMean(const int16_t *pData, uint16_t channel);
 double ADCAbsMean(const int16_t *pData, uint16_t channel);
 double ADCrms(const int16_t *pData, uint16_t channel);
+double ADCTrueRms(const int16_t *pData, uint16_t channel, uint16_t noOfPoints);
 int16_t ADCmax(const int16_t *pData, uint16_t channel);
 int16_t ADCmin(const int16_t *pData, uint16_t channel);
 

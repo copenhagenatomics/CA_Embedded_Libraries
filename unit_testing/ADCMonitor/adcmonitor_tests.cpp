@@ -239,6 +239,27 @@ TEST_F(ADCMonitorTest, testADCrms)
     EXPECT_NEAR(ADCrms(pData,1), 2170.527588, tol);
 }
 
+TEST_F(ADCMonitorTest, testADCTrueRms)
+{
+    const float tol = 0.0001;
+    const int noOfSamples = 1000;
+    const int noOfChannels = 2;
+    int16_t pData[noOfSamples*noOfChannels*2];
+    uint16_t noOfPointsRMS = 990;
+
+    generateSine(pData, noOfChannels, noOfSamples, 0, 2047, 2047, 909);
+    generateSine(pData, noOfChannels, noOfSamples, 1, 2047, 1023, 909);
+
+    ADC_HandleTypeDef dummy = { { noOfChannels } };
+    ADCMonitorInit(&dummy, pData, noOfSamples*noOfChannels*2);
+    HAL_ADC_ConvHalfCpltCallback(&dummy);
+
+    EXPECT_FLOAT_EQ(ADCTrueRms(pData,0, 1100), ADCrms(pData,0));
+
+    EXPECT_NEAR(ADCTrueRms(pData,0, noOfPointsRMS), 2506.729307, tol);
+    EXPECT_NEAR(ADCTrueRms(pData,1, noOfPointsRMS), 2170.621540, tol);
+}
+
 TEST_F(ADCMonitorTest, testSine)
 {
     const int noOfSamples = 120;

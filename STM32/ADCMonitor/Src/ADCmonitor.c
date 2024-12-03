@@ -84,6 +84,30 @@ double ADCrms(const int16_t *pData, uint16_t channel)
     return sqrt(((double) sum) / ((double)ADCMonitorData.noOfSamples));
 }
 
+double ADCTrueRms(const int16_t *pData, uint16_t channel, uint16_t noOfPoints)
+{
+    if (ADCMonitorData.activeBuffer == NotAvailable ||
+        pData == NULL ||
+        channel >= ADCMonitorData.noOfChannels)
+    {
+        return 0;
+    }
+
+    if (noOfPoints > ADCMonitorData.noOfSamples)
+    {
+        noOfPoints = ADCMonitorData.noOfSamples;
+    }
+
+    uint64_t sum = 0;
+    for (uint32_t sampleId = 0; sampleId < noOfPoints; sampleId++)
+    {
+        const int16_t mul = pData[sampleId*ADCMonitorData.noOfChannels + channel];
+        sum += (mul * mul); // add squared values to sum
+    }
+
+    return sqrt(((double) sum) / ((double) noOfPoints));
+}
+
 double ADCMean(const int16_t *pData, uint16_t channel)
 {
     if (ADCMonitorData.activeBuffer == NotAvailable ||
