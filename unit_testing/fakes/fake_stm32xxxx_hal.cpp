@@ -157,6 +157,16 @@ HAL_TIM_StateTypeDef HAL_TIM_Base_GetState(TIM_HandleTypeDef *htim) {
     return htim->State;
 }
 
+HAL_StatusTypeDef HAL_TIMEx_PWMN_Start(TIM_HandleTypeDef *htim, uint32_t Channel) {
+    /* Do nothing */
+    return HAL_OK;
+}
+
+HAL_StatusTypeDef HAL_TIMEx_PWMN_Stop(TIM_HandleTypeDef *htim, uint32_t Channel) {
+    /* Do nothing */
+    return HAL_OK;
+}
+
 #endif
 
 #ifdef HAL_SPI_MODULE_ENABLED
@@ -173,7 +183,8 @@ HAL_StatusTypeDef HAL_SPI_Receive_IT(SPI_HandleTypeDef *hspi, uint8_t *pData, ui
     return HAL_OK;
 }
 
-HAL_StatusTypeDef HAL_SPI_Transmit(SPI_HandleTypeDef *hspi, uint8_t *pData, uint16_t Size, uint32_t Timeout) {
+HAL_StatusTypeDef HAL_SPI_Transmit(SPI_HandleTypeDef *hspi, const uint8_t *pData, uint16_t Size, uint32_t Timeout)
+{
     /* Do nothing */
     return HAL_OK;
 }
