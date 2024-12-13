@@ -84,14 +84,23 @@ double ADCrms(const int16_t *pData, uint16_t channel)
     return sqrt(((double) sum) / ((double)ADCMonitorData.noOfSamples));
 }
 
-double ADCTrueRms(const int16_t *pData, uint16_t channel, uint16_t noOfPoints)
+double ADCTrueRms(const int16_t *pData, uint16_t channel, double samplingFreq, double signalFreq)
 {
     if (ADCMonitorData.activeBuffer == NotAvailable ||
         pData == NULL ||
-        channel >= ADCMonitorData.noOfChannels)
+        channel >= ADCMonitorData.noOfChannels ||
+        samplingFreq <= 0 ||
+        signalFreq < 0)
     {
         return 0;
     }
+
+    if (signalFreq == 0)
+    {
+        signalFreq = 1; // To prevent division by 0
+    }
+
+    uint16_t noOfPoints = round(floor(signalFreq * ADCMonitorData.noOfSamples / samplingFreq) * samplingFreq / signalFreq);
 
     if (noOfPoints > ADCMonitorData.noOfSamples)
     {
@@ -106,6 +115,25 @@ double ADCTrueRms(const int16_t *pData, uint16_t channel, uint16_t noOfPoints)
     }
 
     return sqrt(((double) sum) / ((double) noOfPoints));
+}
+
+double ADCTrueRmsPeak(const int16_t *pData, uint16_t channel, SineWave sinIndexes)
+{
+    if (ADCMonitorData.activeBuffer == NotAvailable ||
+        pData == NULL ||
+        channel >= ADCMonitorData.noOfChannels)
+    {
+        return 0;
+    }
+
+    uint64_t sum = 0;
+    for (uint32_t sampleId = sinIndexes.begin; sampleId < sinIndexes.end; sampleId++)
+    {
+        const int16_t mul = pData[sampleId*ADCMonitorData.noOfChannels + channel];
+        sum += (mul * mul); // add squared values to sum
+    }
+
+    return sqrt(((double) sum) / ((double) (sinIndexes.end - sinIndexes.begin)));
 }
 
 double ADCMean(const int16_t *pData, uint16_t channel)
@@ -124,6 +152,25 @@ double ADCMean(const int16_t *pData, uint16_t channel)
     }
 
     return (((double) sum) / ((double) ADCMonitorData.noOfSamples));
+}
+
+double ADCMeanLimited(const int16_t *pData, uint16_t channel, SineWave indexes)
+{
+    if (ADCMonitorData.activeBuffer == NotAvailable ||
+        pData == NULL ||
+        channel >= ADCMonitorData.noOfChannels ||
+        indexes.begin == indexes.end)
+    {
+        return 0;
+    }
+
+    uint64_t sum = 0;
+    for (uint32_t sampleId = indexes.begin; sampleId < indexes.end; sampleId++)
+    {
+        sum += pData[sampleId*ADCMonitorData.noOfChannels + channel];
+    }
+
+    return (((double) sum) / ((double) (indexes.end - indexes.begin)));
 }
 
 // NOTE: Bit shifting is only possible on integral values meaning the returned

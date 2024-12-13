@@ -13,6 +13,11 @@
 extern "C" {
 #endif
 
+typedef struct SineWave {
+    uint32_t begin;
+    uint32_t end;
+} SineWave;
+
 /* Callback function from ADCMonitorLoop.
  * The format of the buffer is [ CH0{s0}, CH1{s0},,,, CHN{s0},
  *                               CH0{s1}, CH1{s1},,,, CHN{s1},
@@ -39,9 +44,11 @@ int16_t cmaAvarage(int16_t *pData, uint16_t channel, int16_t cma, int k);
 // Standard helper function where noOfChannles/NoOfSamples is
 // used from ADCMonitorInit. Can be used for skeleton locally.
 double ADCMean(const int16_t *pData, uint16_t channel);
+double ADCMeanLimited(const int16_t *pData, uint16_t channel, SineWave indexes);
 double ADCAbsMean(const int16_t *pData, uint16_t channel);
 double ADCrms(const int16_t *pData, uint16_t channel);
-double ADCTrueRms(const int16_t *pData, uint16_t channel, uint16_t noOfPoints);
+double ADCTrueRms(const int16_t *pData, uint16_t channel, double samplingFreq, double signalFreq);
+double ADCTrueRmsPeak(const int16_t *pData, uint16_t channel, SineWave sinIndexes);
 int16_t ADCmax(const int16_t *pData, uint16_t channel);
 int16_t ADCmin(const int16_t *pData, uint16_t channel);
 
@@ -60,10 +67,7 @@ void ADCSetOffset(int16_t* pData, int16_t offset, uint16_t channel);
 
 // Find Sample start/begin of a half sine curve.
 // @Return statuc Start/end of sample Index (not pointer offset).
-typedef struct SineWave {
-    uint32_t begin;
-    uint32_t end;
-} SineWave;
+
 SineWave sineWave(const int16_t* pData, uint32_t noOfChannels, uint32_t noOfSamples, uint16_t channel);
 
 #ifdef __cplusplus
