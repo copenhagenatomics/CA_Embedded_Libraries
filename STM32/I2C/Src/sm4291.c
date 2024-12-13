@@ -111,7 +111,7 @@ sm4291_i2c_handle_t* sm4291Init(I2C_HandleTypeDef* hi2c, bool crc, double press_
             ret = memcpy(ret, &temp, sizeof(temp));
         }
 
-        return ret;
+        return (sm4291_i2c_handle_t*) ret;
     }
     else {
         return NULL;
@@ -161,7 +161,7 @@ int sm4291GetSerial(sm4291_i2c_handle_t* i2c, uint32_t* result) {
         return -2;
     };
 
-    *result = (((uint32_t)ser1 << 8U) & 0xFF00U) || ((uint32_t)ser0 & 0xFFU);
+    *result = (((uint32_t)ser1 << 16U) & 0xFFFF0000U) | ((uint32_t)ser0 & 0xFFFFU);
     return 0;
 }
 
@@ -208,10 +208,10 @@ static int sm4291ReadReg(sm4291_i2c_handle_t* i2c, uint8_t addr, uint16_t* resul
     uint16_t dev_addr = i2c->crc ? TEMP_I2C_CRC_ADDR : TEMP_I2C_NO_CRC_ADDR;
 
     if(i2c->crc) {
-        uint8_t crc4_data[2U] = {addr >> 4U, ((addr & 0xF) << 4U) & 0x1U};
+        uint8_t crc4_data[2U] = {(uint8_t)(addr >> 4U), ((addr & 0xFU) << 4U) & 0x1U};
         uint8_t crc4 = genCrc4(crc4_data, 2U);
 
-        uint8_t buf[2U] = {addr, 0x10 | crc4};
+        uint8_t buf[2U] = {addr, (uint8_t)(0x10U | crc4)};
         if(HAL_OK != HAL_I2C_Master_Transmit(i2c->i2c, dev_addr << 1, buf, 2, 1)) {
             return -1;
         };
@@ -249,16 +249,16 @@ static int sm4291WriteReg(sm4291_i2c_handle_t* i2c, uint8_t addr, uint16_t reg) 
 
     uint16_t dev_addr = i2c->crc ? TEMP_I2C_CRC_ADDR : TEMP_I2C_NO_CRC_ADDR;
     if(i2c->crc) {
-        uint8_t crc4_data[2U] = {addr >> 4U, ((addr & 0xF) << 4U) & 0x1U};
-        uint8_t crc8_data[2U] = {reg & 0xFFU, (reg >> 8U) & 0xFFU};
+        uint8_t crc4_data[2U] = {(uint8_t)(addr >> 4U), ((addr & 0xF) << 4U) & 0x1U};
+        uint8_t crc8_data[2U] = {(uint8_t)(reg & 0xFFU), (uint8_t)((reg >> 8U) & 0xFFU)};
         uint8_t crc4 = genCrc4(crc4_data, 2U);
         uint8_t crc8 = genCrc8(crc8_data, 2U);
 
-        uint8_t buf[5U] = {addr, 0x10 | crc4, reg & 0xFFU, ((reg >> 8U) & 0xFF), crc8};
+        uint8_t buf[5U] = {addr, (uint8_t)(0x10 | crc4), (uint8_t)(reg & 0xFFU), (uint8_t)((reg >> 8U) & 0xFFU), crc8};
         return (int)HAL_I2C_Master_Transmit(i2c->i2c, dev_addr << 1, buf, 5U, 1);
     }
     else {
-        uint8_t buf[3U] = {addr, reg & 0xFF, ((reg >> 8U) & 0xFF)};
+        uint8_t buf[3U] = {addr, (uint8_t)(reg & 0xFF), (uint8_t)((reg >> 8U) & 0xFFU)};
         return (int)HAL_I2C_Master_Transmit(i2c->i2c, dev_addr << 1, buf, 3U, 1);
     }
 }

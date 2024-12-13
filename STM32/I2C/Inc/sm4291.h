@@ -7,6 +7,9 @@
 ** @date   12/12/2024
 */
 
+#ifndef SM4291_H_
+#define SM4291_H_
+
 #include <stdbool.h>
 #include <stdint.h>
 
@@ -58,3 +61,5 @@ int  sm4291GetStatus(sm4291_i2c_handle_t* i2c, uint16_t* status);
 int  sm4291GetStatusSync(sm4291_i2c_handle_t* i2c, uint16_t* status);
 int  sm4291Reset(sm4291_i2c_handle_t* i2c);
 int  sm4291Sleep(sm4291_i2c_handle_t* i2c);
+
+#endif /* SM4291_H_ */
