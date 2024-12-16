@@ -15,6 +15,7 @@
 #include "stm32f4xx_hal.h"
 
 #include "sm4291.h"
+#include "crc.h"
 
 /***************************************************************************************************
 ** DEFINES
@@ -44,7 +45,7 @@
 
 /* All devices have a fixed address */
 #define TEMP_I2C_NO_CRC_ADDR    0x6C
-#define TEMP_I2C_CRC_ADDR       0x6E
+#define TEMP_I2C_CRC_ADDR       0x6D
 
 /* Register addresses */
 #define ADDR_CMD            0x22U
@@ -93,7 +94,7 @@ sm4291_i2c_handle_t* sm4291Init(I2C_HandleTypeDef* hi2c, bool crc, double press_
     assert_param(hi2c);
 
     /* Temporary device handle while we check things */
-    sm4291_i2c_handle_t temp = {hi2c, crc};
+    sm4291_i2c_handle_t temp = {hi2c};
 
     /* Check the serial is non-zero to see if the I2C bus is working */
     uint32_t serial = 0;
@@ -208,32 +209,35 @@ static int sm4291ReadReg(sm4291_i2c_handle_t* i2c, uint8_t addr, uint16_t* resul
     uint16_t dev_addr = i2c->crc ? TEMP_I2C_CRC_ADDR : TEMP_I2C_NO_CRC_ADDR;
 
     if(i2c->crc) {
-        uint8_t crc4_data[2U] = {(uint8_t)(addr >> 4U), ((addr & 0xFU) << 4U) & 0x1U};
-        uint8_t crc4 = genCrc4(crc4_data, 2U);
+        initCrc4(CRC4_INIT, CRC4_POLY);
+        initCrc8(CRC8_INIT, CRC8_POLY);
 
-        uint8_t buf[2U] = {addr, (uint8_t)(0x10U | crc4)};
-        if(HAL_OK != HAL_I2C_Master_Transmit(i2c->i2c, dev_addr << 1, buf, 2, 1)) {
+        uint8_t crc4_data[2U] = {(uint8_t)(addr >> 4U), ((addr & 0xFU) << 4U) & 0x1U};
+        uint8_t crc4 = crc4Calculate(crc4_data, 2U);
+
+        uint8_t addr_buf[2U] = {addr, (uint8_t)(0x10U | crc4)};
+        if(HAL_OK != HAL_I2C_Master_Transmit(i2c->i2c, dev_addr << 1U, addr_buf, 2U, 1U)) {
             return -1;
         };
 
-        uint8_t buf1[3U] = {0};
-        if(HAL_OK != HAL_I2C_Master_Receive(i2c->i2c, dev_addr << 1, buf1, 3, 1)) {
+        uint8_t data_buf[3U] = {0};
+        if(HAL_OK != HAL_I2C_Master_Receive(i2c->i2c, dev_addr << 1U, data_buf, 3U, 1U)) {
             return -2;
         };
 
-        if(genCrc8(buf1, 2) != buf1[2]) {
+        if(crc8Calculate(data_buf, 2U) != data_buf[2U]) {
 
             return -3;
         }
 
-        *result = ((uint16_t) buf1[1] << 8U) | buf1[0];
+        *result = ((uint16_t) data_buf[1U] << 8U) | data_buf[0];
     }
     else {
-        if(HAL_OK != HAL_I2C_Master_Transmit(i2c->i2c, dev_addr << 1, &addr, 1, 1)) {
+        if(HAL_OK != HAL_I2C_Master_Transmit(i2c->i2c, dev_addr << 1U, &addr, 1U, 1U)) {
             return -1;
         };
 
-        if(HAL_OK != HAL_I2C_Master_Receive(i2c->i2c, dev_addr << 1, (uint8_t*)result, 2, 1)) {
+        if(HAL_OK != HAL_I2C_Master_Receive(i2c->i2c, dev_addr << 1U, (uint8_t*)result, 2U, 1U)) {
             return -2;
         };
     }
@@ -248,63 +252,21 @@ static int sm4291WriteReg(sm4291_i2c_handle_t* i2c, uint8_t addr, uint16_t reg) 
     assert_param(i2c);
 
     uint16_t dev_addr = i2c->crc ? TEMP_I2C_CRC_ADDR : TEMP_I2C_NO_CRC_ADDR;
+
     if(i2c->crc) {
+        initCrc4(CRC4_INIT, CRC4_POLY);
+        initCrc8(CRC8_INIT, CRC8_POLY);
+
         uint8_t crc4_data[2U] = {(uint8_t)(addr >> 4U), ((addr & 0xF) << 4U) & 0x1U};
         uint8_t crc8_data[2U] = {(uint8_t)(reg & 0xFFU), (uint8_t)((reg >> 8U) & 0xFFU)};
-        uint8_t crc4 = genCrc4(crc4_data, 2U);
-        uint8_t crc8 = genCrc8(crc8_data, 2U);
+        uint8_t crc4 = crc4Calculate(crc4_data, 2U);
+        uint8_t crc8 = crc8Calculate(crc8_data, 2U);
 
         uint8_t buf[5U] = {addr, (uint8_t)(0x10 | crc4), (uint8_t)(reg & 0xFFU), (uint8_t)((reg >> 8U) & 0xFFU), crc8};
-        return (int)HAL_I2C_Master_Transmit(i2c->i2c, dev_addr << 1, buf, 5U, 1);
+        return (int)HAL_I2C_Master_Transmit(i2c->i2c, dev_addr << 1U, buf, 5U, 1U);
     }
     else {
         uint8_t buf[3U] = {addr, (uint8_t)(reg & 0xFF), (uint8_t)((reg >> 8U) & 0xFFU)};
-        return (int)HAL_I2C_Master_Transmit(i2c->i2c, dev_addr << 1, buf, 3U, 1);
+        return (int)HAL_I2C_Master_Transmit(i2c->i2c, dev_addr << 1U, buf, 3U, 1U);
     }
-}
-
-/*!
-** @brief Calculates CRC8
-**
-** Taken from: https://stackoverflow.com/questions/51752284/how-to-calculate-crc8-in-c
-*/
-static uint8_t genCrc8(uint8_t *data, size_t len)
-{
-    uint8_t crc = CRC8_INIT;
-
-    for (int i = 0; i < len; i++) {
-        crc ^= data[i];
-        for (int j = 0; j < 8; j++) {
-            if ((crc & 0x80) != 0)
-                crc = (uint8_t)((crc << 1) ^ CRC8_POLY);
-            else
-                crc <<= 1;
-        }
-    }
-    return crc;
-}
-
-/*!
-** @brief Calculates CRC4
-*/
-static uint8_t genCrc4(uint8_t *data, size_t len)
-{
-    /* CRC polynomial starts in the lowest 4 bits */
-    uint8_t crc = CRC4_INIT & 0xF;
-    uint8_t crc_poly = CRC4_POLY & 0xF;
-
-    for (int i = 0; i < len; i++) {
-        for(int j = 1; j >= 0; j--) {
-            crc ^= (data[i] >> 4U * j) & 0xFU;
-
-            for (int k = 0; k < 4; k++) {
-                if ((crc & 0x8) != 0)
-                    crc = (uint8_t)((crc << 1) ^ crc_poly);
-                else
-                    crc <<= 1;
-            }
-        }
-    }
-
-    return crc & 0xFU;
 }
