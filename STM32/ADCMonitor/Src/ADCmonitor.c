@@ -84,7 +84,7 @@ double ADCrms(const int16_t *pData, uint16_t channel)
     return sqrt(((double) sum) / ((double)ADCMonitorData.noOfSamples));
 }
 
-double ADCTrueRms(const int16_t *pData, uint16_t channel, SineWave sinIndexes)
+double ADCTrueRms(const int16_t *pData, uint16_t channel, SineWave indexes)
 {
     if (ADCMonitorData.activeBuffer == NotAvailable ||
         pData == NULL ||
@@ -94,13 +94,13 @@ double ADCTrueRms(const int16_t *pData, uint16_t channel, SineWave sinIndexes)
     }
 
     uint64_t sum = 0;
-    for (uint32_t sampleId = sinIndexes.begin; sampleId < sinIndexes.end; sampleId++)
+    for (uint32_t sampleId = indexes.begin; sampleId <= indexes.end; sampleId++)
     {
         const int16_t mul = pData[sampleId*ADCMonitorData.noOfChannels + channel];
         sum += (mul * mul); // add squared values to sum
     }
 
-    return sqrt(((double) sum) / ((double) (sinIndexes.end - sinIndexes.begin)));
+    return sqrt(((double) sum) / ((double) (indexes.end - indexes.begin + 1)));
 }
 
 double ADCMean(const int16_t *pData, uint16_t channel)
@@ -132,12 +132,12 @@ double ADCMeanLimited(const int16_t *pData, uint16_t channel, SineWave indexes)
     }
 
     uint64_t sum = 0;
-    for (uint32_t sampleId = indexes.begin; sampleId < indexes.end; sampleId++)
+    for (uint32_t sampleId = indexes.begin; sampleId <= indexes.end; sampleId++)
     {
         sum += pData[sampleId*ADCMonitorData.noOfChannels + channel];
     }
 
-    return (((double) sum) / ((double) (indexes.end - indexes.begin)));
+    return (((double) sum) / ((double) (indexes.end - indexes.begin + 1)));
 }
 
 // NOTE: Bit shifting is only possible on integral values meaning the returned

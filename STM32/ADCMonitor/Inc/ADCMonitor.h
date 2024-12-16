@@ -47,7 +47,7 @@ double ADCMean(const int16_t *pData, uint16_t channel);
 double ADCMeanLimited(const int16_t *pData, uint16_t channel, SineWave indexes);
 double ADCAbsMean(const int16_t *pData, uint16_t channel);
 double ADCrms(const int16_t *pData, uint16_t channel);
-double ADCTrueRms(const int16_t *pData, uint16_t channel, SineWave sinIndexes);
+double ADCTrueRms(const int16_t *pData, uint16_t channel, SineWave indexes);
 int16_t ADCmax(const int16_t *pData, uint16_t channel);
 int16_t ADCmin(const int16_t *pData, uint16_t channel);
 
@@ -66,7 +66,6 @@ void ADCSetOffset(int16_t* pData, int16_t offset, uint16_t channel);
 
 // Find Sample start/begin of a half sine curve.
 // @Return statuc Start/end of sample Index (not pointer offset).
-
 SineWave sineWave(const int16_t* pData, uint32_t noOfChannels, uint32_t noOfSamples, uint16_t channel);
 
 #ifdef __cplusplus

@@ -77,6 +77,32 @@ TEST_F(ADCMonitorTest, testADCMean)
     EXPECT_EQ(ADCMean(pData, 1), 100);
 }
 
+TEST_F(ADCMonitorTest, testADCMeanLimited)
+{
+    const int noOfSamples = 100;
+    const int noOfChannels = 2;
+    int16_t pData[noOfSamples*noOfChannels*2];
+
+    for (int i = 0; i<noOfSamples; i++)
+    {
+        pData[noOfChannels*i] = i*1 + 1;
+        pData[noOfChannels*i+1] = i*2 + 1;
+    }
+
+    ADC_HandleTypeDef foo = { { 2 }, 0, 0 };
+    ADCMonitorInit(&foo, pData, noOfSamples*noOfChannels*2);
+    HAL_ADC_ConvHalfCpltCallback(&foo);
+
+    SineWave indexes = {.begin = 0, .end = 99};
+    EXPECT_EQ(ADCMeanLimited(pData, 0, indexes), 50.5);
+    EXPECT_EQ(ADCMeanLimited(pData, 1, indexes), 100);
+
+    indexes.begin = 15;
+    indexes.end = 80;
+    EXPECT_EQ(ADCMeanLimited(pData, 0, indexes), 48.5);
+    EXPECT_EQ(ADCMeanLimited(pData, 1, indexes), 96);
+}
+
 TEST_F(ADCMonitorTest, testADCMeanBitShift)
 {
     const int noOfSamples = 256;
@@ -245,26 +271,6 @@ TEST_F(ADCMonitorTest, testADCTrueRms)
     const int noOfSamples = 1000;
     const int noOfChannels = 2;
     int16_t pData[noOfSamples*noOfChannels*2];
-    const double signalFreq = 90.9;
-    const double samplingFreq = 10000;
-
-    generateSine(pData, noOfChannels, noOfSamples, 0, 2047, 2047, signalFreq);
-    generateSine(pData, noOfChannels, noOfSamples, 1, 2047, 1023, signalFreq);
-
-    ADC_HandleTypeDef dummy = { { noOfChannels } };
-    ADCMonitorInit(&dummy, pData, noOfSamples*noOfChannels*2);
-    HAL_ADC_ConvHalfCpltCallback(&dummy);
-
-    EXPECT_NEAR(ADCTrueRms(pData, 0, samplingFreq, signalFreq), 2514.968105, tol);
-    EXPECT_NEAR(ADCTrueRms(pData, 1, samplingFreq, signalFreq), 2174.461504, tol);
-}
-
-TEST_F(ADCMonitorTest, testADCTrueRmsPeak)
-{
-    const float tol = 0.0001;
-    const int noOfSamples = 1000;
-    const int noOfChannels = 2;
-    int16_t pData[noOfSamples*noOfChannels*2];
 
     generateSine(pData, noOfChannels, noOfSamples, 0, 2047, 2047, 90.9);
     generateSine(pData, noOfChannels, noOfSamples, 1, 2047, 1023, 90.9);
@@ -276,8 +282,8 @@ TEST_F(ADCMonitorTest, testADCTrueRmsPeak)
     SineWave indexes0 = sineWave(pData, noOfChannels, noOfSamples, 0);
     SineWave indexes1 = sineWave(pData, noOfChannels, noOfSamples, 1);
 
-    EXPECT_NEAR(ADCTrueRmsPeak(pData, 0, indexes0), 2508.205140, tol);
-    EXPECT_NEAR(ADCTrueRmsPeak(pData, 1, indexes1), 2171.801031, tol);
+    EXPECT_NEAR(ADCTrueRms(pData, 0, indexes0), 2506.877696, tol);
+    EXPECT_NEAR(ADCTrueRms(pData, 1, indexes1), 2170.909091, tol);
 }
 
 TEST_F(ADCMonitorTest, testSine)
