@@ -7,7 +7,6 @@
 ** @date   12/12/2024
 */
 
-#include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -71,8 +70,8 @@
 ** PRIVATE FUNCTION DECLARATIONS
 ***************************************************************************************************/
 
-static int sm4291ReadReg(sm4291_i2c_handle_t* i2c, uint8_t addr, uint16_t* result);
-static int sm4291WriteReg(sm4291_i2c_handle_t* i2c, uint8_t addr, uint16_t reg);
+static int sm4291ReadReg(sm4291_i2c_handle_t* i2c, uint8_t reg_addr, uint16_t* result);
+static int sm4291WriteReg(sm4291_i2c_handle_t* i2c, uint8_t reg_addr, uint16_t value);
 static uint8_t genCrc8(uint8_t *data, size_t len);
 static uint8_t genCrc4(uint8_t *data, size_t len);
 
@@ -190,7 +189,7 @@ int sm4291Reset(sm4291_i2c_handle_t* i2c) {
 /*!
 ** @brief Put the device into sleep mode
 **
-** @note The datasheet doesn't specify how t get the device out of sleep mode
+** @note The datasheet doesn't specify how to get the device out of sleep mode
 */
 int sm4291Sleep(sm4291_i2c_handle_t* i2c) {
     return sm4291WriteReg(i2c, ADDR_CMD, CMD_SLEEP);
@@ -203,7 +202,7 @@ int sm4291Sleep(sm4291_i2c_handle_t* i2c) {
 /*!
 ** @brief Reads a 16-bit register from the device
 */
-static int sm4291ReadReg(sm4291_i2c_handle_t* i2c, uint8_t addr, uint16_t* result) {
+static int sm4291ReadReg(sm4291_i2c_handle_t* i2c, uint8_t reg_addr, uint16_t* result) {
     assert_param(i2c);
 
     uint16_t dev_addr = i2c->crc ? TEMP_I2C_CRC_ADDR : TEMP_I2C_NO_CRC_ADDR;
@@ -212,10 +211,10 @@ static int sm4291ReadReg(sm4291_i2c_handle_t* i2c, uint8_t addr, uint16_t* resul
         initCrc4(CRC4_INIT, CRC4_POLY);
         initCrc8(CRC8_INIT, CRC8_POLY);
 
-        uint8_t crc4_data[2U] = {(uint8_t)(addr >> 4U), ((addr & 0xFU) << 4U) & 0x1U};
+        uint8_t crc4_data[2U] = {(uint8_t)(reg_addr >> 4U), ((reg_addr & 0xFU) << 4U) & 0x1U};
         uint8_t crc4 = crc4Calculate(crc4_data, 2U);
 
-        uint8_t addr_buf[2U] = {addr, (uint8_t)(0x10U | crc4)};
+        uint8_t addr_buf[2U] = {reg_addr, (uint8_t)(0x10U | crc4)};
         if(HAL_OK != HAL_I2C_Master_Transmit(i2c->i2c, dev_addr << 1U, addr_buf, 2U, 1U)) {
             return -1;
         };
@@ -233,7 +232,7 @@ static int sm4291ReadReg(sm4291_i2c_handle_t* i2c, uint8_t addr, uint16_t* resul
         *result = ((uint16_t) data_buf[1U] << 8U) | data_buf[0];
     }
     else {
-        if(HAL_OK != HAL_I2C_Master_Transmit(i2c->i2c, dev_addr << 1U, &addr, 1U, 1U)) {
+        if(HAL_OK != HAL_I2C_Master_Transmit(i2c->i2c, dev_addr << 1U, &reg_addr, 1U, 1U)) {
             return -1;
         };
 
@@ -248,7 +247,7 @@ static int sm4291ReadReg(sm4291_i2c_handle_t* i2c, uint8_t addr, uint16_t* resul
 /*!
 ** @brief Writes a 16-bit register to the device
 */
-static int sm4291WriteReg(sm4291_i2c_handle_t* i2c, uint8_t addr, uint16_t reg) {
+static int sm4291WriteReg(sm4291_i2c_handle_t* i2c, uint8_t reg_addr, uint16_t value) {
     assert_param(i2c);
 
     uint16_t dev_addr = i2c->crc ? TEMP_I2C_CRC_ADDR : TEMP_I2C_NO_CRC_ADDR;
@@ -257,16 +256,16 @@ static int sm4291WriteReg(sm4291_i2c_handle_t* i2c, uint8_t addr, uint16_t reg) 
         initCrc4(CRC4_INIT, CRC4_POLY);
         initCrc8(CRC8_INIT, CRC8_POLY);
 
-        uint8_t crc4_data[2U] = {(uint8_t)(addr >> 4U), ((addr & 0xF) << 4U) & 0x1U};
-        uint8_t crc8_data[2U] = {(uint8_t)(reg & 0xFFU), (uint8_t)((reg >> 8U) & 0xFFU)};
+        uint8_t crc4_data[2U] = {(uint8_t)(reg_addr >> 4U), ((reg_addr & 0xF) << 4U) & 0x1U};
+        uint8_t crc8_data[2U] = {(uint8_t)(value & 0xFFU), (uint8_t)((value >> 8U) & 0xFFU)};
         uint8_t crc4 = crc4Calculate(crc4_data, 2U);
         uint8_t crc8 = crc8Calculate(crc8_data, 2U);
 
-        uint8_t buf[5U] = {addr, (uint8_t)(0x10 | crc4), (uint8_t)(reg & 0xFFU), (uint8_t)((reg >> 8U) & 0xFFU), crc8};
+        uint8_t buf[5U] = {reg_addr, (uint8_t)(0x10 | crc4), (uint8_t)(value & 0xFFU), (uint8_t)((value >> 8U) & 0xFFU), crc8};
         return (int)HAL_I2C_Master_Transmit(i2c->i2c, dev_addr << 1U, buf, 5U, 1U);
     }
     else {
-        uint8_t buf[3U] = {addr, (uint8_t)(reg & 0xFF), (uint8_t)((reg >> 8U) & 0xFFU)};
+        uint8_t buf[3U] = {reg_addr, (uint8_t)(value & 0xFF), (uint8_t)((value >> 8U) & 0xFFU)};
         return (int)HAL_I2C_Master_Transmit(i2c->i2c, dev_addr << 1U, buf, 3U, 1U);
     }
 }
