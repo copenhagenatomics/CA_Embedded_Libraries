@@ -6,6 +6,7 @@
 */
 
 #include <stdint.h>
+#include <stddef.h>
 
 #ifndef CRC_H_
 #define CRC_H_

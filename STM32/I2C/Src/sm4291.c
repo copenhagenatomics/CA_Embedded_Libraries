@@ -72,8 +72,6 @@
 
 static int sm4291ReadReg(sm4291_i2c_handle_t* i2c, uint8_t reg_addr, uint16_t* result);
 static int sm4291WriteReg(sm4291_i2c_handle_t* i2c, uint8_t reg_addr, uint16_t value);
-static uint8_t genCrc8(uint8_t *data, size_t len);
-static uint8_t genCrc4(uint8_t *data, size_t len);
 
 /***************************************************************************************************
 ** PUBLIC FUNCTIONS
