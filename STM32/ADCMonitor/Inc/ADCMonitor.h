@@ -47,8 +47,7 @@ double ADCMean(const int16_t *pData, uint16_t channel);
 double ADCMeanLimited(const int16_t *pData, uint16_t channel, SineWave indexes);
 double ADCAbsMean(const int16_t *pData, uint16_t channel);
 double ADCrms(const int16_t *pData, uint16_t channel);
-double ADCTrueRms(const int16_t *pData, uint16_t channel, double samplingFreq, double signalFreq);
-double ADCTrueRmsPeak(const int16_t *pData, uint16_t channel, SineWave sinIndexes);
+double ADCTrueRms(const int16_t *pData, uint16_t channel, SineWave sinIndexes);
 int16_t ADCmax(const int16_t *pData, uint16_t channel);
 int16_t ADCmin(const int16_t *pData, uint16_t channel);
 
