@@ -91,7 +91,7 @@ sm4291_i2c_handle_t* sm4291Init(I2C_HandleTypeDef* hi2c, bool crc, double press_
     assert_param(hi2c);
 
     /* Temporary device handle while we check things */
-    sm4291_i2c_handle_t temp = {hi2c};
+    sm4291_i2c_handle_t temp = {hi2c, crc};
 
     /* Check the serial is non-zero to see if the I2C bus is working */
     uint32_t serial = 0;
@@ -114,6 +114,15 @@ sm4291_i2c_handle_t* sm4291Init(I2C_HandleTypeDef* hi2c, bool crc, double press_
     else {
         return NULL;
     }
+}
+
+/*!
+** @brief Closes the open driver associated with a given handle
+*/
+void sm4291Close(sm4291_i2c_handle_t* i2c) {
+    assert_param(i2c);
+
+    free(i2c);
 }
 
 /*!
@@ -209,7 +218,7 @@ static int sm4291ReadReg(sm4291_i2c_handle_t* i2c, uint8_t reg_addr, uint16_t* r
         initCrc4(CRC4_INIT, CRC4_POLY);
         initCrc8(CRC8_INIT, CRC8_POLY);
 
-        uint8_t crc4_data[2U] = {(uint8_t)(reg_addr >> 4U), ((reg_addr & 0xFU) << 4U) & 0x1U};
+        uint8_t crc4_data[2U] = {(uint8_t)(reg_addr >> 4U), ((reg_addr & 0xFU) << 4U) | 0x1U};
         uint8_t crc4 = crc4Calculate(crc4_data, 2U);
 
         uint8_t addr_buf[2U] = {reg_addr, (uint8_t)(0x10U | crc4)};
@@ -254,7 +263,7 @@ static int sm4291WriteReg(sm4291_i2c_handle_t* i2c, uint8_t reg_addr, uint16_t v
         initCrc4(CRC4_INIT, CRC4_POLY);
         initCrc8(CRC8_INIT, CRC8_POLY);
 
-        uint8_t crc4_data[2U] = {(uint8_t)(reg_addr >> 4U), ((reg_addr & 0xF) << 4U) & 0x1U};
+        uint8_t crc4_data[2U] = {(uint8_t)(reg_addr >> 4U), ((reg_addr & 0xF) << 4U) | 0x1U};
         uint8_t crc8_data[2U] = {(uint8_t)(value & 0xFFU), (uint8_t)((value >> 8U) & 0xFFU)};
         uint8_t crc4 = crc4Calculate(crc4_data, 2U);
         uint8_t crc8 = crc8Calculate(crc8_data, 2U);

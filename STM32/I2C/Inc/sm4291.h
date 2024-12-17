@@ -54,6 +54,7 @@ typedef struct {
 ***************************************************************************************************/
 
 sm4291_i2c_handle_t* sm4291Init(I2C_HandleTypeDef* hi2c, bool crc, double press_min, double press_max);
+void sm4291Close(sm4291_i2c_handle_t* i2c);
 int  sm4291GetTemp(sm4291_i2c_handle_t* i2c, double* result);
 int  sm4291GetPressure(sm4291_i2c_handle_t* i2c, double* result);
 int  sm4291GetSerial(sm4291_i2c_handle_t* i2c, uint32_t* result);
