@@ -5,27 +5,20 @@
  *      Author: alexander.mizrahi@copenhagenAtomics.com
  */
 
-#include "sht35.h"
 #include <assert.h>
+
+#include "sht35.h"
+#include "crc.h"
+
+/***************************************************************************************************
+** DEFINES
+***************************************************************************************************/
+
+#define CRC_INIT 0xFFU
+#define CRC_POLY 0x31U
 
 HAL_StatusTypeDef ret;
 
-
-
-static uint8_t calculate_crc(const uint8_t *data, size_t length){
-	uint8_t crc = 0xff;
-	for (size_t i = 0; i < length; i++) {
-		crc ^= data[i];
-		for (size_t j = 0; j < 8; j++) {
-			if ((crc & 0x80u) != 0) {
-				crc = (uint8_t)((uint8_t)(crc << 1u) ^ 0x31u);
-			} else {
-				crc <<= 1u;
-			}
-		}
-	}
-	return crc;
-}
 
 HAL_StatusTypeDef sht3x_send_command(sht3x_handle_t *handle, sht3x_command_t command){
 	//divides the uint16_t command variable into two uint8_t variables
@@ -56,7 +49,8 @@ HAL_StatusTypeDef sht3x_init(sht3x_handle_t *handle){
 		return ret;
 	}
 
-	uint8_t calculated_crc = calculate_crc(status_reg_and_checksum, 2);
+	initCrc8(CRC_INIT, CRC_POLY);
+	uint8_t calculated_crc = crc8Calculate(status_reg_and_checksum, 2);
 
 	if (calculated_crc != status_reg_and_checksum[2]) {
 		return HAL_ERROR;
@@ -77,8 +71,9 @@ HAL_StatusTypeDef sht3x_read_temperature_and_humidity(sht3x_handle_t *handle, fl
 	}
 
 	//checks if data is correct using CRC
-	uint8_t temperature_crc = calculate_crc(buffer, 2);
-	uint8_t humidity_crc = calculate_crc(buffer + 3, 2);
+	initCrc8(CRC_INIT, CRC_POLY);
+	uint8_t temperature_crc = crc8Calculate(buffer, 2);
+	uint8_t humidity_crc = crc8Calculate(buffer + 3, 2);
 	if (temperature_crc != buffer[2] || humidity_crc != buffer[5]) {
 		return HAL_ERROR;
 	}
