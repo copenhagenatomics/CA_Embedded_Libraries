@@ -193,6 +193,16 @@ HAL_StatusTypeDef HAL_SPI_Transmit(SPI_HandleTypeDef *hspi, const uint8_t *pData
 
 #ifdef HAL_I2C_MODULE_ENABLED
 
+HAL_StatusTypeDef HAL_I2C_DeInit(I2C_HandleTypeDef *hi2c)
+{
+    return HAL_OK;
+}
+
+HAL_StatusTypeDef HAL_I2C_Init(I2C_HandleTypeDef *hi2c)
+{
+    return HAL_OK;
+}
+
 void fakeHAL_I2C_addDevice(stm32I2cTestDevice* new_device) {
     if(!devices) {
         devices = new std::vector<stm32I2cTestDevice*>();
