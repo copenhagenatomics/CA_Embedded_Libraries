@@ -7,14 +7,22 @@
  *  Datasheet: https://sensirion.com/media/documents/33FD6951/662A593A/HT_DS_Datasheet_SHT4x.pdf
  */
 
-#include "sht45.h"
 #include <math.h>
+
+#include "sht45.h"
+#include "crc.h"
+
+/***************************************************************************************************
+** DEFINES
+***************************************************************************************************/
+
+#define CRC_INIT 0xFFU
+#define CRC_POLY 0x31U
 
 /***************************************************************************************************
 ** PRIVATE FUNCTION PROTOTYPES
 ***************************************************************************************************/
 
-static uint8_t calculate_crc(const uint8_t *data, size_t length);
 static int checkCRC(uint8_t *buffer);
 static void relativeToAbsolute(sht4x_handle_t *dev);
 static HAL_StatusTypeDef sht4x_set_mode(sht4x_handle_t *dev, uint8_t command);
@@ -24,33 +32,14 @@ static HAL_StatusTypeDef sht4x_set_mode(sht4x_handle_t *dev, uint8_t command);
 ***************************************************************************************************/
 
 /*!
-** @brief Computes CRC of incoming data
-** @note CRC parameters can be found in section 4.4 of the datasheet 
-*/
-static uint8_t calculate_crc(const uint8_t *data, size_t length)
-{
-    uint8_t crc = 0xff;
-    for (size_t i = 0; i < length; i++) {
-        crc ^= data[i];
-        for (size_t j = 0; j < 8; j++) {
-            if ((crc & 0x80u) != 0) {
-                crc = (uint8_t)((uint8_t)(crc << 1u) ^ 0x31u);
-            } else {
-                crc <<= 1u;
-            }
-        }
-    }
-    return crc;
-}
-
-/*!
 ** @brief Compares computed and received CRCs
 ** @note For every transfer there are two CRCs.
 */
 static int checkCRC(uint8_t *buffer)
 {
     // Ensure data is valid
-    if (calculate_crc(buffer, 2) != buffer[2] || calculate_crc(buffer + 3, 2) != buffer[5]) {
+    initCrc8(CRC_INIT, CRC_POLY);
+    if (crc8Calculate(buffer, 2) != buffer[2] || crc8Calculate(buffer + 3, 2) != buffer[5]) {
         return 1;
     }
     return 0;
