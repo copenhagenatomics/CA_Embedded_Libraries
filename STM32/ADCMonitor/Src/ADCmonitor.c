@@ -23,12 +23,12 @@ static uint32_t sinePeakIdx(const int16_t* pData, uint32_t noOfChannels, uint32_
 ***************************************************************************************************/
 
 static struct {
-	uint32_t   length;
-	int16_t   *pData;        // DMA buffer
-	uint32_t   noOfChannels; // No of channels for each sample
-	uint32_t   noOfSamples;  // No of Samples in each channel per interrupt, half buffer.
+    uint32_t   length;
+    int16_t   *pData;        // DMA buffer
+    uint32_t   noOfChannels; // No of channels for each sample
+    uint32_t   noOfSamples;  // No of Samples in each channel per interrupt, half buffer.
 
-	activeBuffer_t activeBuffer;
+    activeBuffer_t activeBuffer;
 } ADCMonitorData;
 
 /***************************************************************************************************
@@ -46,37 +46,37 @@ static struct {
 */
 static uint32_t sinePeakIdx(const int16_t* pData, uint32_t noOfChannels, uint32_t noOfSamples, uint16_t channel, bool reverse)
 {
-	uint32_t begin = channel;
-	uint32_t end = channel + (noOfSamples-1)* noOfChannels;
+    uint32_t begin = channel;
+    uint32_t end = channel + (noOfSamples-1)* noOfChannels;
 
-	// Sets initial search values
-	uint32_t idx   = (!reverse) ? begin : end - noOfChannels;
-	bool direction = (!reverse) ? pData[idx] < pData[noOfChannels + idx]
-								: pData[idx - noOfChannels] <  pData[idx];
+    // Sets initial search values
+    uint32_t idx   = (!reverse) ? begin : end - noOfChannels;
+    bool direction = (!reverse) ? pData[idx] < pData[noOfChannels + idx]
+                                : pData[idx - noOfChannels] <  pData[idx];
 
-	while (idx >= begin && idx <= end && idx != ((!reverse) ? end : begin))
-	{
-		int16_t next;
-		int16_t current;
+    while (idx >= begin && idx <= end && idx != ((!reverse) ? end : begin))
+    {
+        int16_t next;
+        int16_t current;
 
-		if (!reverse) {
-			next = pData[idx+noOfChannels];
-			current = pData[idx];
-		} else {
-			next = pData[idx];
-			current = pData[idx - noOfChannels];
-		}
+        if (!reverse) {
+            next = pData[idx+noOfChannels];
+            current = pData[idx];
+        } else {
+            next = pData[idx];
+            current = pData[idx - noOfChannels];
+        }
 
-		bool gradient = current < next;
-		if (direction != gradient)
-			return (idx-channel)/noOfChannels;
+        bool gradient = current < next;
+        if (direction != gradient)
+            return (idx-channel)/noOfChannels;
 
-		idx += (!reverse) ? noOfChannels : -noOfChannels;
-	}
+        idx += (!reverse) ? noOfChannels : -noOfChannels;
+    }
 
-	// Failed, sine curve to small/not found
-	uint32_t errIdx = (!reverse) ? begin : end;
-	return (errIdx - channel)/noOfChannels;
+    // Failed, sine curve to small/not found
+    uint32_t errIdx = (!reverse) ? begin : end;
+    return (errIdx - channel)/noOfChannels;
 }
 
 /***************************************************************************************************
@@ -93,14 +93,14 @@ static uint32_t sinePeakIdx(const int16_t* pData, uint32_t noOfChannels, uint32_
 */
 void ADCMonitorInit(ADC_HandleTypeDef* hadc, int16_t *pData, uint32_t length)
 {
-	// Save internal data.
-	ADCMonitorData.pData           = pData;
-	ADCMonitorData.length          = length;
-	ADCMonitorData.noOfChannels    = hadc->Init.NbrOfConversion;
-	ADCMonitorData.noOfSamples     = length / (2 * hadc->Init.NbrOfConversion);
+    // Save internal data.
+    ADCMonitorData.pData           = pData;
+    ADCMonitorData.length          = length;
+    ADCMonitorData.noOfChannels    = hadc->Init.NbrOfConversion;
+    ADCMonitorData.noOfSamples     = length / (2 * hadc->Init.NbrOfConversion);
 
-	// Write the registers
-	HAL_ADC_Start_DMA(hadc, (uint32_t *) pData, length);
+    // Write the registers
+    HAL_ADC_Start_DMA(hadc, (uint32_t *) pData, length);
 }
 
 /*!
@@ -111,15 +111,15 @@ void ADCMonitorInit(ADC_HandleTypeDef* hadc, int16_t *pData, uint32_t length)
 */
 void ADCMonitorLoop(ADCCallBack callback)
 {
-	static int lastBuffer = NotAvailable;
+    static int lastBuffer = NotAvailable;
 
-	if (ADCMonitorData.activeBuffer != lastBuffer)
-	{
-		lastBuffer = ADCMonitorData.activeBuffer;
-		int16_t *pData = (ADCMonitorData.activeBuffer == First)
-				? ADCMonitorData.pData : &ADCMonitorData.pData[ADCMonitorData.length / 2];
-		callback(pData, ADCMonitorData.noOfChannels, ADCMonitorData.noOfSamples);
-	}
+    if (ADCMonitorData.activeBuffer != lastBuffer)
+    {
+        lastBuffer = ADCMonitorData.activeBuffer;
+        int16_t *pData = (ADCMonitorData.activeBuffer == First)
+                ? ADCMonitorData.pData : &ADCMonitorData.pData[ADCMonitorData.length / 2];
+        callback(pData, ADCMonitorData.noOfChannels, ADCMonitorData.noOfSamples);
+    }
 }
 
 /*!
@@ -132,14 +132,14 @@ void ADCMonitorLoop(ADCCallBack callback)
 */
 int16_t cmaAvarage(int16_t *pData, uint16_t channel, int16_t cma, int k)
 {
-	for (uint32_t sampleId = 0; sampleId < ADCMonitorData.noOfSamples; sampleId++)
-	{
-		// cumulative moving average
-		int16_t* ptr = &pData[ADCMonitorData.noOfChannels * sampleId + channel];
-		cma = cma + (*ptr - cma)/(k+1);
-		*ptr = cma; // write in buffer
-	}
-	return cma;
+    for (uint32_t sampleId = 0; sampleId < ADCMonitorData.noOfSamples; sampleId++)
+    {
+        // cumulative moving average
+        int16_t* ptr = &pData[ADCMonitorData.noOfChannels * sampleId + channel];
+        cma = cma + (*ptr - cma)/(k+1);
+        *ptr = cma; // write in buffer
+    }
+    return cma;
 }
 
 /*!
@@ -149,21 +149,21 @@ int16_t cmaAvarage(int16_t *pData, uint16_t channel, int16_t cma, int k)
 */
 double ADCrms(const int16_t *pData, uint16_t channel)
 {
-	if (ADCMonitorData.activeBuffer == NotAvailable ||
-		pData == NULL ||
-		channel >= ADCMonitorData.noOfChannels)
-	{
-		return 0;
-	}
+    if (ADCMonitorData.activeBuffer == NotAvailable ||
+        pData == NULL ||
+        channel >= ADCMonitorData.noOfChannels)
+    {
+        return 0;
+    }
 
-	uint64_t sum = 0;
-	for (uint32_t sampleId = 0; sampleId < ADCMonitorData.noOfSamples; sampleId++)
-	{
-		const int16_t mul = pData[sampleId*ADCMonitorData.noOfChannels + channel];
-		sum += (mul * mul); // add squared values to sum
-	}
+    uint64_t sum = 0;
+    for (uint32_t sampleId = 0; sampleId < ADCMonitorData.noOfSamples; sampleId++)
+    {
+        const int16_t mul = pData[sampleId*ADCMonitorData.noOfChannels + channel];
+        sum += (mul * mul); // add squared values to sum
+    }
 
-	return sqrt(((double) sum) / ((double)ADCMonitorData.noOfSamples));
+    return sqrt(((double) sum) / ((double)ADCMonitorData.noOfSamples));
 }
 
 /*!
@@ -175,21 +175,21 @@ double ADCrms(const int16_t *pData, uint16_t channel)
 */
 double ADCTrueRms(const int16_t *pData, uint16_t channel, SineWave indexes)
 {
-	if (ADCMonitorData.activeBuffer == NotAvailable ||
-		pData == NULL ||
-		channel >= ADCMonitorData.noOfChannels)
-	{
-		return 0;
-	}
+    if (ADCMonitorData.activeBuffer == NotAvailable ||
+        pData == NULL ||
+        channel >= ADCMonitorData.noOfChannels)
+    {
+        return 0;
+    }
 
-	uint64_t sum = 0;
-	for (uint32_t sampleId = indexes.begin; sampleId <= indexes.end; sampleId++)
-	{
-		const int16_t mul = pData[sampleId*ADCMonitorData.noOfChannels + channel];
-		sum += (mul * mul); // add squared values to sum
-	}
+    uint64_t sum = 0;
+    for (uint32_t sampleId = indexes.begin; sampleId <= indexes.end; sampleId++)
+    {
+        const int16_t mul = pData[sampleId*ADCMonitorData.noOfChannels + channel];
+        sum += (mul * mul); // add squared values to sum
+    }
 
-	return sqrt(((double) sum) / ((double) (indexes.end - indexes.begin + 1)));
+    return sqrt(((double) sum) / ((double) (indexes.end - indexes.begin + 1)));
 }
 
 /*!
@@ -199,20 +199,20 @@ double ADCTrueRms(const int16_t *pData, uint16_t channel, SineWave indexes)
 */
 double ADCMean(const int16_t *pData, uint16_t channel)
 {
-	if (ADCMonitorData.activeBuffer == NotAvailable ||
-		pData == NULL ||
-		channel >= ADCMonitorData.noOfChannels)
-	{
-		return 0;
-	}
+    if (ADCMonitorData.activeBuffer == NotAvailable ||
+        pData == NULL ||
+        channel >= ADCMonitorData.noOfChannels)
+    {
+        return 0;
+    }
 
-	uint64_t sum = 0;
-	for (uint32_t sampleId = 0; sampleId < ADCMonitorData.noOfSamples; sampleId++)
-	{
-		sum += pData[sampleId*ADCMonitorData.noOfChannels + channel];
-	}
+    uint64_t sum = 0;
+    for (uint32_t sampleId = 0; sampleId < ADCMonitorData.noOfSamples; sampleId++)
+    {
+        sum += pData[sampleId*ADCMonitorData.noOfChannels + channel];
+    }
 
-	return (((double) sum) / ((double) ADCMonitorData.noOfSamples));
+    return (((double) sum) / ((double) ADCMonitorData.noOfSamples));
 }
 
 /*!
@@ -224,21 +224,21 @@ double ADCMean(const int16_t *pData, uint16_t channel)
 */
 double ADCMeanLimited(const int16_t *pData, uint16_t channel, SineWave indexes)
 {
-	if (ADCMonitorData.activeBuffer == NotAvailable ||
-		pData == NULL ||
-		channel >= ADCMonitorData.noOfChannels ||
-		indexes.begin == indexes.end)
-	{
-		return 0;
-	}
+    if (ADCMonitorData.activeBuffer == NotAvailable ||
+        pData == NULL ||
+        channel >= ADCMonitorData.noOfChannels ||
+        indexes.begin == indexes.end)
+    {
+        return 0;
+    }
 
-	uint64_t sum = 0;
-	for (uint32_t sampleId = indexes.begin; sampleId <= indexes.end; sampleId++)
-	{
-		sum += pData[sampleId*ADCMonitorData.noOfChannels + channel];
-	}
+    uint64_t sum = 0;
+    for (uint32_t sampleId = indexes.begin; sampleId <= indexes.end; sampleId++)
+    {
+        sum += pData[sampleId*ADCMonitorData.noOfChannels + channel];
+    }
 
-	return (((double) sum) / ((double) (indexes.end - indexes.begin + 1)));
+    return (((double) sum) / ((double) (indexes.end - indexes.begin + 1)));
 }
 
 /*!
@@ -251,19 +251,19 @@ double ADCMeanLimited(const int16_t *pData, uint16_t channel, SineWave indexes)
 */
 float ADCMeanBitShift(const int16_t *pData, uint16_t channel, uint8_t shiftIdx)
 {
-	if (ADCMonitorData.activeBuffer == NotAvailable ||
-			pData == NULL ||
-			channel >= ADCMonitorData.noOfChannels)
-	{
-		return 0;
-	}
+    if (ADCMonitorData.activeBuffer == NotAvailable ||
+            pData == NULL ||
+            channel >= ADCMonitorData.noOfChannels)
+    {
+        return 0;
+    }
 
-	uint32_t sum = 0;
-	for (uint32_t sampleId = 0; sampleId < ADCMonitorData.noOfSamples; sampleId++)
-	{
-		sum += pData[sampleId*ADCMonitorData.noOfChannels + channel];
-	}
-	return (sum >> shiftIdx);
+    uint32_t sum = 0;
+    for (uint32_t sampleId = 0; sampleId < ADCMonitorData.noOfSamples; sampleId++)
+    {
+        sum += pData[sampleId*ADCMonitorData.noOfChannels + channel];
+    }
+    return (sum >> shiftIdx);
 }
 
 /*!
@@ -273,20 +273,20 @@ float ADCMeanBitShift(const int16_t *pData, uint16_t channel, uint8_t shiftIdx)
 */
 double ADCAbsMean(const int16_t *pData, uint16_t channel)
 {
-	if (ADCMonitorData.activeBuffer == NotAvailable ||
-		pData == NULL ||
-		channel >= ADCMonitorData.noOfChannels)
-	{
-		return 0;
-	}
+    if (ADCMonitorData.activeBuffer == NotAvailable ||
+        pData == NULL ||
+        channel >= ADCMonitorData.noOfChannels)
+    {
+        return 0;
+    }
 
-	uint64_t sum = 0;
-	for (uint32_t sampleId = 0; sampleId < ADCMonitorData.noOfSamples; sampleId++)
-	{
-		sum += abs(pData[sampleId*ADCMonitorData.noOfChannels + channel]);
-	}
+    uint64_t sum = 0;
+    for (uint32_t sampleId = 0; sampleId < ADCMonitorData.noOfSamples; sampleId++)
+    {
+        sum += abs(pData[sampleId*ADCMonitorData.noOfChannels + channel]);
+    }
 
-	return ( ((double) sum) / ((double) ADCMonitorData.noOfSamples) );
+    return ( ((double) sum) / ((double) ADCMonitorData.noOfSamples) );
 }
 
 /*!
@@ -296,21 +296,21 @@ double ADCAbsMean(const int16_t *pData, uint16_t channel)
 */
 int16_t ADCmax(const int16_t *pData, uint16_t channel)
 {
-	if (ADCMonitorData.activeBuffer == NotAvailable ||
-		pData == NULL ||
-		channel >= ADCMonitorData.noOfChannels)
-	{
-		return 0;
-	}
+    if (ADCMonitorData.activeBuffer == NotAvailable ||
+        pData == NULL ||
+        channel >= ADCMonitorData.noOfChannels)
+    {
+        return 0;
+    }
 
-	int16_t max = pData[channel];
-	for (uint32_t sampleId = 1; sampleId < ADCMonitorData.noOfSamples; sampleId++)
-	{
-		int16_t sample = pData[sampleId*ADCMonitorData.noOfChannels + channel];
-		if (max < sample)
-			max = sample;
-	}
-	return max;
+    int16_t max = pData[channel];
+    for (uint32_t sampleId = 1; sampleId < ADCMonitorData.noOfSamples; sampleId++)
+    {
+        int16_t sample = pData[sampleId*ADCMonitorData.noOfChannels + channel];
+        if (max < sample)
+            max = sample;
+    }
+    return max;
 }
 
 /*!
@@ -320,21 +320,21 @@ int16_t ADCmax(const int16_t *pData, uint16_t channel)
 */
 int16_t ADCmin(const int16_t *pData, uint16_t channel)
 {
-	if (ADCMonitorData.activeBuffer == NotAvailable ||
-		pData == NULL ||
-		channel >= ADCMonitorData.noOfChannels)
-	{
-		return 0;
-	}
+    if (ADCMonitorData.activeBuffer == NotAvailable ||
+        pData == NULL ||
+        channel >= ADCMonitorData.noOfChannels)
+    {
+        return 0;
+    }
 
-	int16_t min = pData[channel];
-	for (uint32_t sampleId = 1; sampleId < ADCMonitorData.noOfSamples; sampleId++)
-	{
-		int16_t sample = pData[sampleId*ADCMonitorData.noOfChannels + channel];
-		if (min > sample)
-			min = sample;
-	}
-	return min;
+    int16_t min = pData[channel];
+    for (uint32_t sampleId = 1; sampleId < ADCMonitorData.noOfSamples; sampleId++)
+    {
+        int16_t sample = pData[sampleId*ADCMonitorData.noOfChannels + channel];
+        if (min > sample)
+            min = sample;
+    }
+    return min;
 }
 
 /*!
@@ -347,18 +347,18 @@ int16_t ADCmin(const int16_t *pData, uint16_t channel)
 */
 void ADCSetOffset(int16_t* pData, int16_t offset, uint16_t channel)
 {
-	if (ADCMonitorData.activeBuffer == NotAvailable ||
-		pData == NULL ||
-		channel >= ADCMonitorData.noOfChannels)
-	{
-		return;
-	}
+    if (ADCMonitorData.activeBuffer == NotAvailable ||
+        pData == NULL ||
+        channel >= ADCMonitorData.noOfChannels)
+    {
+        return;
+    }
 
-	for (uint32_t sampleId = 0; sampleId < ADCMonitorData.noOfSamples; sampleId++)
-	{
-		// No need to adjust for overflow since ADC is 12 bits.
-		pData[sampleId*ADCMonitorData.noOfChannels + channel] += offset;
-	}
+    for (uint32_t sampleId = 0; sampleId < ADCMonitorData.noOfSamples; sampleId++)
+    {
+        // No need to adjust for overflow since ADC is 12 bits.
+        pData[sampleId*ADCMonitorData.noOfChannels + channel] += offset;
+    }
 }
 
 /*!
@@ -371,9 +371,9 @@ void ADCSetOffset(int16_t* pData, int16_t offset, uint16_t channel)
 */
 SineWave sineWave(const int16_t* pData, uint32_t noOfChannels, uint32_t noOfSamples, uint16_t channel)
 {
-	SineWave result = { sinePeakIdx(pData, noOfChannels, noOfSamples, channel, false),
-						sinePeakIdx(pData, noOfChannels, noOfSamples, channel, true ) };
-	return result;
+    SineWave result = { sinePeakIdx(pData, noOfChannels, noOfSamples, channel, false),
+                        sinePeakIdx(pData, noOfChannels, noOfSamples, channel, true ) };
+    return result;
 }
 
 /*!
@@ -382,7 +382,7 @@ SineWave sineWave(const int16_t* pData, uint32_t noOfChannels, uint32_t noOfSamp
 */
 void HAL_ADC_ConvHalfCpltCallback(ADC_HandleTypeDef* hadc)
 {
-	ADCMonitorData.activeBuffer = First;
+    ADCMonitorData.activeBuffer = First;
 }
 
 /*!
@@ -391,5 +391,5 @@ void HAL_ADC_ConvHalfCpltCallback(ADC_HandleTypeDef* hadc)
 */
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 {
-	ADCMonitorData.activeBuffer = Second;
+    ADCMonitorData.activeBuffer = Second;
 }

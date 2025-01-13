@@ -11,9 +11,9 @@
 #include <stdint.h>
 
 #ifndef UNIT_TESTING
-	#include "stm32f4xx_hal.h"
+    #include "stm32f4xx_hal.h"
 #else
-	#include "fake_stm32xxxx_hal.h"
+    #include "fake_stm32xxxx_hal.h"
 #endif
 
 #ifdef __cplusplus
@@ -25,14 +25,14 @@ extern "C" {
 ***************************************************************************************************/
 
 typedef enum {
-	NotAvailable,
-	First,
-	Second
+    NotAvailable,
+    First,
+    Second
 } activeBuffer_t;
 
 typedef struct SineWave {
-	uint32_t begin; // Index where the sinewave begins
-	uint32_t end;   // Index where the sinewave ends
+    uint32_t begin; // Index where the sinewave begins
+    uint32_t end;   // Index where the sinewave ends
 } SineWave;
 
 /*
