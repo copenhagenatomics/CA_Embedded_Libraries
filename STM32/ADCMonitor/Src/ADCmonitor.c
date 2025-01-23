@@ -2,7 +2,7 @@
  * @file    ADCmonitor.c
  * @brief   This file contains the ADC libraries for the STM32F4
  * @date    25/08/2021
- * @author  Author: agp
+ * @author  Author: agp, timothe
 */
 
 #include <stdlib.h>
@@ -17,6 +17,16 @@
 ***************************************************************************************************/
 
 static uint32_t sinePeakIdx(const int16_t* pData, uint32_t noOfChannels, uint32_t noOfSamples, uint16_t channel, bool reverse);
+
+/***************************************************************************************************
+** DEFINES
+***************************************************************************************************/
+
+typedef enum {
+    NotAvailable,
+    First,
+    Second
+} activeBuffer_t;
 
 /***************************************************************************************************
 ** PRIVATE OBJECTS
@@ -105,9 +115,11 @@ void ADCMonitorInit(ADC_HandleTypeDef* hadc, int16_t *pData, uint32_t length)
 
 /*!
  * @brief   ADC Monitor loop function
+ *
+ *          If new buffer, callback is called, else nothing is done
+ *
  * @param   callback Callback function called when the buffer is full or half-full
  * @note    Must be called from from while(1) loop to get info about new buffer via ADCCallBack function
- * @note    If new buffer, callback is called, else nothing is done
 */
 void ADCMonitorLoop(ADCCallBack callback)
 {
@@ -130,7 +142,7 @@ void ADCMonitorLoop(ADCCallBack callback)
  * @param   k Length of cumulative buffer
  * @note    Data is altered in buffer
 */
-int16_t cmaAvarage(int16_t *pData, uint16_t channel, int16_t cma, int k)
+int16_t cmaAverage(int16_t *pData, uint16_t channel, int16_t cma, int k)
 {
     for (uint32_t sampleId = 0; sampleId < ADCMonitorData.noOfSamples; sampleId++)
     {
@@ -170,14 +182,15 @@ double ADCrms(const int16_t *pData, uint16_t channel)
  * @brief   RMS computation on data for selected channel between specified indexes
  * @param   pData Pointer to buffer
  * @param   channel ADC channel
- * @param   indexes Begin and end indexes
+ * @param   indexes Begin and end indexes (both included)
  * @note    Made to compute a true RMS of a sinusoidal signal
 */
 double ADCTrueRms(const int16_t *pData, uint16_t channel, SineWave indexes)
 {
     if (ADCMonitorData.activeBuffer == NotAvailable ||
         pData == NULL ||
-        channel >= ADCMonitorData.noOfChannels)
+        channel >= ADCMonitorData.noOfChannels ||
+        indexes.begin >= indexes.end)
     {
         return 0;
     }
@@ -219,7 +232,7 @@ double ADCMean(const int16_t *pData, uint16_t channel)
  * @brief   Mean computation on data for selected channel between specified indexes
  * @param   pData Pointer to buffer
  * @param   channel ADC channel
- * @param   indexes Begin and end indexes
+ * @param   indexes Begin and end indexes (both included)
  * @note    Made to compute the offset of a sinusoidal signal
 */
 double ADCMeanLimited(const int16_t *pData, uint16_t channel, SineWave indexes)
@@ -227,7 +240,7 @@ double ADCMeanLimited(const int16_t *pData, uint16_t channel, SineWave indexes)
     if (ADCMonitorData.activeBuffer == NotAvailable ||
         pData == NULL ||
         channel >= ADCMonitorData.noOfChannels ||
-        indexes.begin == indexes.end)
+        indexes.begin >= indexes.end)
     {
         return 0;
     }

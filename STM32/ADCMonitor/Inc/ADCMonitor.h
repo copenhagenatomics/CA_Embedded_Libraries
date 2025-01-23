@@ -2,7 +2,7 @@
  * @file    ADCmonitor.h
  * @brief   Header file of ADCmonitor.c
  * @date    25/08/2021
- * @author  Author: agp
+ * @author  Author: agp, timothe
 */
 
 #ifndef _ADCMONITOR_H_
@@ -21,14 +21,8 @@ extern "C" {
 #endif
 
 /***************************************************************************************************
-** STRUCTURES
+** DEFINES
 ***************************************************************************************************/
-
-typedef enum {
-    NotAvailable,
-    First,
-    Second
-} activeBuffer_t;
 
 typedef struct SineWave {
     uint32_t begin; // Index where the sinewave begins
@@ -41,8 +35,8 @@ typedef struct SineWave {
  *                               CH0{s1}, CH1{s1},,,, CHN{s1},
  *                               ...........
  *                               CH0{sM}, CH2{sM},,,, CHN{SN} ], N,M =[0:inf]
- * Since this modules does not has a fixed format the buffer is a one dimensional array and
- * each sample is fetched using pData[SampleNo * noOfChannls + channelNumber]
+ * Since this module does not has a fixed format the buffer is a one dimensional array and
+ * each sample is fetched using pData[SampleNo * noOfChannels + channelNumber]
 */
 typedef void (*ADCCallBack)(int16_t *pBuffer, int noOfChannels, int noOfSamples);
 
@@ -53,7 +47,7 @@ typedef void (*ADCCallBack)(int16_t *pBuffer, int noOfChannels, int noOfSamples)
 void ADCMonitorInit(ADC_HandleTypeDef* hadc, int16_t *pData, uint32_t length);
 void ADCMonitorLoop(ADCCallBack callback);
 
-int16_t cmaAvarage(int16_t *pData, uint16_t channel, int16_t cma, int k);
+int16_t cmaAverage(int16_t *pData, uint16_t channel, int16_t cma, int k);
 double ADCrms(const int16_t *pData, uint16_t channel);
 double ADCTrueRms(const int16_t *pData, uint16_t channel, SineWave indexes);
 double ADCMean(const int16_t *pData, uint16_t channel);

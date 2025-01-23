@@ -232,7 +232,7 @@ TEST_F(ADCMonitorTest, testADCSetOffset)
     }
 }
 
-TEST_F(ADCMonitorTest, testCMAverage)
+TEST_F(ADCMonitorTest, testCMAAverage)
 {
     const int noOfSamples = 10;
     int16_t pData[noOfSamples*4*2];
@@ -244,7 +244,7 @@ TEST_F(ADCMonitorTest, testCMAverage)
     ADC_HandleTypeDef dummy = { { 4 } };
     ADCMonitorInit(&dummy, pData, noOfSamples*4*2);
 
-    EXPECT_EQ(cmaAvarage(pData, 0, 85, 5), 112);
+    EXPECT_EQ(cmaAverage(pData, 0, 85, 5), 112);
 }
 
 TEST_F(ADCMonitorTest, testADCrms)
