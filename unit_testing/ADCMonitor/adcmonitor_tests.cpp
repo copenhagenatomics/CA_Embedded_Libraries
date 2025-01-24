@@ -77,6 +77,32 @@ TEST_F(ADCMonitorTest, testADCMean)
     EXPECT_EQ(ADCMean(pData, 1), 100);
 }
 
+TEST_F(ADCMonitorTest, testADCMeanLimited)
+{
+    const int noOfSamples = 100;
+    const int noOfChannels = 2;
+    int16_t pData[noOfSamples*noOfChannels*2];
+
+    for (int i = 0; i<noOfSamples; i++)
+    {
+        pData[noOfChannels*i] = i*1 + 1;
+        pData[noOfChannels*i+1] = i*2 + 1;
+    }
+
+    ADC_HandleTypeDef foo = { { 2 }, 0, 0 };
+    ADCMonitorInit(&foo, pData, noOfSamples*noOfChannels*2);
+    HAL_ADC_ConvHalfCpltCallback(&foo);
+
+    SineWaveIndexes_t indexes = {.begin = 0, .end = 99};
+    EXPECT_EQ(ADCMeanLimited(pData, 0, indexes), 50.5);
+    EXPECT_EQ(ADCMeanLimited(pData, 1, indexes), 100);
+
+    indexes.begin = 15;
+    indexes.end = 80;
+    EXPECT_EQ(ADCMeanLimited(pData, 0, indexes), 48.5);
+    EXPECT_EQ(ADCMeanLimited(pData, 1, indexes), 96);
+}
+
 TEST_F(ADCMonitorTest, testADCMeanBitShift)
 {
     const int noOfSamples = 256;
@@ -206,7 +232,7 @@ TEST_F(ADCMonitorTest, testADCSetOffset)
     }
 }
 
-TEST_F(ADCMonitorTest, testCMAverage)
+TEST_F(ADCMonitorTest, testCMAAverage)
 {
     const int noOfSamples = 10;
     int16_t pData[noOfSamples*4*2];
@@ -218,7 +244,7 @@ TEST_F(ADCMonitorTest, testCMAverage)
     ADC_HandleTypeDef dummy = { { 4 } };
     ADCMonitorInit(&dummy, pData, noOfSamples*4*2);
 
-    EXPECT_EQ(cmaAvarage(pData, 0, 85, 5), 112);
+    EXPECT_EQ(cmaAverage(pData, 0, 85, 5), 112);
 }
 
 TEST_F(ADCMonitorTest, testADCrms)
@@ -239,6 +265,27 @@ TEST_F(ADCMonitorTest, testADCrms)
     EXPECT_NEAR(ADCrms(pData,1), 2170.527588, tol);
 }
 
+TEST_F(ADCMonitorTest, testADCTrueRms)
+{
+    const float tol = 0.0001;
+    const int noOfSamples = 1000;
+    const int noOfChannels = 2;
+    int16_t pData[noOfSamples*noOfChannels*2];
+
+    generateSine(pData, noOfChannels, noOfSamples, 0, 2047, 2047, 90.9);
+    generateSine(pData, noOfChannels, noOfSamples, 1, 2047, 1023, 90.9);
+
+    ADC_HandleTypeDef dummy = { { noOfChannels } };
+    ADCMonitorInit(&dummy, pData, noOfSamples*noOfChannels*2);
+    HAL_ADC_ConvHalfCpltCallback(&dummy);
+
+    SineWaveIndexes_t indexes0 = sineWave(pData, noOfChannels, noOfSamples, 0);
+    SineWaveIndexes_t indexes1 = sineWave(pData, noOfChannels, noOfSamples, 1);
+
+    EXPECT_NEAR(ADCTrueRms(pData, 0, indexes0), 2506.877696, tol);
+    EXPECT_NEAR(ADCTrueRms(pData, 1, indexes1), 2170.909091, tol);
+}
+
 TEST_F(ADCMonitorTest, testSine)
 {
     const int noOfSamples = 120;
@@ -248,7 +295,7 @@ TEST_F(ADCMonitorTest, testSine)
     ADC_HandleTypeDef dommy = { { 4 } };
     ADCMonitorInit(&dommy, pData, noOfSamples*4*2);
 
-    SineWave s = sineWave(pData, 4, noOfSamples, 0);
+    SineWaveIndexes_t s = sineWave(pData, 4, noOfSamples, 0);
     EXPECT_EQ(s.begin, 9);
     EXPECT_EQ(s.end, 117);
 
