@@ -185,7 +185,7 @@ double ADCrms(const int16_t *pData, uint16_t channel)
  * @param   indexes Begin and end indexes (both included)
  * @note    Made to compute a true RMS of a sinusoidal signal
 */
-double ADCTrueRms(const int16_t *pData, uint16_t channel, SineWave indexes)
+double ADCTrueRms(const int16_t *pData, uint16_t channel, SineWaveIndexes_t indexes)
 {
     if (ADCMonitorData.activeBuffer == NotAvailable ||
         pData == NULL ||
@@ -235,7 +235,7 @@ double ADCMean(const int16_t *pData, uint16_t channel)
  * @param   indexes Begin and end indexes (both included)
  * @note    Made to compute the offset of a sinusoidal signal
 */
-double ADCMeanLimited(const int16_t *pData, uint16_t channel, SineWave indexes)
+double ADCMeanLimited(const int16_t *pData, uint16_t channel, SineWaveIndexes_t indexes)
 {
     if (ADCMonitorData.activeBuffer == NotAvailable ||
         pData == NULL ||
@@ -382,9 +382,9 @@ void ADCSetOffset(int16_t* pData, int16_t offset, uint16_t channel)
  * @param   channel ADC channel
  * @return  Start/end of sample Index (not pointer offset)
 */
-SineWave sineWave(const int16_t* pData, uint32_t noOfChannels, uint32_t noOfSamples, uint16_t channel)
+SineWaveIndexes_t sineWave(const int16_t* pData, uint32_t noOfChannels, uint32_t noOfSamples, uint16_t channel)
 {
-    SineWave result = { sinePeakIdx(pData, noOfChannels, noOfSamples, channel, false),
+    SineWaveIndexes_t result = { sinePeakIdx(pData, noOfChannels, noOfSamples, channel, false),
                         sinePeakIdx(pData, noOfChannels, noOfSamples, channel, true ) };
     return result;
 }

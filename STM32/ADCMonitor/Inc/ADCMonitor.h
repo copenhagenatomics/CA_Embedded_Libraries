@@ -24,10 +24,10 @@ extern "C" {
 ** DEFINES
 ***************************************************************************************************/
 
-typedef struct SineWave {
+typedef struct {
     uint32_t begin; // Index where the sinewave begins
     uint32_t end;   // Index where the sinewave ends
-} SineWave;
+} SineWaveIndexes_t;
 
 /*
  * Callback function from ADCMonitorLoop.
@@ -49,15 +49,15 @@ void ADCMonitorLoop(ADCCallBack callback);
 
 int16_t cmaAverage(int16_t *pData, uint16_t channel, int16_t cma, int k);
 double ADCrms(const int16_t *pData, uint16_t channel);
-double ADCTrueRms(const int16_t *pData, uint16_t channel, SineWave indexes);
+double ADCTrueRms(const int16_t *pData, uint16_t channel, SineWaveIndexes_t indexes);
 double ADCMean(const int16_t *pData, uint16_t channel);
-double ADCMeanLimited(const int16_t *pData, uint16_t channel, SineWave indexes);
+double ADCMeanLimited(const int16_t *pData, uint16_t channel, SineWaveIndexes_t indexes);
 float ADCMeanBitShift(const int16_t *pData, uint16_t channel, uint8_t shiftIdx);
 double ADCAbsMean(const int16_t *pData, uint16_t channel);
 int16_t ADCmax(const int16_t *pData, uint16_t channel);
 int16_t ADCmin(const int16_t *pData, uint16_t channel);
 void ADCSetOffset(int16_t* pData, int16_t offset, uint16_t channel);
-SineWave sineWave(const int16_t* pData, uint32_t noOfChannels, uint32_t noOfSamples, uint16_t channel);
+SineWaveIndexes_t sineWave(const int16_t* pData, uint32_t noOfChannels, uint32_t noOfSamples, uint16_t channel);
 
 #ifdef __cplusplus
 }

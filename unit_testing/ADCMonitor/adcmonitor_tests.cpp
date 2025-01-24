@@ -93,7 +93,7 @@ TEST_F(ADCMonitorTest, testADCMeanLimited)
     ADCMonitorInit(&foo, pData, noOfSamples*noOfChannels*2);
     HAL_ADC_ConvHalfCpltCallback(&foo);
 
-    SineWave indexes = {.begin = 0, .end = 99};
+    SineWaveIndexes_t indexes = {.begin = 0, .end = 99};
     EXPECT_EQ(ADCMeanLimited(pData, 0, indexes), 50.5);
     EXPECT_EQ(ADCMeanLimited(pData, 1, indexes), 100);
 
@@ -279,8 +279,8 @@ TEST_F(ADCMonitorTest, testADCTrueRms)
     ADCMonitorInit(&dummy, pData, noOfSamples*noOfChannels*2);
     HAL_ADC_ConvHalfCpltCallback(&dummy);
 
-    SineWave indexes0 = sineWave(pData, noOfChannels, noOfSamples, 0);
-    SineWave indexes1 = sineWave(pData, noOfChannels, noOfSamples, 1);
+    SineWaveIndexes_t indexes0 = sineWave(pData, noOfChannels, noOfSamples, 0);
+    SineWaveIndexes_t indexes1 = sineWave(pData, noOfChannels, noOfSamples, 1);
 
     EXPECT_NEAR(ADCTrueRms(pData, 0, indexes0), 2506.877696, tol);
     EXPECT_NEAR(ADCTrueRms(pData, 1, indexes1), 2170.909091, tol);
@@ -295,7 +295,7 @@ TEST_F(ADCMonitorTest, testSine)
     ADC_HandleTypeDef dommy = { { 4 } };
     ADCMonitorInit(&dommy, pData, noOfSamples*4*2);
 
-    SineWave s = sineWave(pData, 4, noOfSamples, 0);
+    SineWaveIndexes_t s = sineWave(pData, 4, noOfSamples, 0);
     EXPECT_EQ(s.begin, 9);
     EXPECT_EQ(s.end, 117);
 
