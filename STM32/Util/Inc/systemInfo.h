@@ -3,6 +3,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -132,6 +133,12 @@ void bsSetField(uint32_t field);
 // Description: set a board status field.
 // @param field: a 1 bit shifted to the field index to be cleared.
 void bsClearField(uint32_t field);
+
+// Description: Update a board status field
+void bsUpdateField(uint32_t field, bool set);
+
+// Description: Update a board status error field
+void bsUpdateError(uint32_t field, bool set, uint32_t error_bits);
 
 // Description: Get the board status registry.
 // Return a uint32_t containing the board status.
