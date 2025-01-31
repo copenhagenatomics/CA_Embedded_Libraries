@@ -5,4 +5,4 @@
 ** PUBLIC FUNCTION DECLARATIONS
 ***************************************************************************************************/
 
-void ACDCBoardHandler(CAProtocolCtx* ctx);
+void ACDCInputHandler(CAProtocolCtx* ctx);
