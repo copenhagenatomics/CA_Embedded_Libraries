@@ -14,6 +14,12 @@
 #include "CAProtocolBoard.h"
 
 /***************************************************************************************************
+** PRIVATE FUNCTION DECLARATIONS
+***************************************************************************************************/
+
+static int getArgs(const char * input, char delim, char ** argv, int max_len);
+
+/***************************************************************************************************
 ** TYPEDEFS
 ***************************************************************************************************/
 
@@ -24,13 +30,42 @@ typedef struct CAProtocolData {
 } CAProtocolData;
 
 /***************************************************************************************************
+** PRIVATE FUNCTION DEFINITIONS
+***************************************************************************************************/
+
+/*!
+** @brief Extracts arguments from a give input string
+**
+** @param[in]  input   Input string
+** @param[in]  delim   Delimiter used to separate arguments
+** @param[out] argv    Pointer to a list of arguments
+** @param[in]  max_len Maximum number of arguments that can be stored in args
+*/
+static int getArgs(const char * input, char delim, char ** argv, int max_len)
+{
+    char *tok = strtok((char*)input, &delim);
+    int count = 0;
+    for (; count < max_len && tok; count++)
+    {
+        argv[count] = tok;
+        tok = strtok(NULL, &delim);
+        if (tok)
+        {
+            *(tok-1) = 0; // Zero terminate previous string.
+        }
+    }
+
+    return count;
+}
+
+/***************************************************************************************************
 ** PUBLIC FUNCTION DEFINITIONS
 ***************************************************************************************************/
 
 /*!
 ** @brief Common input handler for AC and DC boards
 */
-void ACDCBoardHandler(CAProtocolCtx* ctx) {
+void ACDCInputHandler(CAProtocolCtx* ctx) {
 
     // A message is received i.e. a zero terminated string
     char* input = (char *)ctx->data->buf;

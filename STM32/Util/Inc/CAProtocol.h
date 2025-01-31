@@ -62,7 +62,6 @@ typedef struct
 ** PUBLIC FUNCTION DECLARATIONS
 ***************************************************************************************************/
 
-int getArgs(const char * input, char delim, char ** argv, int max_len);
 void inputCAProtocol(CAProtocolCtx* ctx);
 void initCAProtocol(CAProtocolCtx* ctx, ReaderFn fn);
 void flushCAProtocol(CAProtocolCtx* ctx);

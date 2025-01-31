@@ -37,7 +37,6 @@ static void calibration(CAProtocolCtx* ctx, const char* input);
 static void logging(CAProtocolCtx* ctx, const char *input);
 static void otp_write(CAProtocolCtx* ctx, const char *input);
 static int CAgetMsg(CAProtocolCtx* ctx);
-static int getArgs(const char * input, char delim, char ** args, int max_len);
 
 /***************************************************************************************************
 ** PRIVATE FUNCTION DEFINITIONS
@@ -206,31 +205,6 @@ static int CAgetMsg(CAProtocolCtx* ctx)
 /***************************************************************************************************
 ** PUBLIC FUNCTION DEFINITIONS
 ***************************************************************************************************/
-
-/*!
-** @brief Extracts arguments from a give input string
-**
-** @param[in]  input   Input string
-** @param[in]  delim   Delimiter used to separate arguments
-** @param[out] argv    Pointer to a list of arguments
-** @param[in]  max_len Maximum number of arguments that can be stored in args
-*/
-int getArgs(const char * input, char delim, char ** argv, int max_len)
-{
-    char *tok = strtok((char*)input, &delim);
-    int count = 0;
-    for (; count < max_len && tok; count++)
-    {
-        argv[count] = tok;
-        tok = strtok(NULL, &delim);
-        if (tok)
-        {
-            *(tok-1) = 0; // Zero terminate previous string.
-        }
-    }
-
-    return count;
-}
 
 void inputCAProtocol(CAProtocolCtx* ctx)
 {
