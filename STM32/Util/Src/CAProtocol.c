@@ -203,6 +203,10 @@ static int CAgetMsg(CAProtocolCtx* ctx)
     return msgLen;
 }
 
+/***************************************************************************************************
+** PUBLIC FUNCTION DEFINITIONS
+***************************************************************************************************/
+
 /*!
 ** @brief Extracts arguments from a give input string
 **
@@ -211,7 +215,7 @@ static int CAgetMsg(CAProtocolCtx* ctx)
 ** @param[out] argv    Pointer to a list of arguments
 ** @param[in]  max_len Maximum number of arguments that can be stored in args
 */
-static int getArgs(const char * input, char delim, char ** argv, int max_len)
+int getArgs(const char * input, char delim, char ** argv, int max_len)
 {
     char *tok = strtok((char*)input, &delim);
     int count = 0;
@@ -228,10 +232,6 @@ static int getArgs(const char * input, char delim, char ** argv, int max_len)
     return count;
 }
 
-/***************************************************************************************************
-** PUBLIC FUNCTION DEFINITIONS
-***************************************************************************************************/
-
 void inputCAProtocol(CAProtocolCtx* ctx)
 {
     int msgLen = CAgetMsg(ctx);
@@ -244,129 +244,64 @@ void inputCAProtocol(CAProtocolCtx* ctx)
 
     if(strncmp(input, "Serial", 6) == 0)
     {
-        if (ctx->printHeader)
+        if (ctx->printHeader) {
             ctx->printHeader();
+        }
     }
     else if(strncmp(input, "StatusDef", 9) == 0)
     {
         CAPrintStatusDef(true); // Print start of status definition message
-        if (ctx->printStatusDef)
+        if (ctx->printStatusDef) {
             ctx->printStatusDef(); // Print board specific part of statusdefinition message
+        }
         CAPrintStatusDef(false); // Print end of status definition message
     }
     else if(strncmp(input, "Status", 6) == 0)
     {
         CAPrintStatus(true); // Print start of status message
-        if (ctx->printStatus)
+        if (ctx->printStatus) {
             ctx->printStatus(); // Print board specific part of status message
+        }
         CAPrintStatus(false); // Print end of status message
     }
     else if(strncmp(input, "DFU", 3) == 0)
     {
-        if (ctx->jumpToBootLoader)
+        if (ctx->jumpToBootLoader) {
             ctx->jumpToBootLoader();
+        }
     }
     else if (strncmp(input, "CAL", 3) == 0)
     {
-        if (ctx->calibration)
+        if (ctx->calibration) {
             calibration(ctx, input);
+        }
     }
     else if (strncmp(input, "LOG", 3) == 0)
     {
-        if (ctx->logging)
+        if (ctx->logging) {
             logging(ctx, input);
+        }
     }
     else if (strncmp(input, "OTP", 3) == 0)
     {
         if (input[4] == 'r') {
-            if (ctx->otpRead)
+            if (ctx->otpRead) {
                 ctx->otpRead();
-        }
-        else if (input[4] == 'w') {
-            if (ctx->otpWrite)
-                otp_write(ctx, input);
-        }
-    }
-    else if (strncmp(input, "all on", 6) == 0)
-    {
-        /* There could be an extra argument after "on" (required for AC board, optional for DC board
-        ** at time of writing) */
-        char *argv[3] = { 0 }; // There should not be more then 3 args.
-        int count = getArgs(input, ' ', argv, 3);
-
-        if (count == 3)
-        {
-            (void) sscanf(argv[2], "%d", &count);
-            ctx->allOn(true, count);
-        }
-        else
-        {
-            if (ctx->allOn) 
-            {
-                ctx->allOn(true, -1);
             }
         }
-    }
-    else if (strncmp(input, "all off", 7) == 0)
-    {
-        if (ctx->allOn) ctx->allOn(false, -1);
-    }
-    else if (input[0] == 'p' && strnlen(input, 14) <= 14) // 14 since that is length of pXX on YY ZZZ%
-    {
-        char cmd[13];
-        int port;
-        /* Valid commands are:
-           all on - turn all ports on indefinitely
-           all off - turn all ports off
-           pX on - turn off port number X
-           pX off - turn on port number X indefinitely 'always on'
-           pX on YY - turn on port number X for YY seconds
-           pX on ZZZ% - turn on port number X on ZZ percent of the time using PWM 'always on'
-           pX on YY ZZZ% - turn on port number X for YY seconds ZZ percent of the time using PWM */
-        if (sscanf(input, "p%d %[onf]", &port, cmd) != 2)
-            ctx->undefined(input);
-        if (!ctx->portState)
-            return;
-        if (strncmp(cmd, "off", 3) == 0) {
-            ctx->portState(port, false, 0, -1);
-        }
-        else if (strncmp(cmd, "on", 2) == 0)
-        {
-            char *argv[4] = { 0 }; // There should not be more then 4 args.
-            int count = getArgs(input, ' ', argv, 4);
-            char percent = 0;
-
-            switch(count)
-            {
-                case 2: // pX on
-                    ctx->portState(port, true, 100, -1);
-                    break;
-                case 3: // pX on ZZZ% or YY
-                {
-                    int argc = sscanf(argv[2], "%d%c", &count, &percent);
-                    if (argc == 2 && percent == '%')
-                        ctx->portState(port, true, count, -1);
-                    else if (argc == 1)
-                        ctx->portState(port, true, 100, count);
-                    else
-                        ctx->undefined(input);
-                    break;
-                }
-                case 4: // pX on YY ZZZ%
-                {
-                    int tmp;
-                    if (sscanf(argv[2], "%d", &tmp) == 1 && sscanf(argv[3], "%d%c", &count, &percent) == 2 && percent == '%')
-                        ctx->portState(port, true, count, tmp);
-                    else
-                        ctx->undefined(input);
-                    break;
-                }
+        else if (input[4] == 'w') {
+            if (ctx->otpWrite) {
+                otp_write(ctx, input);
             }
         }
     }
     else if (ctx->undefined)
     {
         ctx->undefined(input);
+    }
+    else
+    {
+        HALundefined(input);
     }
 }
 
