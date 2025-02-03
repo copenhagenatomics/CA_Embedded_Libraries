@@ -19,15 +19,15 @@
 
 static int getArgs(const char * input, char delim, char ** argv, int max_len);
 
-/***************************************************************************************************
-** TYPEDEFS
-***************************************************************************************************/
+// /***************************************************************************************************
+// ** TYPEDEFS
+// ***************************************************************************************************/
 
-typedef struct CAProtocolData {
-    size_t len;         // Length of current data.
-    uint8_t buf[512];   // Buffer for the string fetched from the circular buffer.
-    ReaderFn rxReader;  // Reader for the buffer
-} CAProtocolData;
+// typedef struct CAProtocolData {
+//     size_t len;         // Length of current data.
+//     uint8_t buf[512];   // Buffer for the string fetched from the circular buffer.
+//     ReaderFn rxReader;  // Reader for the buffer
+// } CAProtocolData;
 
 /***************************************************************************************************
 ** PRIVATE FUNCTION DEFINITIONS
