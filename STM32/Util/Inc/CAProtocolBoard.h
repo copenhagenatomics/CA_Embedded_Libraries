@@ -9,7 +9,7 @@
 #ifndef INC_CAPROTOCOLBOARD_H_
 #define INC_CAPROTOCOLBOARD_H_
 
-#include "CAProtocolData.h"
+#include "CAProtocol.h"
 #include "CAProtocolStm.h"
 
 /***************************************************************************************************
