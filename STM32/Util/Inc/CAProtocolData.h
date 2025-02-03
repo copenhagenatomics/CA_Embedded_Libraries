@@ -1,6 +1,8 @@
 /** 
  ******************************************************************************
  * @file    CAProtocolData.h
+ * @brief   This file contains the struct definition for CAProcotolData such that 
+ *          it can maintain its opaque type accross different source files
  * @date:   03 Feb 2025
  * @author: Matias
  ******************************************************************************

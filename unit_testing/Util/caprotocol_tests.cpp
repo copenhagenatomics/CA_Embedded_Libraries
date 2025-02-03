@@ -17,6 +17,7 @@
 /* Real supporting units */
 
 /* UUT */
+#include "CAProtocolBoard.c"
 #include "CAProtocol.c"
 
 using ::testing::AnyOf;
@@ -81,9 +82,6 @@ class TestCAProtocol: public ::testing::Test
         TestCAProtocol()
         {
             caProto.calibration = CACalibrationCb;
-            caProto.allOn = TestCAProtocol::allOn;
-            caProto.portState = TestCAProtocol::portState;
-            caProto.undefined = TestCAProtocol::undefined;
             initCAProtocol(&caProto, testReader);
             reset();
         }
@@ -91,8 +89,6 @@ class TestCAProtocol: public ::testing::Test
         void reset() {
             while(!testString.empty())
                 testString.pop();
-            portCtrl.allOn = 0;
-            portCtrl.undefCall = 0;
         }
 
         int testCalibration(const char* input, int noOfPorts, const CACalibration calAray[])
@@ -105,13 +101,52 @@ class TestCAProtocol: public ::testing::Test
             return calCompare(noOfPorts, calAray);
         }
 
+    private:
+        /*******************************************************************************************
+        ** PRIVATE METHODS
+        *******************************************************************************************/
+        CAProtocolCtx caProto;
+        static std::queue<uint8_t> testString;
+        static int testReader(uint8_t* rxBuf)
+        {
+            *rxBuf = testString.front();
+            testString.pop();
+            return 0;
+        }
+};
+std::queue<uint8_t> TestCAProtocol::testString;
+
+static char inputstr[512];
+class TestCAProtocolBoard: public ::testing::Test
+{
+    public: 
+        /*******************************************************************************************
+        ** PUBLIC METHODS
+        *******************************************************************************************/
+        TestCAProtocolBoard()
+        {
+            caProtoBoard.allOn = TestCAProtocolBoard::allOn;
+            caProtoBoard.portState = TestCAProtocolBoard::portState;
+            caProtoBoard.undefined = TestCAProtocolBoard::undefined;
+            initCAProtocol(&caProtoBoard, testReader);
+            reset();
+        }
+
+        void reset() {
+            while(!testStringBoard.empty())
+                testStringBoard.pop();
+            portCtrl.allOn = 0;
+            memset(inputstr, '\0', sizeof(inputstr));
+        }
+
         int testPortCtrl(const char* input, int port, const PortCfg& cfg)
         {
             while(*input != 0) {
-                testString.push(*input);
+                testStringBoard.push(*input);
                 input++;
             }
-            inputCAProtocol(&caProto);
+            inputCAProtocol(&caProtoBoard);
+            ACDCInputHandler(&caProtoBoard, inputstr);
             return portCtrl.port[port] == cfg;
         }
 
@@ -125,12 +160,12 @@ class TestCAProtocol: public ::testing::Test
         /*******************************************************************************************
         ** PRIVATE METHODS
         *******************************************************************************************/
-        CAProtocolCtx caProto;
-        static std::queue<uint8_t> testString;
+        CAProtocolCtx caProtoBoard;
+        static std::queue<uint8_t> testStringBoard;
         static int testReader(uint8_t* rxBuf)
         {
-            *rxBuf = testString.front();
-            testString.pop();
+            *rxBuf = testStringBoard.front();
+            testStringBoard.pop();
             return 0;
         }
 
@@ -147,12 +182,12 @@ class TestCAProtocol: public ::testing::Test
 
         static void undefined(const char* input)
         {
-            portCtrl.undefCall++;
+            strcpy(inputstr, input);
         }
 };
 
-std::queue<uint8_t> TestCAProtocol::testString;
-TestCAProtocol::PortCtrl TestCAProtocol::portCtrl;
+std::queue<uint8_t> TestCAProtocolBoard::testStringBoard;
+TestCAProtocolBoard::PortCtrl TestCAProtocolBoard::portCtrl;
 
 /***************************************************************************************************
 ** TESTS
@@ -160,16 +195,16 @@ TestCAProtocol::PortCtrl TestCAProtocol::portCtrl;
 
 TEST_F(TestCAProtocol, testCalibration)
 {
-    reset();
+    TestCAProtocol::reset();
 
     EXPECT_EQ(testCalibration("CAL 3,0.05,1.56\r", 1, (const CACalibration[]) {{3, 0.05, 1.56}}), 0);
     EXPECT_EQ(testCalibration("CAL 3,0.05,1.56 2,344,36\n\r", 2, (const CACalibration[]) {{3, 0.05, 1.56},{2, 344, 36}}), 0);
     EXPECT_EQ(testCalibration("CAL 3,0.05,1.56 2,0.04,.36\n", 2, (const CACalibration[]) {{3, 0.05, 1.56},{2, 0.04, 0.36}}), 0);
 }
 
-TEST_F(TestCAProtocol, testPortCtrl)
+TEST_F(TestCAProtocolBoard, testPortCtrl)
 {
-    reset();
+    TestCAProtocolBoard::reset();
 
     testPortCtrl("all on\r\n", -1, PortCfg());
     EXPECT_EQ(portCtrl.allOn, 1);
@@ -177,7 +212,7 @@ TEST_F(TestCAProtocol, testPortCtrl)
     testPortCtrl("all off\r\n", -1, PortCfg());
     EXPECT_EQ(portCtrl.allOn, 2);
 
-    reset();
+    TestCAProtocolBoard::reset();
     EXPECT_NE(testPortCtrl("p10 off\r\n", 10, PortCfg(false, 0, -1)), 0);
     EXPECT_NE(testPortCtrl("p10 on\r\n", 10, PortCfg(true, 100, -1)), 0);
     EXPECT_NE(testPortCtrl("p9 off\r\n", 9, PortCfg(false, 0, -1)), 0);
@@ -196,5 +231,4 @@ TEST_F(TestCAProtocol, testPortCtrl)
     EXPECT_NE(testPortCtrl("p7 on 60e\r\n", 7, PortCfg()), 0);
     EXPECT_NE(testPortCtrl("p7 on 52 60\r\n", 7, PortCfg()), 0);
     EXPECT_NE(testPortCtrl("p7 sdfs 52 60%\r\n", 7, PortCfg()), 0);
-    EXPECT_EQ(portCtrl.undefCall, 6);
 }

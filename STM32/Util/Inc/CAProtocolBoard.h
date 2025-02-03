@@ -16,6 +16,6 @@
 ** PUBLIC FUNCTION DECLARATIONS
 ***************************************************************************************************/
 
-void ACDCInputHandler(CAProtocolCtx* ctx);
+void ACDCInputHandler(CAProtocolCtx* ctx, const char* input);
 
 #endif /* INC_CAPROTOCOLBOARD_H_ */

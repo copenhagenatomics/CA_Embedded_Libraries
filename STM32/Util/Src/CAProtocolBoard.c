@@ -19,16 +19,6 @@
 
 static int getArgs(const char * input, char delim, char ** argv, int max_len);
 
-// /***************************************************************************************************
-// ** TYPEDEFS
-// ***************************************************************************************************/
-
-// typedef struct CAProtocolData {
-//     size_t len;         // Length of current data.
-//     uint8_t buf[512];   // Buffer for the string fetched from the circular buffer.
-//     ReaderFn rxReader;  // Reader for the buffer
-// } CAProtocolData;
-
 /***************************************************************************************************
 ** PRIVATE FUNCTION DEFINITIONS
 ***************************************************************************************************/
@@ -65,10 +55,7 @@ static int getArgs(const char * input, char delim, char ** argv, int max_len)
 /*!
 ** @brief Common input handler for AC and DC boards
 */
-void ACDCInputHandler(CAProtocolCtx* ctx) {
-
-    // A message is received i.e. a zero terminated string
-    char* input = (char *)ctx->data->buf;
+void ACDCInputHandler(CAProtocolCtx* ctx, const char* input) {
 
     if (strncmp(input, "all on", 6) == 0) {
         /* There could be an extra argument after "on" (required for AC board, optional for DC board

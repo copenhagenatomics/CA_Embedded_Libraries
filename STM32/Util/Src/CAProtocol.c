@@ -19,16 +19,6 @@
 
 #define MAX_NO_CALIBRATION 12
 
-// /***************************************************************************************************
-// ** TYPEDEFS
-// ***************************************************************************************************/
-
-// typedef struct CAProtocolData {
-//     size_t len;         // Length of current data.
-//     uint8_t buf[512];   // Buffer for the string fetched from the circular buffer.
-//     ReaderFn rxReader;  // Reader for the buffer
-// } CAProtocolData;
-
 /***************************************************************************************************
 ** PRIVATE FUNCTION DECLARATIONS
 ***************************************************************************************************/
