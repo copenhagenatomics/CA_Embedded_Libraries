@@ -326,6 +326,40 @@ void bsClearError(uint32_t field) {
 void bsSetError(uint32_t field) { BS.boardStatus |= (BS_ERROR_Msk | field); }
 void bsSetField(uint32_t field){ BS.boardStatus |= field; }
 void bsClearField(uint32_t field){ BS.boardStatus &= ~field; }
+
+/*!
+** @brief Update a field using a bool to determine whether set or clear
+**
+** @param[in] field      Field to set/clear
+** @param[in] set        Whether to Set or Clear the field
+*/
+void bsUpdateField(uint32_t field, bool set) {
+    if(set) {
+        bsSetField(field);
+    }
+    else {
+        bsClearField(field);
+    }
+}
+
+/*!
+** @brief Update an error field using a bool to determine whether set or clear
+**
+** @param[in] field      Field to set/clear
+** @param[in] set        Whether to Set or Clear the field
+** @param[in] error_bits A collection of all error bits. Used to determine if the master error bit
+**                       should be set or not
+*/
+void bsUpdateError(uint32_t field, bool set, uint32_t error_bits) {
+    if(set) {
+        bsSetError(field);
+    }
+    else {
+        bsClearField(field);
+        bsClearError(error_bits);
+    }
+}
+
 uint32_t bsGetStatus(){ return BS.boardStatus; }
 uint32_t bsGetField(uint32_t field){ return BS.boardStatus & field; }
 void setBoardTemp(float temp){ BS.temp = temp; }
