@@ -24,7 +24,7 @@ static int getArgs(const char *input, char delim, char **argv, int max_len);
 ***************************************************************************************************/
 
 /*!
-** @brief Extracts arguments from a give input string
+** @brief Extracts arguments from a given input string
 **
 ** @param[in]  input   Input string
 ** @param[in]  delim   Delimiter used to separate arguments
