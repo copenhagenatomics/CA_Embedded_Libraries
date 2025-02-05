@@ -17,7 +17,7 @@
 /* Real supporting units */
 
 /* UUT */
-#include "CAProtocolBoard.c"
+#include "CAProtocolACDC.c"
 #include "CAProtocol.c"
 
 using ::testing::AnyOf;
