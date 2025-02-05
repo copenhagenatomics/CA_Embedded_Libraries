@@ -1,15 +1,15 @@
-/** 
+/**
  ******************************************************************************
  * @file    CAProtocolBoard.c
  * @brief   This file contains board specific input handlers
  * @date:   31 Jan 2025
  * @author: Matias
  ******************************************************************************
-*/
+ */
 
-#include <stdlib.h>
 #include <stdio.h>
-#include <string.h>  
+#include <stdlib.h>
+#include <string.h>
 
 #include "CAProtocolBoard.h"
 
@@ -17,7 +17,7 @@
 ** PRIVATE FUNCTION DECLARATIONS
 ***************************************************************************************************/
 
-static int getArgs(const char * input, char delim, char ** argv, int max_len);
+static int getArgs(const char *input, char delim, char **argv, int max_len);
 
 /***************************************************************************************************
 ** PRIVATE FUNCTION DEFINITIONS
@@ -31,17 +31,15 @@ static int getArgs(const char * input, char delim, char ** argv, int max_len);
 ** @param[out] argv    Pointer to a list of arguments
 ** @param[in]  max_len Maximum number of arguments that can be stored in args
 */
-static int getArgs(const char * input, char delim, char ** argv, int max_len)
-{
-    char *tok = strtok((char*)input, &delim);
+static int getArgs(const char *input, char delim, char **argv, int max_len) {
+    char *tok = strtok((char *)input, &delim);
     int count = 0;
-    for (; count < max_len && tok; count++)
-    {
+
+    for (; count < max_len && tok; count++) {
         argv[count] = tok;
         tok = strtok(NULL, &delim);
-        if (tok)
-        {
-            *(tok-1) = 0; // Zero terminate previous string.
+        if (tok) {
+            *(tok - 1) = 0;  // Zero terminate previous string.
         }
     }
 
@@ -55,34 +53,36 @@ static int getArgs(const char * input, char delim, char ** argv, int max_len)
 /*!
 ** @brief Common input handler for AC and DC boards
 */
-void ACDCInputHandler(CAProtocolCtx* ctx, const char* input) {
-
+void ACDCInputHandler(CAProtocolCtx *ctx, const char *input) {
     if (strncmp(input, "all on", 6) == 0) {
+        if (!ctx->allOn) {
+            HALundefined(input);
+            return;
+        }
+
         /* There could be an extra argument after "on" (required for AC board, optional for DC board
         ** at time of writing) */
-        char *argv[3] = { 0 }; // There should not be more then 3 args.
+        char *argv[3] = {0};  // There should not be more then 3 args.
         int count = getArgs(input, ' ', argv, 3);
 
-        if (count == 3)
-        {
-            (void) sscanf(argv[2], "%d", &count);
+        if (count == 3) {
+            (void)sscanf(argv[2], "%d", &count);
             ctx->allOn(true, count);
         }
-        else
-        {
-            if (ctx->allOn) 
-            {
-                ctx->allOn(true, -1);
-            }
+        else {
+            ctx->allOn(true, -1);
         }
     }
-    else if (strncmp(input, "all off", 7) == 0)
-    {
+    else if (strncmp(input, "all off", 7) == 0) {
         if (ctx->allOn) {
             ctx->allOn(false, -1);
         }
+        else {
+            HALundefined(input);
+        }
     }
-    else if (input[0] == 'p' && strnlen(input, 14) <= 14) // 14 since that is length of pXX on YY ZZZ%
+    else if (input[0] == 'p' &&
+             strnlen(input, 14) <= 14)  // 14 since that is length of pXX on YY ZZZ%
     {
         char cmd[13];
         int port;
@@ -97,25 +97,23 @@ void ACDCInputHandler(CAProtocolCtx* ctx, const char* input) {
         if (sscanf(input, "p%d %[onf]", &port, cmd) != 2) {
             HALundefined(input);
         }
-        if (!ctx->portState) {
+        else if (!ctx->portState) {
             HALundefined(input);
         }
-        if (strncmp(cmd, "off", 3) == 0) {
+        else if (strncmp(cmd, "off", 3) == 0) {
             ctx->portState(port, false, 0, -1);
         }
-        else if (strncmp(cmd, "on", 2) == 0)
-        {
-            char *argv[4] = { 0 }; // There should not be more then 4 args.
+        else if (strncmp(cmd, "on", 2) == 0) {
+            char *argv[4] = {0};  // There should not be more then 4 args.
             int count = getArgs(input, ' ', argv, 4);
             char percent = 0;
 
-            switch(count)
-            {
-                case 2: { // pX on
+            switch (count) {
+                case 2: {  // pX on
                     ctx->portState(port, true, 100, -1);
                     break;
                 }
-                case 3: // pX on ZZZ% or YY
+                case 3:  // pX on ZZZ% or YY
                 {
                     int argc = sscanf(argv[2], "%d%c", &count, &percent);
                     if (argc == 2 && percent == '%') {
@@ -129,10 +127,11 @@ void ACDCInputHandler(CAProtocolCtx* ctx, const char* input) {
                     }
                     break;
                 }
-                case 4: // pX on YY ZZZ%
+                case 4:  // pX on YY ZZZ%
                 {
                     int tmp;
-                    if (sscanf(argv[2], "%d", &tmp) == 1 && sscanf(argv[3], "%d%c", &count, &percent) == 2 && percent == '%') {
+                    if (sscanf(argv[2], "%d", &tmp) == 1 &&
+                        sscanf(argv[3], "%d%c", &count, &percent) == 2 && percent == '%') {
                         ctx->portState(port, true, count, tmp);
                     }
                     else {
@@ -143,8 +142,7 @@ void ACDCInputHandler(CAProtocolCtx* ctx, const char* input) {
             }
         }
     }
-    else
-    {
+    else {
         HALundefined(input);
     }
 }

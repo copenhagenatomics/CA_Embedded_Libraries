@@ -195,7 +195,7 @@ TestCAProtocolBoard::PortCtrl TestCAProtocolBoard::portCtrl;
 
 TEST_F(TestCAProtocol, testCalibration)
 {
-    TestCAProtocol::reset();
+    reset();
 
     EXPECT_EQ(testCalibration("CAL 3,0.05,1.56\r", 1, (const CACalibration[]) {{3, 0.05, 1.56}}), 0);
     EXPECT_EQ(testCalibration("CAL 3,0.05,1.56 2,344,36\n\r", 2, (const CACalibration[]) {{3, 0.05, 1.56},{2, 344, 36}}), 0);
@@ -204,7 +204,7 @@ TEST_F(TestCAProtocol, testCalibration)
 
 TEST_F(TestCAProtocolBoard, testPortCtrl)
 {
-    TestCAProtocolBoard::reset();
+    reset();
 
     testPortCtrl("all on\r\n", -1, PortCfg());
     EXPECT_EQ(portCtrl.allOn, 1);
@@ -212,7 +212,7 @@ TEST_F(TestCAProtocolBoard, testPortCtrl)
     testPortCtrl("all off\r\n", -1, PortCfg());
     EXPECT_EQ(portCtrl.allOn, 2);
 
-    TestCAProtocolBoard::reset();
+    reset();
     EXPECT_NE(testPortCtrl("p10 off\r\n", 10, PortCfg(false, 0, -1)), 0);
     EXPECT_NE(testPortCtrl("p10 on\r\n", 10, PortCfg(true, 100, -1)), 0);
     EXPECT_NE(testPortCtrl("p9 off\r\n", 9, PortCfg(false, 0, -1)), 0);
