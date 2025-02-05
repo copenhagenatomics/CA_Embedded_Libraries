@@ -1,7 +1,7 @@
 /**
  ******************************************************************************
- * @file    CAProtocolBoard.c
- * @brief   This file contains board specific input handlers
+ * @file    CAProtocolACDC.c
+ * @brief   This file contains the input handler for AC and DC boards
  * @date:   31 Jan 2025
  * @author: Matias
  ******************************************************************************
@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "CAProtocolBoard.h"
+#include "CAProtocolACDC.h"
 
 /***************************************************************************************************
 ** PRIVATE FUNCTION DECLARATIONS
