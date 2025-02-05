@@ -316,3 +316,11 @@ void HAL_NVIC_SystemReset(void)
 {
 
 }
+
+#ifdef HAL_CORTEX_MODULE_ENABLED
+
+void HAL_NVIC_EnableIRQ(IRQn_Type IRQn) {}
+
+void HAL_NVIC_DisableIRQ(IRQn_Type IRQn) {}
+
+#endif
