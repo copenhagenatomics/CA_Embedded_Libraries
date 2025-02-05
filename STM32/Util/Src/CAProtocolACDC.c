@@ -53,7 +53,7 @@ static int getArgs(const char *input, char delim, char **argv, int max_len) {
 /*!
 ** @brief Common input handler for AC and DC boards
 */
-void ACDCInputHandler(CAProtocolCtx *ctx, const char *input) {
+void ACDCInputHandler(ACDCProtocolCtx *ctx, const char *input) {
     if (strncmp(input, "all on", 6) == 0) {
         if (!ctx->allOn) {
             HALundefined(input);

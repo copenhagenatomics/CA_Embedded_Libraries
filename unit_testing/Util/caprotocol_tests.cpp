@@ -125,8 +125,8 @@ class TestCAProtocolBoard: public ::testing::Test
         *******************************************************************************************/
         TestCAProtocolBoard()
         {
-            caProtoBoard.allOn = TestCAProtocolBoard::allOn;
-            caProtoBoard.portState = TestCAProtocolBoard::portState;
+            ACDCProto.allOn = TestCAProtocolBoard::allOn;
+            ACDCProto.portState = TestCAProtocolBoard::portState;
             caProtoBoard.undefined = TestCAProtocolBoard::undefined;
             initCAProtocol(&caProtoBoard, testReader);
             reset();
@@ -146,7 +146,7 @@ class TestCAProtocolBoard: public ::testing::Test
                 input++;
             }
             inputCAProtocol(&caProtoBoard);
-            ACDCInputHandler(&caProtoBoard, inputstr);
+            ACDCInputHandler(&ACDCProto, inputstr);
             return portCtrl.port[port] == cfg;
         }
 
@@ -161,6 +161,7 @@ class TestCAProtocolBoard: public ::testing::Test
         ** PRIVATE METHODS
         *******************************************************************************************/
         CAProtocolCtx caProtoBoard;
+        ACDCProtocolCtx ACDCProto;
         static std::queue<uint8_t> testStringBoard;
         static int testReader(uint8_t* rxBuf)
         {
