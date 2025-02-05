@@ -207,7 +207,8 @@ TEST_F(TestCAProtocolBoard, testPortCtrl)
 {
     reset();
 
-    testPortCtrl("all on\r\n", -1, PortCfg());
+    // All on must be called with a time interval 
+    testPortCtrl("all on 10\r\n", -1, PortCfg());
     EXPECT_EQ(portCtrl.allOn, 1);
 
     testPortCtrl("all off\r\n", -1, PortCfg());

@@ -54,23 +54,13 @@ static int getArgs(const char *input, char delim, char **argv, int max_len) {
 ** @brief Common input handler for AC and DC boards
 */
 void ACDCInputHandler(ACDCProtocolCtx *ctx, const char *input) {
-    if (strncmp(input, "all on", 6) == 0) {
-        if (!ctx->allOn) {
-            HALundefined(input);
-            return;
-        }
-
-        /* There could be an extra argument after "on" (required for AC board, optional for DC board
-        ** at time of writing) */
-        char *argv[3] = {0};  // There should not be more then 3 args.
-        int count = getArgs(input, ' ', argv, 3);
-
-        if (count == 3) {
-            (void)sscanf(argv[2], "%d", &count);
-            ctx->allOn(true, count);
+    int duration;
+    if (sscanf(input, "all on %d", &duration) == 1) {
+        if (ctx->allOn) {
+            ctx->allOn(true, duration);
         }
         else {
-            ctx->allOn(true, -1);
+            HALundefined(input);
         }
     }
     else if (strncmp(input, "all off", 7) == 0) {
