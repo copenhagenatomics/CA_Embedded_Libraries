@@ -4,14 +4,14 @@
  *  Created on: Oct 6, 2021
  *      Author: agp
  */
-#include <stdio.h>
-#include <stdint.h>
-#include <string.h>
-#include <stdlib.h>
 #include <inttypes.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
-#include "CAProtocolStm.h"
 #include "CAProtocol.h"
+#include "CAProtocolStm.h"
 
 /***************************************************************************************************
 ** TYPEDEFS
@@ -34,35 +34,32 @@ typedef struct CAProtocolData {
 ***************************************************************************************************/
 
 static void calibration(CAProtocolCtx* ctx, const char* input);
-static void logging(CAProtocolCtx* ctx, const char *input);
-static void otp_write(CAProtocolCtx* ctx, const char *input);
+static void logging(CAProtocolCtx* ctx, const char* input);
+static void otp_write(CAProtocolCtx* ctx, const char* input);
 static int CAgetMsg(CAProtocolCtx* ctx);
-static int getArgs(const char * input, char delim, char ** args, int max_len);
 
 /***************************************************************************************************
 ** PRIVATE FUNCTION DEFINITIONS
 ***************************************************************************************************/
 
-static void calibration(CAProtocolCtx* ctx, const char* input)
-{
+static void calibration(CAProtocolCtx* ctx, const char* input) {
     char* idx = strchr((char*)input, ' ');
     CACalibration cal[MAX_NO_CALIBRATION];
     int noOfCalibrations = 0;
 
     if (!idx) {
-        ctx->undefined(input); // arguments.
+        ctx->undefined(input);  // arguments.
         return;
     }
-    if (idx[1] == 'w' || idx[1] == 'r')
-    {
-        if (ctx->calibrationRW)
+    if (idx[1] == 'w' || idx[1] == 'r') {
+        if (ctx->calibrationRW) {
             ctx->calibrationRW(idx[1] == 'w');
+        }
         return;
     }
 
     // Next follow a port,alpha,beta entry
-    while (idx != NULL && noOfCalibrations < MAX_NO_CALIBRATION)
-    {
+    while (idx != NULL && noOfCalibrations < MAX_NO_CALIBRATION) {
         int port;
         double alpha, beta;
         int threshold;
@@ -70,29 +67,27 @@ static void calibration(CAProtocolCtx* ctx, const char* input)
         // Threshold is optional and therefore only 3 values need to be set.
         // For any board that uses the threshold value an additional check should
         // be made before using for any calibration.
-        if (sscanf(idx, "%d,%lf,%lf,%d", &port, &alpha, &beta, &threshold) >= 3)
-        {
-            cal[noOfCalibrations] = (CACalibration) { port, alpha, beta, threshold };
+        if (sscanf(idx, "%d,%lf,%lf,%d", &port, &alpha, &beta, &threshold) >= 3) {
+            cal[noOfCalibrations] = (CACalibration){port, alpha, beta, threshold};
             noOfCalibrations++;
         }
-        idx = strchr(idx, ' '); // get the next space.
+        idx = strchr(idx, ' ');  // get the next space.
     }
 
-    if (noOfCalibrations != 0)
-    {
+    if (noOfCalibrations != 0) {
         ctx->calibration(noOfCalibrations, cal);
     }
-    else
+    else {
         ctx->undefined(input);
+    }
 }
 
-static void logging(CAProtocolCtx* ctx, const char *input)
-{
+static void logging(CAProtocolCtx* ctx, const char* input) {
     char* idx = strchr((char*)input, ' ');
     int port;
 
     if (!idx) {
-        ctx->undefined(input); // arguments.
+        ctx->undefined(input);  // arguments.
         return;
     }
 
@@ -108,72 +103,71 @@ static void logging(CAProtocolCtx* ctx, const char *input)
 #if (OTP_VERSION != OTP_VERSION_2)
 #error "Update of CAProtocol required"
 #endif
-static void otp_write(CAProtocolCtx* ctx, const char *input)
-{
-    uint32_t  OTPVersion;
-    uint32_t  BoardType;
-    uint32_t  SubBoardType;
-    uint32_t  PCBversion[2];
-    uint32_t  date;
+static void otp_write(CAProtocolCtx* ctx, const char* input) {
+    uint32_t OTPVersion;
+    uint32_t BoardType;
+    uint32_t SubBoardType;
+    uint32_t PCBversion[2];
+    uint32_t date;
 
     // Check for supported version.
-    if (sscanf(input, "OTP w %02" PRIu32, &OTPVersion) != 1)
-        return; // Parse failure, Invalid format of version field.
-    if (OTPVersion > OTP_VERSION || OTPVersion == 0)
-        return; // Not supported version of the OTP data.
+    if (sscanf(input, "OTP w %02" PRIu32, &OTPVersion) != 1) {
+        return;  // Parse failure, Invalid format of version field.
+    }
+    if (OTPVersion > OTP_VERSION || OTPVersion == 0) {
+        return;  // Not supported version of the OTP data.
+    }
 
     BoardInfo info;
     memset(info.data, 0, sizeof(info.data));
 
-    switch(OTPVersion)
-    {
-    case OTP_VERSION_1:
-        break;
+    switch (OTPVersion) {
+        case OTP_VERSION_1:
+            break;
 
-    case OTP_VERSION_2:
-        // During write only the current version is supported.
-        if (sscanf(input, "OTP w %02" PRIu32 " %02" PRIu32 " %02" PRIu32 " %02" PRIu32 ".%02" PRIu32 " %" PRIu32, 
-                   &OTPVersion, &BoardType, &SubBoardType, &PCBversion[1], &PCBversion[0], &date) == 6)
-        {
-            if (BoardType < 0xFF && PCBversion[1] <= 0xFF && PCBversion[0] <= 0xFF)
-            {
-                info.v2.otpVersion = OTP_VERSION_2;
-                info.v2.boardType = BoardType & 0xFF;
-                info.v2.subBoardType = SubBoardType & 0xFF;
-                info.v2.pcbVersion.major = PCBversion[1] & 0xFF;
-                info.v2.pcbVersion.minor = PCBversion[0] & 0xFF;
-                info.v2.productionDate = date;
-                ctx->otpWrite(&info);
-                return;
+        case OTP_VERSION_2:
+            // During write only the current version is supported.
+            if (sscanf(input,
+                       "OTP w %02" PRIu32 " %02" PRIu32 " %02" PRIu32 " %02" PRIu32 ".%02" PRIu32
+                       " %" PRIu32,
+                       &OTPVersion, &BoardType, &SubBoardType, &PCBversion[1], &PCBversion[0],
+                       &date) == 6) {
+                if (BoardType < 0xFF && PCBversion[1] <= 0xFF && PCBversion[0] <= 0xFF) {
+                    info.v2.otpVersion = OTP_VERSION_2;
+                    info.v2.boardType = BoardType & 0xFF;
+                    info.v2.subBoardType = SubBoardType & 0xFF;
+                    info.v2.pcbVersion.major = PCBversion[1] & 0xFF;
+                    info.v2.pcbVersion.minor = PCBversion[0] & 0xFF;
+                    info.v2.productionDate = date;
+                    ctx->otpWrite(&info);
+                    return;
+                }
             }
-        }
-        break;
+            break;
 
-    default:
-        break;
+        default:
+            break;
     }
 
     // Invalid input format.
     ctx->undefined(input);
 }
 
-static int CAgetMsg(CAProtocolCtx* ctx)
-{
+static int CAgetMsg(CAProtocolCtx* ctx) {
     CAProtocolData* protocolData = ctx->data;
     int msgLen = 0;
 
-    while (msgLen == 0)
-    {
+    while (msgLen == 0) {
         uint8_t rxByte;
 
-        if (protocolData->rxReader(&rxByte))
-            return 0; // No more data in buffer => no message.
+        if (protocolData->rxReader(&rxByte)) {
+            return 0;  // No more data in buffer => no message.
+        }
 
         protocolData->buf[protocolData->len] = rxByte;
-        if (rxByte == '\r' || rxByte == '\n')
-        {
+        if (rxByte == '\r' || rxByte == '\n') {
             if (protocolData->len == 0) {
-                continue; // Ignore this zero length message.
+                continue;  // Ignore this zero length message.
             }
 
             // A valid string is received.
@@ -181,9 +175,8 @@ static int CAgetMsg(CAProtocolCtx* ctx)
             break;
         }
 
-        protocolData->len++; // Continue receive from buffer.
-        if (protocolData->len == (sizeof(protocolData->buf) - 1))
-        {
+        protocolData->len++;  // Continue receive from buffer.
+        if (protocolData->len == (sizeof(protocolData->buf) - 1)) {
             // Buffer overflow!! This is a protocol error or garbage from peer.
             // No string should be bigger then protocolData buffer size.
             // Simulate a string since there might be something of value.
@@ -192,8 +185,7 @@ static int CAgetMsg(CAProtocolCtx* ctx)
         }
     }
 
-    if (msgLen != 0)
-    {
+    if (msgLen != 0) {
         // enforce zero terminate of string.
         protocolData->buf[protocolData->len] = 0;
         // Reset for receive of a new message. Caller must handle message or save it locally.
@@ -203,183 +195,93 @@ static int CAgetMsg(CAProtocolCtx* ctx)
     return msgLen;
 }
 
-/*!
-** @brief Extracts arguments from a give input string
-**
-** @param[in]  input   Input string
-** @param[in]  delim   Delimiter used to separate arguments
-** @param[out] argv    Pointer to a list of arguments
-** @param[in]  max_len Maximum number of arguments that can be stored in args
-*/
-static int getArgs(const char * input, char delim, char ** argv, int max_len)
-{
-    char *tok = strtok((char*)input, &delim);
-    int count = 0;
-    for (; count < max_len && tok; count++)
-    {
-        argv[count] = tok;
-        tok = strtok(NULL, &delim);
-        if (tok)
-        {
-            *(tok-1) = 0; // Zero terminate previous string.
-        }
-    }
-
-    return count;
-}
-
 /***************************************************************************************************
 ** PUBLIC FUNCTION DEFINITIONS
 ***************************************************************************************************/
 
-void inputCAProtocol(CAProtocolCtx* ctx)
-{
+void inputCAProtocol(CAProtocolCtx* ctx) {
+    int parseError = 1;
+
     int msgLen = CAgetMsg(ctx);
     if (msgLen == 0) {
-        return; // No message received
+        return;  // No message received
     }
 
     // A message is received i.e. a zero terminated string
-    char* input = (char *)ctx->data->buf;
+    char* input = (char*)ctx->data->buf;
 
-    if(strncmp(input, "Serial", 6) == 0)
-    {
-        if (ctx->printHeader)
+    if (strncmp(input, "Serial", 6) == 0) {
+        if (ctx->printHeader) {
             ctx->printHeader();
+            parseError = 0;
+        }
     }
-    else if(strncmp(input, "StatusDef", 9) == 0)
-    {
-        CAPrintStatusDef(true); // Print start of status definition message
-        if (ctx->printStatusDef)
-            ctx->printStatusDef(); // Print board specific part of statusdefinition message
-        CAPrintStatusDef(false); // Print end of status definition message
+    else if (strncmp(input, "StatusDef", 9) == 0) {
+        CAPrintStatusDef(true);  // Print start of status definition message
+        if (ctx->printStatusDef) {
+            ctx->printStatusDef();  // Print board specific part of statusdefinition message
+        }
+        CAPrintStatusDef(false);  // Print end of status definition message
+        parseError = 0;
     }
-    else if(strncmp(input, "Status", 6) == 0)
-    {
-        CAPrintStatus(true); // Print start of status message
-        if (ctx->printStatus)
-            ctx->printStatus(); // Print board specific part of status message
-        CAPrintStatus(false); // Print end of status message
+    else if (strncmp(input, "Status", 6) == 0) {
+        CAPrintStatus(true);  // Print start of status message
+        if (ctx->printStatus) {
+            ctx->printStatus();  // Print board specific part of status message
+        }
+        CAPrintStatus(false);  // Print end of status message
+        parseError = 0;
     }
-    else if(strncmp(input, "DFU", 3) == 0)
-    {
-        if (ctx->jumpToBootLoader)
+    else if (strncmp(input, "DFU", 3) == 0) {
+        if (ctx->jumpToBootLoader) {
             ctx->jumpToBootLoader();
+            parseError = 0;
+        }
     }
-    else if (strncmp(input, "CAL", 3) == 0)
-    {
-        if (ctx->calibration)
+    else if (strncmp(input, "CAL", 3) == 0) {
+        if (ctx->calibration) {
             calibration(ctx, input);
+            parseError = 0;
+        }
     }
-    else if (strncmp(input, "LOG", 3) == 0)
-    {
-        if (ctx->logging)
+    else if (strncmp(input, "LOG", 3) == 0) {
+        if (ctx->logging) {
             logging(ctx, input);
+            parseError = 0;
+        }
     }
-    else if (strncmp(input, "OTP", 3) == 0)
-    {
+    else if (strncmp(input, "OTP", 3) == 0) {
         if (input[4] == 'r') {
-            if (ctx->otpRead)
+            if (ctx->otpRead) {
                 ctx->otpRead();
+                parseError = 0;
+            }
         }
         else if (input[4] == 'w') {
-            if (ctx->otpWrite)
+            if (ctx->otpWrite) {
                 otp_write(ctx, input);
-        }
-    }
-    else if (strncmp(input, "all on", 6) == 0)
-    {
-        /* There could be an extra argument after "on" (required for AC board, optional for DC board
-        ** at time of writing) */
-        char *argv[3] = { 0 }; // There should not be more then 3 args.
-        int count = getArgs(input, ' ', argv, 3);
-
-        if (count == 3)
-        {
-            (void) sscanf(argv[2], "%d", &count);
-            ctx->allOn(true, count);
-        }
-        else
-        {
-            if (ctx->allOn) 
-            {
-                ctx->allOn(true, -1);
+                parseError = 0;
             }
         }
     }
-    else if (strncmp(input, "all off", 7) == 0)
-    {
-        if (ctx->allOn) ctx->allOn(false, -1);
-    }
-    else if (input[0] == 'p' && strnlen(input, 14) <= 14) // 14 since that is length of pXX on YY ZZZ%
-    {
-        char cmd[13];
-        int port;
-        /* Valid commands are:
-           all on - turn all ports on indefinitely
-           all off - turn all ports off
-           pX on - turn off port number X
-           pX off - turn on port number X indefinitely 'always on'
-           pX on YY - turn on port number X for YY seconds
-           pX on ZZZ% - turn on port number X on ZZ percent of the time using PWM 'always on'
-           pX on YY ZZZ% - turn on port number X for YY seconds ZZ percent of the time using PWM */
-        if (sscanf(input, "p%d %[onf]", &port, cmd) != 2)
-            ctx->undefined(input);
-        if (!ctx->portState)
-            return;
-        if (strncmp(cmd, "off", 3) == 0) {
-            ctx->portState(port, false, 0, -1);
-        }
-        else if (strncmp(cmd, "on", 2) == 0)
-        {
-            char *argv[4] = { 0 }; // There should not be more then 4 args.
-            int count = getArgs(input, ' ', argv, 4);
-            char percent = 0;
-
-            switch(count)
-            {
-                case 2: // pX on
-                    ctx->portState(port, true, 100, -1);
-                    break;
-                case 3: // pX on ZZZ% or YY
-                {
-                    int argc = sscanf(argv[2], "%d%c", &count, &percent);
-                    if (argc == 2 && percent == '%')
-                        ctx->portState(port, true, count, -1);
-                    else if (argc == 1)
-                        ctx->portState(port, true, 100, count);
-                    else
-                        ctx->undefined(input);
-                    break;
-                }
-                case 4: // pX on YY ZZZ%
-                {
-                    int tmp;
-                    if (sscanf(argv[2], "%d", &tmp) == 1 && sscanf(argv[3], "%d%c", &count, &percent) == 2 && percent == '%')
-                        ctx->portState(port, true, count, tmp);
-                    else
-                        ctx->undefined(input);
-                    break;
-                }
-            }
-        }
-    }
-    else if (ctx->undefined)
-    {
+    else if (ctx->undefined) {
         ctx->undefined(input);
+        parseError = 0;
+    }
+
+    if (parseError) {
+        HALundefined(input);
     }
 }
 
-void initCAProtocol(CAProtocolCtx* ctx, ReaderFn fn)
-{
-    ctx->data = (CAProtocolData*) malloc(sizeof(CAProtocolData));
+void initCAProtocol(CAProtocolCtx* ctx, ReaderFn fn) {
+    ctx->data = (CAProtocolData*)malloc(sizeof(CAProtocolData));
     memset(ctx->data->buf, 0, sizeof(ctx->data->buf));
     ctx->data->len = 0;
     ctx->data->rxReader = fn;
 }
 
-void flushCAProtocol(CAProtocolCtx* ctx)
-{
+void flushCAProtocol(CAProtocolCtx* ctx) {
     ctx->data->len = 0;
     memset(ctx->data->buf, 0, sizeof(ctx->data->buf));
 }
