@@ -129,17 +129,35 @@ ssize_t usb_cdc_transmit(const uint8_t* Buf, uint16_t Len)
 
     USBD_CDC_HandleTypeDef *hcdc = (USBD_CDC_HandleTypeDef*)hUsbDeviceFS.pClassData;
 
-    if (hcdc->TxState != 0)
-    {
-        // USB CDC is transmitting data to the network. Leave transmit handling to CDC_TransmitCplt_FS
-        for (int len = 0;len < Len; len++)
-        {
-            if (circular_buf_put(usb_cdc_if.tx.ctx, *Buf))
-                return len; // len < Len since not enough space in buffer. Leave error handling to caller.
+    /* If the USB finishes transmitting while the circular buffer is being filled then it will start
+    ** to empty the buffer. If the buffer has not yet finished being filled, there is a risk that
+    ** the USB interrupt will confirm the circular buffer is empty before this section of code is
+    ** complete, and complete the transaction. In this situation, the buffer will continue to be
+    ** filled, but queued data will not be transmitted until after the next packet. A simple way to
+    ** fix this is to prevent USB interrupts during the circular buffer section.
+    **
+    ** This leaves the section of code open to the possibility of the circular buffer being
+    ** interrupted from another non-usb thread. This is judged an acceptable risk against the
+    ** alternative of disabling all interrupts 
+    ** Note: disable the interrupts before the TxState check to remove race condition possibilities
+    */
+    HAL_NVIC_DisableIRQ(OTG_FS_IRQn);
+
+    // USB CDC is transmitting data to the network. Leave transmit handling to CDC_TransmitCplt_FS
+    if (hcdc->TxState != 0) {
+        for (int len = 0; len < Len; len++) {
+            if (circular_buf_put(usb_cdc_if.tx.ctx, *Buf)) {
+                // len < Len since not enough space in buffer. Leave error handling to caller.
+                return len;  
+            }
             Buf++;
         }
+        HAL_NVIC_EnableIRQ(OTG_FS_IRQn);
+
         return Len;
     }
+
+    HAL_NVIC_EnableIRQ(OTG_FS_IRQn);
 
     // Fill in the data from buffer directly, no need copy bytes
     if (Len > sizeof(usb_cdc_if.tx.irqBuf))

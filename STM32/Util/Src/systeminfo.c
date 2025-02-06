@@ -234,15 +234,15 @@ const char* statusDefInfo(bool printStart)
 
     len += snprintf(&buf[len], sizeof(buf) - len, "\r\nStart of board status definition:\r\n");
 
-    len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",System errors\r\n", BS_SYSTEM_ERRORS_Msk);
-    len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",Error\r\n", BS_ERROR_Msk);
-    len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",Over temperature\r\n", BS_OVER_TEMPERATURE_Msk);
-    len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",Under voltage\r\n", BS_UNDER_VOLTAGE_Msk);
-    len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",Over voltage\r\n", BS_OVER_VOLTAGE_Msk);
-    len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",Over current\r\n", BS_OVER_CURRENT_Msk);
-    len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",Version error\r\n", BS_VERSION_ERROR_Msk);
-    len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",USB error\r\n", BS_USB_ERROR_Msk);
-    len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",Flash ongoing\r\n", BS_FLASH_ONGOING_Msk);
+    len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",System errors\r\n", (uint32_t) BS_SYSTEM_ERRORS_Msk);
+    len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",Error\r\n", (uint32_t) BS_ERROR_Msk);
+    len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",Over temperature\r\n", (uint32_t) BS_OVER_TEMPERATURE_Msk);
+    len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",Under voltage\r\n", (uint32_t) BS_UNDER_VOLTAGE_Msk);
+    len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",Over voltage\r\n", (uint32_t) BS_OVER_VOLTAGE_Msk);
+    len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",Over current\r\n", (uint32_t) BS_OVER_CURRENT_Msk);
+    len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",Version error\r\n", (uint32_t) BS_VERSION_ERROR_Msk);
+    len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",USB error\r\n", (uint32_t) BS_USB_ERROR_Msk);
+    len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",Flash ongoing\r\n", (uint32_t) BS_FLASH_ONGOING_Msk);
     
     return buf;
 }
@@ -326,6 +326,40 @@ void bsClearError(uint32_t field) {
 void bsSetError(uint32_t field) { BS.boardStatus |= (BS_ERROR_Msk | field); }
 void bsSetField(uint32_t field){ BS.boardStatus |= field; }
 void bsClearField(uint32_t field){ BS.boardStatus &= ~field; }
+
+/*!
+** @brief Update a field using a bool to determine whether set or clear
+**
+** @param[in] field      Field to set/clear
+** @param[in] set        Whether to Set or Clear the field
+*/
+void bsUpdateField(uint32_t field, bool set) {
+    if(set) {
+        bsSetField(field);
+    }
+    else {
+        bsClearField(field);
+    }
+}
+
+/*!
+** @brief Update an error field using a bool to determine whether set or clear
+**
+** @param[in] field      Field to set/clear
+** @param[in] set        Whether to Set or Clear the field
+** @param[in] error_bits A collection of all error bits. Used to determine if the master error bit
+**                       should be set or not
+*/
+void bsUpdateError(uint32_t field, bool set, uint32_t error_bits) {
+    if(set) {
+        bsSetError(field);
+    }
+    else {
+        bsClearField(field);
+        bsClearError(error_bits);
+    }
+}
+
 uint32_t bsGetStatus(){ return BS.boardStatus; }
 uint32_t bsGetField(uint32_t field){ return BS.boardStatus & field; }
 void setBoardTemp(float temp){ BS.temp = temp; }

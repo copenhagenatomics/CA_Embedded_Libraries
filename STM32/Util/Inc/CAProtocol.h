@@ -51,10 +51,6 @@ typedef struct
     void (*otpRead)();
     void (*otpWrite)(BoardInfo *boardInfo);
 
-    // All pins should be in state isOn.
-    void (*allOn)(bool isOn, int duration);
-    void (*portState)(int port, bool state, int percent, int duration);
-
     struct CAProtocolData *data; // Private data for CAProtocol.
 } CAProtocolCtx;
 
