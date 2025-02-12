@@ -1,5 +1,5 @@
 /*!
- * @file    ADS7953.cpp
+ * @file    fake_ADS7953.cpp
  * @brief   Fake Interface to ADS7953 for unit testing
  * @date    06/02/2025
  * @author  Timothé D
@@ -40,11 +40,9 @@ int ADS7953Init(ADS7953Device_t *dev, TIM_HandleTypeDef *htim, SPI_HandleTypeDef
     return 0;
 }
 
-
 int ADS7953Reset(ADS7953Device_t *dev) {
     return 0;
 }
-
 
 void ADS7953Loop(ADS7953Device_t *dev, extADCCallBack callback) {
     return;
