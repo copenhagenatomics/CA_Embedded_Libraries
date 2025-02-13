@@ -10,7 +10,6 @@
 #include <math.h>
 
 #include "stm32f4xx_hal.h"
-#include "StmGpio.h"
 #include "ADS7953.h"
 
 /***************************************************************************************************
@@ -208,7 +207,7 @@ static void initDMA(ADS7953Device_t *dev)
     dev->hspi->hdmarx->XferCpltCallback = bufferFullCallback;
 
     // Start DMA handle from RX register to data buffer
-    HAL_DMA_Start_IT(dev->hdma_spi_rx, (uint32_t) &dev->hspi->Instance->DR, (uint32_t) dev->buffer, dev->bufLength);
+    HAL_DMA_Start_IT(dev->DMAs.hdma_spi_rx, (uint32_t)(uintptr_t) &dev->hspi->Instance->DR, (uint32_t)(uintptr_t) dev->buffer, dev->bufLength);
 
     // Enable RX DMA functionality
     SET_BIT(dev->hspi->Instance->CR2, SPI_CR2_RXDMAEN);
@@ -217,11 +216,11 @@ static void initDMA(ADS7953Device_t *dev)
     __HAL_SPI_ENABLE(dev->hspi);
     
     // Timer DMA that transfers a dummy byte to SPI TX register to initiate master receive
-    HAL_DMA_Start(dev->hdma_tim_receiving, (uint32_t) &INITIATE_TRANSFER, (uint32_t) &dev->hspi->Instance->DR, sizeof(INITIATE_TRANSFER)/sizeof(uint16_t));
+    HAL_DMA_Start(dev->DMAs.hdma_tim_receiving, (uint32_t)(uintptr_t) &INITIATE_TRANSFER, (uint32_t)(uintptr_t) &dev->hspi->Instance->DR, sizeof(INITIATE_TRANSFER)/sizeof(uint16_t));
 
     // Timer DMAs that sets/resets the SPE bit of CR1, resulting in an NSS pin alternating between high and low (due to pull-up setup)
-    HAL_DMA_Start(dev->hdma_tim_disabling, (uint32_t) &CR1_OFF, (uint32_t) &dev->hspi->Instance->CR1, sizeof(CR1_OFF)/sizeof(uint16_t));
-    HAL_DMA_Start(dev->hdma_tim_enabling, (uint32_t) &CR1_ON, (uint32_t) &dev->hspi->Instance->CR1, sizeof(CR1_ON)/sizeof(uint16_t));
+    HAL_DMA_Start(dev->DMAs.hdma_tim_disabling, (uint32_t)(uintptr_t) &CR1_OFF, (uint32_t)(uintptr_t) &dev->hspi->Instance->CR1, sizeof(CR1_OFF)/sizeof(uint16_t));
+    HAL_DMA_Start(dev->DMAs.hdma_tim_enabling, (uint32_t)(uintptr_t) &CR1_ON, (uint32_t)(uintptr_t) &dev->hspi->Instance->CR1, sizeof(CR1_ON)/sizeof(uint16_t));
 }
 
 /*!
@@ -289,7 +288,7 @@ int16_t extADCMax(ADS7953Device_t *dev, int16_t *pData, uint16_t channel)
         return 0;
     }
 
-    int16_t max = pData[0];
+    int16_t max = pData[channel];
     for (uint16_t sampleId = 1; sampleId < dev->noOfSamples; sampleId++)
     {
         int16_t sample = pData[sampleId * dev->noOfChannels + channel];
@@ -315,7 +314,7 @@ int16_t extADCMin(ADS7953Device_t *dev, int16_t *pData, uint16_t channel)
         return 0;
     }
 
-    int16_t min = pData[0];
+    int16_t min = pData[channel];
     for (uint16_t sampleId = 1; sampleId < dev->noOfSamples; sampleId++)
     {
         int16_t sample = pData[sampleId * dev->noOfChannels + channel];
@@ -397,18 +396,15 @@ void extADCSetOffset(ADS7953Device_t *dev, int16_t *pData, uint16_t channel, int
  * @brief   Configuration of an ADS7953 device
  * @note    Requires that CHANNEL_2 and CHANNEL_3 of the timer are used as output compare
  * @param   dev Pointer to the ADC structure
- * @param   htim Pointer to the timer used for DMA
  * @param   hspi Pointer to the SPI handler
+ * @param   htim Pointer to the timer used for DMA
+ * @param   DMAs List of DMA pointers
  * @param   buff Pointer to the ADC buffer
  * @param   length Buffer length
  * @param   noOfChannels Number of inputs used
- * @param   hdma_spi_rx Pointer to the SPI RX DMA handler
- * @param   hdma_tim_receiving Pointer to the timer DMA handler triggering the SPI receive
- * @param   hdma_tim_disabling Pointer to the timer DMA handler stopping the SPI to set the NSS pin high
- * @param   hdma_tim_enabling Pointer to the timer DMA handler starting the SPI to set the NSS pin low
  * @return  0 on success, else negative value
 */
-int ADS7953Init(ADS7953Device_t *dev, TIM_HandleTypeDef *htim, SPI_HandleTypeDef *hspi, int16_t *buff, uint32_t length, uint8_t noOfChannels, DMA_HandleTypeDef *hdma_spi_rx, DMA_HandleTypeDef *hdma_tim_receiving, DMA_HandleTypeDef *hdma_tim_disabling, DMA_HandleTypeDef *hdma_tim_enabling)
+int ADS7953Init(ADS7953Device_t *dev, SPI_HandleTypeDef *hspi, TIM_HandleTypeDef *htim, ADS7953DMAs_t DMAs, int16_t *buff, uint32_t length, uint8_t noOfChannels)
 {
     if ((noOfChannels > MAX_CHANNELS_NO) || (noOfChannels < 1))
     {
@@ -417,13 +413,12 @@ int ADS7953Init(ADS7953Device_t *dev, TIM_HandleTypeDef *htim, SPI_HandleTypeDef
 
     // SPI
     dev->hspi = hspi;
-    dev->hdma_spi_rx = hdma_spi_rx;
-
+    
     // Timer
     dev->htim = htim;
-    dev->hdma_tim_receiving = hdma_tim_receiving;
-    dev->hdma_tim_disabling = hdma_tim_disabling;
-    dev->hdma_tim_enabling = hdma_tim_enabling;
+
+    // DMAs
+    dev->DMAs = DMAs;
     
     // Buffer
     dev->buffer = buff;
@@ -455,7 +450,7 @@ int ADS7953Init(ADS7953Device_t *dev, TIM_HandleTypeDef *htim, SPI_HandleTypeDef
     initDMA(dev);
 
     // Timer initialization
-    initTimer(dev);     
+    initTimer(dev);    
 
     return 0;
 }
@@ -473,7 +468,7 @@ int ADS7953Reset(ADS7953Device_t *dev)
     HAL_TIM_OC_Stop(dev->htim, TIM_CHANNEL_2);
 
     // Stopping the RX DMA Stream
-    __HAL_DMA_DISABLE(dev->hdma_spi_rx);
+    __HAL_DMA_DISABLE(dev->DMAs.hdma_spi_rx);
 
     // ADC registers configuration
     if (setRegisters(dev) != 0) 
@@ -486,7 +481,7 @@ int ADS7953Reset(ADS7953Device_t *dev)
     dev->activeBuffer = SecondPart;
 
     // Restarting the RX DMA Stream
-    __HAL_DMA_ENABLE(dev->hdma_spi_rx);
+    __HAL_DMA_ENABLE(dev->DMAs.hdma_spi_rx);
 
     // Restarting the timer triggering the DMAs
     HAL_TIM_OC_Start(dev->htim, TIM_CHANNEL_1);
