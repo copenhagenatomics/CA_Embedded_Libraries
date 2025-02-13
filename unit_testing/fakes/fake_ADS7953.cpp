@@ -36,7 +36,7 @@ void extADCSetOffset(ADS7953Device_t *dev, int16_t *pData, uint16_t channel, int
     return;
 }
 
-int ADS7953Init(ADS7953Device_t *dev, TIM_HandleTypeDef *htim, SPI_HandleTypeDef *hspi, int16_t *buff, uint32_t length, uint8_t noOfChannels, DMA_HandleTypeDef *hdma_spi_rx, DMA_HandleTypeDef *hdma_tim_receiving, DMA_HandleTypeDef *hdma_tim_disabling, DMA_HandleTypeDef *hdma_tim_enabling) {
+int ADS7953Init(ADS7953Device_t *dev, SPI_HandleTypeDef *hspi, TIM_HandleTypeDef *htim, ADS7953DMAs_t DMAs, int16_t *buff, uint32_t length, uint8_t noOfChannels) {
     return 0;
 }
 
