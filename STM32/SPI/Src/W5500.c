@@ -1016,7 +1016,7 @@ int8_t  getsockopt(uint8_t sn, sockopt_type sotype, void* arg)
  * @return  0 on success, else negative value
  * @note    Should be called one time for each physical ethernet port
 */
-int ethernetInit(ethernetHandler_t *heth, SPI_HandleTypeDef *hspi, GPIO_TypeDef *port, uint16_t pin, wiz_NetInfo netInfo, char *sendBuf)
+int W5500Init(ethernetHandler_t *heth, SPI_HandleTypeDef *hspi, GPIO_TypeDef *port, uint16_t pin, wiz_NetInfo netInfo, char *sendBuf)
 {
     currentEthernet = heth;
 
@@ -1054,7 +1054,7 @@ int ethernetInit(ethernetHandler_t *heth, SPI_HandleTypeDef *hspi, GPIO_TypeDef 
  * @return  >=0 on success, else negative value
  * @note    Should be used in the while(1) loop of the board for each physical ethernet port
 */
-int TCPServer(ethernetHandler_t *heth)
+int W5500TCPServer(ethernetHandler_t *heth)
 {
     ethPortSelect(heth);
 
