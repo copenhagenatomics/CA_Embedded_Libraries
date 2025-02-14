@@ -161,7 +161,7 @@ int readFromFlash(uint32_t flash_address, uint8_t *data, uint32_t size)
     // User is trying to read from a non-valid sector
     if (flash_sector == 10) { return -1; }
 
-    memcpy(data, (void*) flash_address, size);
+    memcpy(data, (void*) (uintptr_t) flash_address, size);
     return 0;
 }
 
@@ -239,14 +239,14 @@ int readFromFlashCRC(CRC_HandleTypeDef *hcrc, uint32_t flash_address, uint8_t *d
 
     // Create temporary storage for FLASH data
     uint8_t dataTmp[size];
-    memcpy(&dataTmp, (void*) flash_address, size);
+    memcpy(&dataTmp, (void*) (uintptr_t) flash_address, size);
 
     // Compute CRC of data read.
     uint32_t crcVal = computeCRC(hcrc, dataTmp, size);
 
     // Retrieve CRC value stored in FLASH.
     uint32_t crcStored = 0;
-    memcpy(&crcStored, (void*) (flash_address+size), sizeof(uint32_t));
+    memcpy(&crcStored, (void*) (uintptr_t) (flash_address+size), sizeof(uint32_t));
 
     // If computed and stored CRC value does not match return without setting *data
     if (crcStored != crcVal)
