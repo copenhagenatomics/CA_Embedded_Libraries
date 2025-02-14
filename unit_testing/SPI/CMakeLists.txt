@@ -46,6 +46,13 @@ enable_testing()
 
 include(GoogleTest)
 
+# ADS7953 tests
+add_executable(ADS7953_test ADS7953_tests.cpp ${UT_FAKES}/fake_stm32xxxx_hal.cpp)
+target_include_directories(ADS7953_test PRIVATE ${UT_FAKES} ${UT_STUBS} ${INC_LIB} ${DRIVERS} ${CMSIS} ${CMSIS_DRIVER} Inc)
+target_link_libraries(ADS7953_test GTest::gtest_main gmock_main)
+target_compile_definitions(ADS7953_test PUBLIC __LIBRARY_TEST)
+gtest_discover_tests(ADS7953_test)
+
 # LTC2512-24 tests
 add_executable(ltc2512_test ltc2512_tests.cpp ${UT_FAKES}/fake_stm32xxxx_hal.cpp ${UT_FAKES}/fake_StmGpio.cpp)
 target_include_directories(ltc2512_test PRIVATE ${UT_FAKES} ${UT_STUBS} ${INC_LIB} ${DRIVERS} ${CMSIS} ${CMSIS_DRIVER} Inc)

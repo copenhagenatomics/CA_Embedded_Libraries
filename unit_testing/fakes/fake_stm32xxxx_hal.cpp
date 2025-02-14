@@ -137,6 +137,11 @@ HAL_StatusTypeDef HAL_TIM_Base_Start_IT(TIM_HandleTypeDef *htim)
     return HAL_OK;
 }
 
+HAL_StatusTypeDef HAL_TIM_Base_Stop(TIM_HandleTypeDef *htim) {
+    /* Do nothing */
+    return HAL_OK;
+}
+
 HAL_StatusTypeDef HAL_TIM_PWM_Start(TIM_HandleTypeDef *htim, uint32_t Channel) {
     return HAL_OK;
 }
@@ -167,6 +172,16 @@ HAL_StatusTypeDef HAL_TIMEx_PWMN_Stop(TIM_HandleTypeDef *htim, uint32_t Channel)
     return HAL_OK;
 }
 
+HAL_StatusTypeDef HAL_TIM_OC_Start(TIM_HandleTypeDef *htim, uint32_t Channel) {
+    /* Do nothing */
+    return HAL_OK;
+}
+
+HAL_StatusTypeDef HAL_TIM_OC_Stop(TIM_HandleTypeDef *htim, uint32_t Channel) {
+    /* Do nothing */
+    return HAL_OK;
+}
+
 #endif
 
 #ifdef HAL_SPI_MODULE_ENABLED
@@ -184,6 +199,12 @@ HAL_StatusTypeDef HAL_SPI_Receive_IT(SPI_HandleTypeDef *hspi, uint8_t *pData, ui
 }
 
 HAL_StatusTypeDef HAL_SPI_Transmit(SPI_HandleTypeDef *hspi, const uint8_t *pData, uint16_t Size, uint32_t Timeout)
+{
+    /* Do nothing */
+    return HAL_OK;
+}
+
+HAL_StatusTypeDef HAL_SPI_TransmitReceive(SPI_HandleTypeDef *hspi, const uint8_t *pTxData, uint8_t *pRxData, uint16_t Size, uint32_t Timeout)
 {
     /* Do nothing */
     return HAL_OK;
@@ -274,6 +295,23 @@ uint32_t HAL_CRC_Calculate(CRC_HandleTypeDef *hcrc, uint32_t pBuffer[], uint32_t
 }
 
 #endif
+
+#ifdef HAL_DMA_MODULE_ENABLED
+
+HAL_StatusTypeDef HAL_DMA_Start(DMA_HandleTypeDef *hdma, uint32_t SrcAddress, uint32_t DstAddress, uint32_t DataLength)
+{
+    /* Do nothing */
+    return HAL_OK;
+}
+
+HAL_StatusTypeDef HAL_DMA_Start_IT(DMA_HandleTypeDef *hdma, uint32_t SrcAddress, uint32_t DstAddress, uint32_t DataLength)
+{
+    /* Do nothing */
+    return HAL_OK;
+}
+
+#endif
+
 void forceTick(uint32_t next_val)
 {
     force_tick = true;
