@@ -34,8 +34,8 @@ set(LIB ../../STM32)
 set(INC_LIB ${LIB}/FLASH_readwrite/Inc ${LIB}/FLASH_readwrite/Src)
 set(UT_FAKES ../fakes)
 set(UT_STUBS ../stubs)
-set(DRIVERS ../../STM32/Drivers/STM32F4xx_HAL_Driver/Inc)
-set(CMSIS ../../STM32/Drivers/CMSIS/Device/ST/STM32F4xx/Include)
+set(DRIVERS ../../STM32/FirmwarePackages/STM32F401CCUx/Drivers/STM32F4xx_HAL_Driver/Inc)
+set(CMSIS ../../STM32/FirmwarePackages/STM32F401CCUx/Drivers/CMSIS/Device/ST/STM32F4xx/Include)
 
 
 ####################################################################################################

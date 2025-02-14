@@ -35,8 +35,8 @@ set(INC_LIB ${LIB}/USBprint/Inc ${LIB}/USBprint/Src ${LIB}/circularBuffer/Inc)
 set(UT_FAKES ../fakes)
 set(UT_STUBS ../stubs)
 set(UT_REDIRECTS ../redirects)
-set(DRIVERS ../../STM32/Drivers/STM32F4xx_HAL_Driver/Inc)
-set(CMSIS ../../STM32/Drivers/CMSIS/Device/ST/STM32F4xx/Include)
+set(DRIVERS ../../STM32/FirmwarePackages/STM32F401CCUx/Drivers/STM32F4xx_HAL_Driver/Inc)
+set(CMSIS ../../STM32/FirmwarePackages/STM32F401CCUx/Drivers/CMSIS/Device/ST/STM32F4xx/Include)
 
 
 ####################################################################################################
