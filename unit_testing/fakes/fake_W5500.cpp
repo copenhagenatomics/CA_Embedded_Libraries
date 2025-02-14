@@ -6,7 +6,7 @@
 */
 
 #include "fake_stm32xxxx_hal.h"
-#include "ethernet.h"
+#include "W5500.h"
 
 /***************************************************************************************************
 ** PUBLIC FUNCTION DEFINITIONS
