@@ -57,7 +57,7 @@ class ADS7953Test: public ::testing::Test
 ** TESTS
 ***************************************************************************************************/
 
-TEST_F(ADS7953Test, testIsBufferHealthy)
+TEST_F(ADS7953Test, testCheckAndCleanBuffer)
 {
     const float tol = 0.0001;
     const int noOfSamples = 1000;
@@ -74,9 +74,9 @@ TEST_F(ADS7953Test, testIsBufferHealthy)
 
     ADS7953Init(&dev, &hspi, &htim, DMAs, pData, sizeof(pData)/sizeof(int16_t), noOfChannels);
 
-    EXPECT_EQ(isBufferHealthy(&dev, pData), true);
-    EXPECT_NEAR(extADCRms(&dev, pData, 0, noOfSamples), 2506.606445, tol);
-    EXPECT_NEAR(extADCRms(&dev, pData, 1, noOfSamples), 2170.527588, tol);
+    EXPECT_EQ(checkAndCleanBuffer(&dev, pData), true);
+    EXPECT_NEAR(extADCRms(&dev, pData, 0), 2506.606445, tol);
+    EXPECT_NEAR(extADCRms(&dev, pData, 1), 2170.527588, tol);
 
     for (int i = 0; i < noOfSamples; i++)
     {
@@ -84,7 +84,7 @@ TEST_F(ADS7953Test, testIsBufferHealthy)
     }
     pData[noOfChannels*10] |= 0x1000;
 
-    EXPECT_EQ(isBufferHealthy(&dev, pData), false);
+    EXPECT_EQ(checkAndCleanBuffer(&dev, pData), false);
 }
 
 TEST_F(ADS7953Test, testExtADCMax)
@@ -176,8 +176,8 @@ TEST_F(ADS7953Test, testExtADCRms)
 
     ADS7953Init(&dev, &hspi, &htim, DMAs, pData, sizeof(pData)/sizeof(int16_t), noOfChannels);
 
-    EXPECT_NEAR(extADCRms(&dev, pData, 0, noOfSamples), 2506.606445, tol);
-    EXPECT_NEAR(extADCRms(&dev, pData, 1, noOfSamples), 2170.527588, tol);
+    EXPECT_NEAR(extADCRms(&dev, pData, 0), 2506.606445, tol);
+    EXPECT_NEAR(extADCRms(&dev, pData, 1), 2170.527588, tol);
 }
 
 TEST_F(ADS7953Test, testExtADCSetOffset)
