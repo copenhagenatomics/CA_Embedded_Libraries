@@ -47,11 +47,11 @@ typedef void (*extADCCallBack)(int16_t *pBuffer);   // Type of function called w
 ** PUBLIC FUNCTION DECLARATIONS
 ***************************************************************************************************/
 
-bool isBufferHealthy(ADS7953Device_t *dev, int16_t *pData);
+bool checkAndCleanBuffer(ADS7953Device_t *dev, int16_t *pData);
 int16_t extADCMax(ADS7953Device_t *dev, int16_t *pData, uint16_t channel);
 int16_t extADCMin(ADS7953Device_t *dev, int16_t *pData, uint16_t channel);
 double extADCMean(ADS7953Device_t *dev, int16_t *pData, uint16_t channel);
-double extADCRms(ADS7953Device_t *dev, int16_t *pData, uint16_t channel, uint32_t noOfPoints);
+double extADCRms(ADS7953Device_t *dev, int16_t *pData, uint16_t channel);
 void extADCSetOffset(ADS7953Device_t *dev, int16_t *pData, uint16_t channel, int16_t offset);
 
 int ADS7953Init(ADS7953Device_t *dev, SPI_HandleTypeDef *hspi, TIM_HandleTypeDef *htim, ADS7953DMAs_t DMAs, int16_t *buff, uint32_t length, uint8_t noOfChannels);

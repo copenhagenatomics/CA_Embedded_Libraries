@@ -1,5 +1,5 @@
 /*!
- * @file    ethernet.c
+ * @file    W5500.c
  * @brief   This file contains the functions implementing the ethernet protocol for the W5500
  * @note    It is based on the drivers files provided by the W5500 manufacturer
  * @date    18/09/2024

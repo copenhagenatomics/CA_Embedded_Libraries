@@ -1,12 +1,12 @@
 /*!
- * @file    ethernet.h
- * @brief   Header file of ethernet.c
+ * @file    W5500.h
+ * @brief   Header file of W5500.c
  * @date    18/09/2024
  * @author  Timothé D
 */
 
-#ifndef INC_ETHERNET_H_
-#define INC_ETHERNET_H_
+#ifndef INC_W5500_H_
+#define INC_W5500_H_
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -72,4 +72,4 @@ typedef struct {
 int W5500Init(ethernetHandler_t *heth, SPI_HandleTypeDef *hspi, GPIO_TypeDef *port, uint16_t pin, wiz_NetInfo netInfo, char *sendBuf);
 int W5500TCPServer(ethernetHandler_t *heth);
 
-#endif /* INC_ETHERNET_H_ */
+#endif /* INC_W5500_H_ */
