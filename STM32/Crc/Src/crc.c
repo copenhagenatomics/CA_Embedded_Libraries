@@ -45,7 +45,7 @@ uint8_t crc8Calculate(uint8_t *data, size_t len)
 {
     uint8_t crc = crc8_init;
 
-    for (int i = 0; i < len; i++) {
+    for (unsigned i = 0; i < len; i++) {
         crc ^= data[i];
         for (int j = 0; j < 8; j++) {
             if ((crc & 0x80) != 0)
@@ -66,7 +66,7 @@ uint8_t crc4Calculate(uint8_t *data, size_t len)
     uint8_t crc  = crc4_init & 0xF;
     uint8_t poly = crc4_poly & 0xF;
 
-    for (int i = 0; i < len; i++) {
+    for (unsigned i = 0; i < len; i++) {
         for(int j = 1; j >= 0; j--) {
             crc ^= (data[i] >> 4U * j) & 0xFU;
 
