@@ -218,7 +218,7 @@ static int sm4291ReadReg(sm4291_i2c_handle_t* i2c, uint8_t reg_addr, uint16_t* r
         initCrc4(CRC4_INIT, CRC4_POLY);
         initCrc8(CRC8_INIT, CRC8_POLY);
 
-        uint8_t crc4_data[2U] = {(uint8_t)(reg_addr >> 4U), ((reg_addr & 0xFU) << 4U) | 0x1U};
+        uint8_t crc4_data[2U] = {(uint8_t)(reg_addr >> 4U), (uint8_t)(((reg_addr & 0xFU) << 4U) | 0x1U)};
         uint8_t crc4 = crc4Calculate(crc4_data, 2U);
 
         uint8_t addr_buf[2U] = {reg_addr, (uint8_t)(0x10U | crc4)};
@@ -263,7 +263,7 @@ static int sm4291WriteReg(sm4291_i2c_handle_t* i2c, uint8_t reg_addr, uint16_t v
         initCrc4(CRC4_INIT, CRC4_POLY);
         initCrc8(CRC8_INIT, CRC8_POLY);
 
-        uint8_t crc4_data[2U] = {(uint8_t)(reg_addr >> 4U), ((reg_addr & 0xF) << 4U) | 0x1U};
+        uint8_t crc4_data[2U] = {(uint8_t)(reg_addr >> 4U), (uint8_t)(((reg_addr & 0xF) << 4U) | 0x1U)};
         uint8_t crc8_data[2U] = {(uint8_t)(value & 0xFFU), (uint8_t)((value >> 8U) & 0xFFU)};
         uint8_t crc4 = crc4Calculate(crc4_data, 2U);
         uint8_t crc8 = crc8Calculate(crc8_data, 2U);
