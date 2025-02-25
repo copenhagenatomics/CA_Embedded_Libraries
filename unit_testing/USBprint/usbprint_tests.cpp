@@ -58,7 +58,7 @@ class UsbPrintTest: public ::testing::Test
             usb_cdc_fops.Receive((uint8_t*)buf, &len);
 
             /* Buffer should be cleared after receive */
-            for(int i = 0; i < len; i++) {
+            for(uint32_t i = 0; i < len; i++) {
                 ASSERT_EQ(0, buf[i]);
             }
         }
