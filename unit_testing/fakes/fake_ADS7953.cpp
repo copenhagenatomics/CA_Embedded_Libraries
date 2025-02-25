@@ -12,7 +12,7 @@
 ** PUBLIC FUNCTION DEFINITIONS
 ***************************************************************************************************/
 
-bool isBufferHealthy(ADS7953Device_t *dev, int16_t *pData) {
+bool checkAndCleanBuffer(ADS7953Device_t *dev, int16_t *pData) {
     return true;
 }
 
@@ -28,7 +28,7 @@ double extADCMean(ADS7953Device_t *dev, int16_t *pData, uint16_t channel) {
     return 0.0;
 }
 
-double extADCRms(ADS7953Device_t *dev, int16_t *pData, uint16_t channel, uint32_t noOfPoints) {
+double extADCRms(ADS7953Device_t *dev, int16_t *pData, uint16_t channel) {
     return 0.0;
 }
 
