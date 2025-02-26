@@ -51,4 +51,5 @@ add_executable(adcmonitor_test adcmonitor_tests.cpp ${UT_FAKES}/fake_stm32xxxx_h
 target_include_directories(adcmonitor_test PRIVATE ${UT_FAKES} ${UT_STUBS} ${INC_LIB} ${DRIVERS} ${CMSIS} Inc)
 target_link_libraries(adcmonitor_test GTest::gtest_main gmock_main)
 target_compile_definitions(adcmonitor_test PUBLIC UNIT_TESTING)
+target_compile_options(adcmonitor_test PRIVATE -Wall)
 gtest_discover_tests(adcmonitor_test)

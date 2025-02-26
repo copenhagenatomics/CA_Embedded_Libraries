@@ -51,6 +51,7 @@ add_executable(ADS7953_test ADS7953_tests.cpp ${UT_FAKES}/fake_stm32xxxx_hal.cpp
 target_include_directories(ADS7953_test PRIVATE ${UT_FAKES} ${UT_STUBS} ${INC_LIB} ${DRIVERS} ${CMSIS} ${CMSIS_DRIVER} Inc)
 target_link_libraries(ADS7953_test GTest::gtest_main gmock_main)
 target_compile_definitions(ADS7953_test PUBLIC __LIBRARY_TEST)
+target_compile_options(ADS7953_test PRIVATE -Wall)
 gtest_discover_tests(ADS7953_test)
 
 # LTC2512-24 tests
@@ -58,4 +59,5 @@ add_executable(ltc2512_test ltc2512_tests.cpp ${UT_FAKES}/fake_stm32xxxx_hal.cpp
 target_include_directories(ltc2512_test PRIVATE ${UT_FAKES} ${UT_STUBS} ${INC_LIB} ${DRIVERS} ${CMSIS} ${CMSIS_DRIVER} Inc)
 target_link_libraries(ltc2512_test GTest::gtest_main gmock_main)
 target_compile_definitions(ltc2512_test PUBLIC __LIBRARY_TEST)
+target_compile_options(ltc2512_test PRIVATE -Wall)
 gtest_discover_tests(ltc2512_test)

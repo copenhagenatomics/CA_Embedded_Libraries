@@ -62,7 +62,7 @@ int measureChannelA(LTC2512Device *dev)
 
     int32_t adc = (RxBufferChA[0] << 16) | (RxBufferChA[1] << 8) | RxBufferChA[2];
 
-    for (int i = 0; i < sizeof(RxBufferChA)/sizeof(RxBufferChA[0]); i++)
+    for (unsigned i = 0; i < sizeof(RxBufferChA)/sizeof(RxBufferChA[0]); i++)
         RxBufferChA[i] = 0;
 
     const int MODULO = (1 << 24);
@@ -83,7 +83,7 @@ void measureChannelB(LTC2512Device *dev, int32_t* differential, uint32_t* common
     int32_t adc = (((RxBufferChB[0] << 6) | RxBufferChB[1]) >> 2) & 0x3FFF;
     *common = (((RxBufferChB[1] << 6) | RxBufferChB[2]) >> 2) & 0xFF;
 
-    for (int i = 0; i < sizeof(RxBufferChB)/sizeof(RxBufferChB[0]); i++)
+    for (unsigned i = 0; i < sizeof(RxBufferChB)/sizeof(RxBufferChB[0]); i++)
         RxBufferChB[i] = 0;
 
     const int MODULO = (1 << 14);

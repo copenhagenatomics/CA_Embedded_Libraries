@@ -50,16 +50,19 @@ include(GoogleTest)
 add_executable(arraymath_test arraymath_tests.cpp ${SRC}/Filtering/Src/array-math.c)
 target_include_directories(arraymath_test PRIVATE ${UT_FAKES} ${UT_STUBS} ${INC_LIB})
 target_link_libraries(arraymath_test GTest::gtest_main gmock_main)
+target_compile_options(arraymath_test PRIVATE -Wall)
 gtest_discover_tests(arraymath_test)
 
 # Lowpass filter tests
 add_executable(lpfilter_test lowpassfilter_tests.cpp ${SRC}/Filtering/Src/lowpassFilter.c ${SRC}/Filtering/Src/array-math.c)
 target_include_directories(lpfilter_test PRIVATE ${UT_FAKES} ${UT_STUBS} ${INC_LIB})
 target_link_libraries(lpfilter_test GTest::gtest_main gmock_main)
+target_compile_options(lpfilter_test PRIVATE -Wall)
 gtest_discover_tests(lpfilter_test)
 
 # Notch filter tests
 add_executable(notchfilter_test notchfilter_tests.cpp ${SRC}/Filtering/Src/notchFilter.c ${SRC}/Filtering/Src/array-math.c)
 target_include_directories(notchfilter_test PRIVATE ${UT_FAKES} ${UT_STUBS} ${INC_LIB})
 target_link_libraries(notchfilter_test GTest::gtest_main gmock_main)
+target_compile_options(notchfilter_test PRIVATE -Wall)
 gtest_discover_tests(notchfilter_test)

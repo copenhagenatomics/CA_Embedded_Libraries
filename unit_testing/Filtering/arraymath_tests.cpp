@@ -177,7 +177,7 @@ TEST_F(ArrayMathTest, testMvgAverage)
     double sum = testValue1;
     // Add a sequence of numbers matching the filter length.
     double testValue = 0;
-    for (int i = 1; i<len; i++)
+    for (unsigned i = 1; i<len; i++)
     {
         // Test a range with positive and negative numbers
         testValue = i-len/2;
@@ -210,7 +210,7 @@ TEST_F(ArrayMathTest, testMvgVariance)
 
     /* Expected values found using Octave */
     double expectedVariances[len] = {0.2, 0.8, 1.7, 2.5, 2.5};
-    for (int i = 0; i < len; i++)
+    for (unsigned i = 0; i < len; i++)
     {
         variance = maVariance(&test_cb, i+1);
         EXPECT_NEAR(variance, expectedVariances[i], tol);
@@ -240,7 +240,7 @@ TEST_F(ArrayMathTest, testMvgStdDeviation)
 
     /* Expected values found using Octave */
     double expectedVariances[len] = {0.2, 0.8, 1.7, 2.5, 2.5};
-    for (int i = 0; i < len; i++)
+    for (unsigned i = 0; i < len; i++)
     {
         variance = maStdDeviation(&test_cb, i+1);
         EXPECT_NEAR(variance, sqrt(expectedVariances[i]), tol);
@@ -336,7 +336,6 @@ TEST_F(ArrayMathTest, testCbMeanErrors)
 
     /* With half the array full, the mean of the last 50 and the last 100 should be the same */
     double result = 0;
-    double correct1 = 25 * 49;
     EXPECT_EQ(-1, cbMean(&test_cb, 0, &result));
     EXPECT_EQ(-1, cbMean(&test_cb, 500, &result));
     EXPECT_EQ(0, result);
@@ -393,7 +392,6 @@ TEST_F(ArrayMathTest, testcbMaxErrors)
 
     /* With half the array full, the mean of the last 50 and the last 100 should be the same */
     double result = 0;
-    double correct1 = 49;
     EXPECT_EQ(-1, cbMax(&test_cb, 0, &result));
     EXPECT_EQ(-1, cbMax(&test_cb, 500, &result));
     EXPECT_EQ(0, result);

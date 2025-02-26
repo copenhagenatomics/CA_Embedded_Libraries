@@ -65,7 +65,7 @@ int mean_element(double arr[], unsigned len, double* result) {
 int sum_element(double arr[], unsigned len, double* result) {
     if(len != 0) {
         double ret_val = arr[0];
-        for(int i = 1; i < len; i++) {
+        for(unsigned i = 1; i < len; i++) {
             ret_val += arr[i];
         }
         *result = ret_val;

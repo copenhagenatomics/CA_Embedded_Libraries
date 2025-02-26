@@ -48,7 +48,7 @@ TEST_F(NotchFilterTest, testInitialisation)
     float centerFreqHz = 2000;
     float notchWidthHz = 400;
     float fs = 40000;
-    float Ts = 1.0f/Ts;
+    float Ts = 1.0f/fs;
 
     // Check that inputs/outputs are not set yet
     for (int i = 0; i < 3; i++)
