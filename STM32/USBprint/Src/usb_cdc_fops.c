@@ -148,6 +148,7 @@ ssize_t usb_cdc_transmit(const uint8_t* Buf, uint16_t Len)
         for (int len = 0; len < Len; len++) {
             if (circular_buf_put(usb_cdc_if.tx.ctx, *Buf)) {
                 // len < Len since not enough space in buffer. Leave error handling to caller.
+                HAL_NVIC_EnableIRQ(OTG_FS_IRQn);
                 return len;  
             }
             Buf++;
