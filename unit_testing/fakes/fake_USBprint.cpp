@@ -31,7 +31,6 @@ using namespace std;
 
 static ofstream test_out, test_in;
 static stringstream test_ss;
-static size_t v_idx = 0;
 static char     RX_buffer[TX_RX_BUFFER_LENGTH] = {0};
 static size_t   rx_len = 0, rx_off = 0;
 static bool     connected = false;
