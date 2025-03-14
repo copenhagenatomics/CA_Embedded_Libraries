@@ -47,3 +47,10 @@ target_include_directories(goertzel_test PRIVATE ${INC_LIB})
 target_link_libraries(goertzel_test GTest::gtest_main gmock_main)
 target_compile_options(goertzel_test PRIVATE -Wall)
 gtest_discover_tests(goertzel_test)
+
+# Hanning tests
+add_executable(hanning_test hanning_tests.cpp ${SRC}/TransformationFunctions/Src/hanning.c)
+target_include_directories(hanning_test PRIVATE ${INC_LIB})
+target_link_libraries(hanning_test GTest::gtest_main gmock_main)
+target_compile_options(hanning_test PRIVATE -Wall)
+gtest_discover_tests(hanning_test)
