@@ -39,17 +39,29 @@
 //*****************************************************************************
 
 #include <stdbool.h>
-#include <stdint.h>
 #include <stddef.h>
+#include <stdint.h>
 #include <string.h>
 
-#include "stm32f4xx_hal.h"
 #include "StmGpio.h"
+#include "USBprint.h"
 #include "W5500.h"
+#include "stm32f4xx_hal.h"
+#include "USBprint.h"
 
 /***************************************************************************************************
 ** DEFINES
 ***************************************************************************************************/
+
+typedef struct {
+    uint8_t remoteIP[4];  // IP address of the client
+    uint16_t remotePort;  // Port of the client
+    uint8_t status;       // Status (Sn_SR register)
+    bool error;           // Error detected
+} socket_t;
+
+#define NO_OF_SOCKETS 2     // 8 sockets supported
+#define PORT          5000  // Communication port
 
 // W5500
 
@@ -347,6 +359,9 @@ int8_t  getsockopt(uint8_t sn, sockopt_type sotype, void* arg);
 
 // Can change over time is more than one physical Ethernet port is used
 static ethernetHandler_t *currentEthernet = NULL;
+
+static socket_t sockets[NO_OF_SOCKETS] = {0};
+static uint16_t noOfOpenSockets = 0;
 
 // wizchip_conf
 
@@ -840,7 +855,6 @@ int8_t socket(uint8_t sn, uint8_t protocol, uint16_t port, uint8_t flag)
 
 int8_t close_socket(uint8_t sn)
 {
-    CHECK_SOCKNUM();
     setSn_CR(sn,Sn_CR_CLOSE);
     while( getSn_CR(sn) );
     setSn_IR(sn, 0xFF);
@@ -854,9 +868,6 @@ int8_t close_socket(uint8_t sn)
 
 int8_t listen(uint8_t sn)
 {
-    CHECK_SOCKNUM();
-    CHECK_SOCKMODE(Sn_MR_TCP);
-    CHECK_SOCKINIT();
     setSn_CR(sn,Sn_CR_LISTEN);
     while(getSn_CR(sn));
     while(getSn_SR(sn) != SOCK_LISTEN)
@@ -869,21 +880,27 @@ int8_t listen(uint8_t sn)
 
 int8_t disconnect(uint8_t sn)
 {
-    CHECK_SOCKNUM();
-    CHECK_SOCKMODE(Sn_MR_TCP);
     setSn_CR(sn,Sn_CR_DISCON);
-    /* wait to process the command... */
-    while(getSn_CR(sn));
+
+    // Timeout for disconnect process (max 50ms)
+    uint32_t startTime = HAL_GetTick();
+    while (getSn_CR(sn)) {
+        if (HAL_GetTick() - startTime > 50) {
+            return SOCKERR_TIMEOUT;  // Prevent infinite loop
+        }
+    }
+
     sock_is_sending &= ~(1<<sn);
     if(sock_io_mode & (1<<sn)) return SOCK_BUSY;
+
     while(getSn_SR(sn) != SOCK_CLOSED)
     {
-        if(getSn_IR(sn) & Sn_IR_TIMEOUT)
-        {
+        if (HAL_GetTick() - startTime > 50) {
             close_socket(sn);
             return SOCKERR_TIMEOUT;
         }
     }
+
     return SOCK_OK;
 }
 
@@ -932,8 +949,7 @@ int32_t send(uint8_t sn, uint8_t * buf, uint16_t len)
     /* wait to process the command... */
     while(getSn_CR(sn));
     sock_is_sending |= (1 << sn);
-    //M20150409 : Explicit Type Casting
-    //return len;
+
     return (int32_t)len;
 }
 
@@ -1034,16 +1050,25 @@ int W5500Init(ethernetHandler_t *heth, SPI_HandleTypeDef *hspi, GPIO_TypeDef *po
     reg_wizchip_spiburst_cbfunc(wizchipReadBurst, wizchipWriteBurst);
 
     // Define the buffer sizes for the 8 sockets in kB (32 kB available in total)
-    static uint8_t txBufSize[8] = {2};
-    static uint8_t rxBufSize[8] = {2};
+    static uint8_t txBufSize[8] = {8, 8, 0, 0, 0, 0, 0, 0};
+    static uint8_t rxBufSize[8] = {8, 8, 0, 0, 0, 0, 0, 0};
 
     if (wizchip_init(txBufSize, rxBufSize) != 0)
     {
         return -1;
     }
 
+    HAL_Delay(100);
+
     // To send the network parameters to the W5500
     wizchip_setnetinfo(&currentEthernet->netInfo);
+
+    // TCP initialization
+
+    for (uint16_t socketId = 0; socketId < NO_OF_SOCKETS; socketId++) {
+        disconnect(socketId);
+    }
+    noOfOpenSockets = 0;
 
     return 0;
 }
@@ -1054,59 +1079,71 @@ int W5500Init(ethernetHandler_t *heth, SPI_HandleTypeDef *hspi, GPIO_TypeDef *po
  * @return  >=0 on success, else negative value
  * @note    Should be used in the while(1) loop of the board for each physical ethernet port
 */
-int W5500TCPServer(ethernetHandler_t *heth)
-{
+int W5500TCPServer(ethernetHandler_t* heth) {
+    static const uint8_t INVALID_SOCKET = 0xffu;
+    static uint8_t activeSocket         = INVALID_SOCKET;  // Start with an invalid socket
+
+    // Switch ethernet physical port
     ethPortSelect(heth);
 
-    static uint8_t socketNumber = 0;                // 8 sockets per ethernet are supported by the w5500 chip. Only one of them is implemented
-    static const uint16_t PORT = 5000;              // Communication port
+    for (uint8_t socketId = 0; socketId < NO_OF_SOCKETS; socketId++) {
+        sockets[socketId].status = getSn_SR(socketId);
 
-    static uint8_t remoteIP[4] = {0};               // IP address of the client
-    static uint16_t remotePort = 0;                 // Port of the client
+        switch (sockets[socketId].status) {
+            case SOCK_ESTABLISHED:
 
-    uint8_t socketStatus = getSn_SR(socketNumber);  // Socket status register
+                // If no active socket is set, this is the first connection
+                if (activeSocket == INVALID_SOCKET) {
+                    activeSocket = socketId;
+                }
+                // If this is the active socket, handle communication
+                if (socketId == activeSocket) {
+                    if (currentEthernet->newADCReady) {
+                        send(socketId, (uint8_t*)currentEthernet->sendBuf,
+                             strlen(currentEthernet->sendBuf));
+                        currentEthernet->newADCReady = false;
+                    }
 
-    // Client connected
-    if (socketStatus == SOCK_ESTABLISHED)
-    {
-        // To get the client's information
-        getsockopt(socketNumber, SO_DESTIP, &remoteIP);
-        getsockopt(socketNumber, SO_DESTPORT, &remotePort);
+                    // If the RX buffer contains data, receive it
+                    if (getSn_RX_RSR(socketId) > 0) {
+                        recv(socketId, (uint8_t*)currentEthernet->recvBuf, TCP_BUF_LEN);
+                        currentEthernet->newMessage = true;
+                        currentEthernet->timeStamp = HAL_GetTick();
+                    }
+                } else {
+                    // New client detected, disconnect old one first
+                    disconnect(activeSocket);  // Disconnect the previous client
+                    activeSocket = socketId;    // Assign the new active socket
+                }
+                break;
+            
+            case SOCK_CLOSE_WAIT:
+                // Disconnect the client and reset the active socket
+                disconnect(socketId);
+                activeSocket = INVALID_SOCKET;
+                break;
 
-        // Should be every 100ms
-        if (currentEthernet->newADCReady)
-        {
-            send(socketNumber, (uint8_t *) currentEthernet->sendBuf, strlen(currentEthernet->sendBuf));
-            currentEthernet->newADCReady = false;
+            case SOCK_CLOSED:
+                // Open a new TCP socket to listen for new clients
+                if (socketId != activeSocket) {
+                    socket(socketId, Sn_MR_TCP, PORT, 0);
+                }
+                break;
+
+            case SOCK_INIT:
+                // Start listening for new connections
+                listen(socketId);
+                break;
+
+            case SOCK_LISTEN:
+                // Waiting for a client connection
+                break;
+
+            default:
+                sockets[socketId].error = true;
+                break;
         }
+    }
 
-        // If the RX buffer of the W5500 contains a message
-        if (getSn_RX_RSR(socketNumber) > 0)
-        {
-            recv(socketNumber, (uint8_t *) currentEthernet->recvBuf, TCP_BUF_LEN);
-            currentEthernet->newMessage = true;
-            currentEthernet->timeStamp = HAL_GetTick();
-        }
-        return 0;
-    }
-    else if (socketStatus == SOCK_CLOSED)
-    {
-        socket(socketNumber, Sn_MR_TCP, PORT, 0); // Opening a new TCP socket
-        return 1;
-    }
-    else if (socketStatus == SOCK_INIT)
-    {
-        listen(socketNumber); // Listening for a client connection
-        return 2;
-    }
-    else if (socketStatus == SOCK_CLOSE_WAIT)
-    {
-        disconnect(socketNumber);
-        return 3;
-    }
-    else if (socketStatus == SOCK_LISTEN) // Waiting for a connection request
-    {
-        return 4;
-    }
-    return -1;
+    return activeSocket;
 }
