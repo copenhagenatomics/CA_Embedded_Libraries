@@ -48,24 +48,24 @@ TEST_F(TestSystemInfo, testBoardVersion) {
     HAL_otpWrite(&bi);
 
     /* Different test cases smaller, equal and larger for both major/minor */
-    EXPECT_EQ( 0, boardSetup(AC_Board, {0, 0}));
+    EXPECT_EQ( 0, boardSetup(AC_Board, {0, 0}, 0));
     /* Error flag is retained between tests, so make sure to clear it */
     bsClearField(0xFFFFFFFF);
-    EXPECT_EQ( 0, boardSetup(AC_Board, {0, 1}));
+    EXPECT_EQ( 0, boardSetup(AC_Board, {0, 1}, 0));
     bsClearField(0xFFFFFFFF);
-    EXPECT_EQ( 0, boardSetup(AC_Board, {0, 2}));
+    EXPECT_EQ( 0, boardSetup(AC_Board, {0, 2}, 0));
     bsClearField(0xFFFFFFFF);
-    EXPECT_EQ( 0, boardSetup(AC_Board, {1, 0}));
+    EXPECT_EQ( 0, boardSetup(AC_Board, {1, 0}, 0));
     bsClearField(0xFFFFFFFF);
-    EXPECT_EQ( 0, boardSetup(AC_Board, {1, 1}));
+    EXPECT_EQ( 0, boardSetup(AC_Board, {1, 1}, 0));
     bsClearField(0xFFFFFFFF);
-    EXPECT_EQ(-1, boardSetup(AC_Board, {1, 2}));
+    EXPECT_EQ(-1, boardSetup(AC_Board, {1, 2}, 0));
     bsClearField(0xFFFFFFFF);
-    EXPECT_EQ(-1, boardSetup(AC_Board, {2, 0}));
+    EXPECT_EQ(-1, boardSetup(AC_Board, {2, 0}, 0));
     bsClearField(0xFFFFFFFF);
-    EXPECT_EQ(-1, boardSetup(AC_Board, {2, 1}));
+    EXPECT_EQ(-1, boardSetup(AC_Board, {2, 1}, 0));
     bsClearField(0xFFFFFFFF);
-    EXPECT_EQ(-1, boardSetup(AC_Board, {2, 2}));
+    EXPECT_EQ(-1, boardSetup(AC_Board, {2, 2}, 0));
     bsClearField(0xFFFFFFFF);
-    EXPECT_EQ(-1, boardSetup(DC_Board, {1, 1}));
+    EXPECT_EQ(-1, boardSetup(DC_Board, {1, 1}, 0));
 }
