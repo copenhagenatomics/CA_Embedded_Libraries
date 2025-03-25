@@ -378,6 +378,7 @@ void setFirmwareBoardVersion(pcbVersion version){ BS.pcb_version = version; }
 **
 ** @param[in] type              Type of board, e.g. AC, DC, Current ...
 ** @param[in] breaking_version  Oldest version of PCB this firmware can run on
+** @param[in] boardErrorsMsk    Board error mask (with board specific bits)
 */
 int boardSetup(BoardType type, pcbVersion breaking_version, uint32_t boardErrorsMsk) {
     setFirmwareBoardType(type);
