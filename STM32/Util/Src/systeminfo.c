@@ -26,6 +26,7 @@
 // functions defined below for updating the board status.
 static struct BS
 {
+    uint32_t boardErrorsMsk;
     uint32_t boardStatus;
     float temp;
     float voltage;
@@ -187,7 +188,7 @@ const char* statusInfo(bool printStart)
     if (BS.boardStatus & BS_OVER_VOLTAGE_Msk)
     {
         len += snprintf(&buf[len], sizeof(buf) - len, 
-                        "Over voltage. One of the ports has reached a voltage out of its measurement range at %.2fV. \r\n", BS.voltage);
+                        "Over voltage. The board operates at too high voltage of %.2fV. Check power supply.\r\n", BS.voltage);
     }
 
     if (BS.boardStatus & BS_OVER_CURRENT_Msk)
@@ -234,7 +235,7 @@ const char* statusDefInfo(bool printStart)
 
     len += snprintf(&buf[len], sizeof(buf) - len, "\r\nStart of board status definition:\r\n");
 
-    len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",System errors\r\n", (uint32_t) BS_SYSTEM_ERRORS_Msk);
+    len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",System errors\r\n", (uint32_t) BS.boardErrorsMsk);
     len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",Error\r\n", (uint32_t) BS_ERROR_Msk);
     len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",Over temperature\r\n", (uint32_t) BS_OVER_TEMPERATURE_Msk);
     len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",Under voltage\r\n", (uint32_t) BS_UNDER_VOLTAGE_Msk);
@@ -378,7 +379,7 @@ void setFirmwareBoardVersion(pcbVersion version){ BS.pcb_version = version; }
 ** @param[in] type              Type of board, e.g. AC, DC, Current ...
 ** @param[in] breaking_version  Oldest version of PCB this firmware can run on
 */
-int boardSetup(BoardType type, pcbVersion breaking_version) {
+int boardSetup(BoardType type, pcbVersion breaking_version, uint32_t boardErrorsMsk) {
     setFirmwareBoardType(type);
     setFirmwareBoardVersion(breaking_version);
 
@@ -394,6 +395,8 @@ int boardSetup(BoardType type, pcbVersion breaking_version) {
     else if(ver.major == breaking_version.major && ver.minor < breaking_version.minor) {
         bsSetError(BS_VERSION_ERROR_Msk);
     }
+
+    BS.boardErrorsMsk = BS_SYSTEM_ERRORS_Msk | boardErrorsMsk;
 
     return (bsGetStatus() & BS_VERSION_ERROR_Msk) ? -1 : 0;
 }
