@@ -44,10 +44,9 @@
 #include <string.h>
 
 #include "StmGpio.h"
-#include "USBprint.h"
 #include "W5500.h"
 #include "stm32f4xx_hal.h"
-#include "USBprint.h"
+#include "time32.h"
 
 /***************************************************************************************************
 ** DEFINES
@@ -62,6 +61,8 @@ typedef struct {
 
 #define NO_OF_SOCKETS 2     // 8 sockets supported
 #define PORT          5000  // Communication port
+
+#define TIME_OUT_MS 50
 
 // W5500
 
@@ -98,8 +99,8 @@ typedef struct {
 #define Sn_RX_RD(N)        (_W5500_IO_BASE_ + (0x0028 << 8) + (WIZCHIP_SREG_BLOCK(N) << 3))
 #define Sn_TX_WR(N)        (_W5500_IO_BASE_ + (0x0024 << 8) + (WIZCHIP_SREG_BLOCK(N) << 3))
 
-#define setSn_TXBUF_SIZE(sn, txbufsize) WIZCHIP_WRITE(Sn_TXBUF_SIZE(sn), txbufsize)
-#define setSn_RXBUF_SIZE(sn, rxbufsize) WIZCHIP_WRITE(Sn_RXBUF_SIZE(sn), rxbufsize)
+#define setSn_TXBUF_SIZE(heth, sn, txbufsize) WIZCHIP_WRITE(heth, Sn_TXBUF_SIZE(sn), txbufsize)
+#define setSn_RXBUF_SIZE(heth, sn, rxbufsize) WIZCHIP_WRITE(heth, Sn_RXBUF_SIZE(sn), rxbufsize)
 
 
 /* MODE register values */
@@ -160,87 +161,44 @@ typedef struct {
 #define SOCK_IPRAW                   0x32     /**< IP raw mode socket */
 #define SOCK_MACRAW                  0x42
 
-#define setMR(mr)               WIZCHIP_WRITE(MR,mr)
-#define getMR()                 WIZCHIP_READ(MR)
-#define setGAR(gar)             WIZCHIP_WRITE_BUF(GAR,gar,4)
-#define getGAR(gar)             WIZCHIP_READ_BUF(GAR,gar,4)
-#define setSUBR(subr)           WIZCHIP_WRITE_BUF(SUBR, subr,4)
-#define getSUBR(subr)           WIZCHIP_READ_BUF(SUBR, subr, 4)
-#define setSHAR(shar)           WIZCHIP_WRITE_BUF(SHAR, shar, 6)
-#define getSHAR(shar)           WIZCHIP_READ_BUF(SHAR, shar, 6)
-#define setSIPR(sipr)           WIZCHIP_WRITE_BUF(SIPR, sipr, 4)
-#define getSIPR(sipr)           WIZCHIP_READ_BUF(SIPR, sipr, 4)
+#define setMR(heth, mr)               WIZCHIP_WRITE(heth, MR, mr)
+#define getMR(heth)                 WIZCHIP_READ(heth, MR)
+#define setGAR(heth, gar)             WIZCHIP_WRITE_BUF(heth, GAR, gar, 4)
+#define getGAR(heth, gar)             WIZCHIP_READ_BUF(heth, GAR, gar, 4)
+#define setSUBR(heth, subr)           WIZCHIP_WRITE_BUF(heth, SUBR, subr, 4)
+#define getSUBR(heth, subr)           WIZCHIP_READ_BUF(heth, SUBR, subr, 4)
+#define setSHAR(heth, shar)           WIZCHIP_WRITE_BUF(heth, SHAR, shar, 6)
+#define getSHAR(heth, shar)           WIZCHIP_READ_BUF(heth, SHAR, shar, 6)
+#define setSIPR(heth, sipr)           WIZCHIP_WRITE_BUF(heth, SIPR, sipr, 4)
+#define getSIPR(heth, sipr)           WIZCHIP_READ_BUF(heth, SIPR, sipr, 4)
 
-#define setSn_MR(sn, mr)        WIZCHIP_WRITE(Sn_MR(sn),mr)
-#define getSn_MR(sn)            WIZCHIP_READ(Sn_MR(sn))
-#define setSn_CR(sn, cr)        WIZCHIP_WRITE(Sn_CR(sn), cr)
-#define setSn_IR(sn, ir)        WIZCHIP_WRITE(Sn_IR(sn), (ir & 0x1F))
-#define getSn_CR(sn)            WIZCHIP_READ(Sn_CR(sn))
-#define getSn_SR(sn)            WIZCHIP_READ(Sn_SR(sn))
-#define getSn_IR(sn)            (WIZCHIP_READ(Sn_IR(sn)) & 0x1F)
-#define getSn_TXBUF_SIZE(sn)    WIZCHIP_READ(Sn_TXBUF_SIZE(sn))
-#define getSn_RXBUF_SIZE(sn)    WIZCHIP_READ(Sn_RXBUF_SIZE(sn))
-#define getSn_TX_WR(sn)         (((uint16_t)WIZCHIP_READ(Sn_TX_WR(sn)) << 8) + WIZCHIP_READ(WIZCHIP_OFFSET_INC(Sn_TX_WR(sn),1)))	
-#define getSn_TxMAX(sn)         (((uint16_t)getSn_TXBUF_SIZE(sn)) << 10)
-#define getSn_RxMAX(sn)         (((uint16_t)getSn_RXBUF_SIZE(sn)) << 10)
-#define getSn_DPORT(sn)         (((uint16_t)WIZCHIP_READ(Sn_DPORT(sn)) << 8) + WIZCHIP_READ(WIZCHIP_OFFSET_INC(Sn_DPORT(sn),1)))
-#define getSn_DIPR(sn, dipr)    WIZCHIP_READ_BUF(Sn_DIPR(sn), dipr, 4)
-#define setSn_PORT(sn, port)  { WIZCHIP_WRITE(Sn_PORT(sn),   (uint8_t)(port >> 8)); \
-                                WIZCHIP_WRITE(WIZCHIP_OFFSET_INC(Sn_PORT(sn),1), (uint8_t) port); }
-#define setSn_TX_WR(sn, txwr) { WIZCHIP_WRITE(Sn_TX_WR(sn),   (uint8_t)(txwr>>8)); \
-                                WIZCHIP_WRITE(WIZCHIP_OFFSET_INC(Sn_TX_WR(sn),1), (uint8_t) txwr); }
-#define setSn_RX_RD(sn, rxrd) { WIZCHIP_WRITE(Sn_RX_RD(sn),   (uint8_t)(rxrd>>8)); \
-                                WIZCHIP_WRITE(WIZCHIP_OFFSET_INC(Sn_RX_RD(sn),1), (uint8_t) rxrd); }
-#define getSn_RX_RD(sn)         (((uint16_t)WIZCHIP_READ(Sn_RX_RD(sn)) << 8) + WIZCHIP_READ(WIZCHIP_OFFSET_INC(Sn_RX_RD(sn),1)))
+#define setSn_MR(heth, sn, mr)        WIZCHIP_WRITE(heth, Sn_MR(sn), mr)
+#define getSn_MR(heth, sn)            WIZCHIP_READ(heth, Sn_MR(sn))
+#define setSn_CR(heth, sn, cr)        WIZCHIP_WRITE(heth, Sn_CR(sn), cr)
+#define setSn_IR(heth, sn, ir)        WIZCHIP_WRITE(heth, Sn_IR(sn), (ir & 0x1F))
+#define getSn_CR(heth, sn)            WIZCHIP_READ(heth, Sn_CR(sn))
+#define getSn_SR(heth, sn)            WIZCHIP_READ(heth, Sn_SR(sn))
+#define getSn_IR(heth, sn)            (WIZCHIP_READ(heth, Sn_IR(sn)) & 0x1F)
+#define getSn_TXBUF_SIZE(heth, sn)    WIZCHIP_READ(heth, Sn_TXBUF_SIZE(sn))
+#define getSn_RXBUF_SIZE(heth, sn)    WIZCHIP_READ(heth, Sn_RXBUF_SIZE(sn))
+#define getSn_TX_WR(heth, sn)         (((uint16_t)WIZCHIP_READ(heth, Sn_TX_WR(sn)) << 8) + WIZCHIP_READ(heth, WIZCHIP_OFFSET_INC(Sn_TX_WR(sn), 1)))	
+#define getSn_TxMAX(heth, sn)         (((uint16_t)getSn_TXBUF_SIZE(heth, sn)) << 10)
+#define getSn_RxMAX(heth, sn)         (((uint16_t)getSn_RXBUF_SIZE(heth, sn)) << 10)
+#define getSn_DPORT(heth, sn)         (((uint16_t)WIZCHIP_READ(heth, Sn_DPORT(sn)) << 8) + WIZCHIP_READ(heth, WIZCHIP_OFFSET_INC(Sn_DPORT(sn), 1)))
+#define getSn_DIPR(heth, sn, dipr)    WIZCHIP_READ_BUF(heth, Sn_DIPR(sn), dipr, 4)
+#define setSn_PORT(heth, sn, port)  { WIZCHIP_WRITE(heth, Sn_PORT(sn), (uint8_t)(port >> 8)); \
+                                WIZCHIP_WRITE(heth, WIZCHIP_OFFSET_INC(Sn_PORT(sn),1), (uint8_t) port); }
+#define setSn_TX_WR(heth, sn, txwr) { WIZCHIP_WRITE(heth, Sn_TX_WR(sn), (uint8_t)(txwr>>8)); \
+                                WIZCHIP_WRITE(heth, WIZCHIP_OFFSET_INC(Sn_TX_WR(sn),1), (uint8_t) txwr); }
+#define setSn_RX_RD(heth, sn, rxrd) { WIZCHIP_WRITE(heth, Sn_RX_RD(sn), (uint8_t)(rxrd>>8)); \
+                                WIZCHIP_WRITE(heth, WIZCHIP_OFFSET_INC(Sn_RX_RD(sn),1), (uint8_t) rxrd); }
+#define getSn_RX_RD(heth, sn)         (((uint16_t)WIZCHIP_READ(heth, Sn_RX_RD(sn)) << 8) + WIZCHIP_READ(heth, WIZCHIP_OFFSET_INC(Sn_RX_RD(sn),1)))
 
 // wizchip_conf
 
-#define _WIZCHIP_IO_MODE_NONE_          0x0000
-#define _WIZCHIP_IO_MODE_BUS_           0x0100 /**< Bus interface mode */
-#define _WIZCHIP_IO_MODE_SPI_           0x0200 /**< SPI interface mode */
-
-#define _WIZCHIP_IO_MODE_SPI_VDM_       (_WIZCHIP_IO_MODE_SPI_ + 1) /**< SPI interface mode for variable length data*/
-#define _WIZCHIP_IO_MODE_SPI_FDM_       (_WIZCHIP_IO_MODE_SPI_ + 2) /**< SPI interface mode for fixed length data mode*/
-#define _WIZCHIP_IO_MODE_SPI_5500_      (_WIZCHIP_IO_MODE_SPI_ + 3) /**< SPI interface mode for fixed length data mode*/
-
-#define _WIZCHIP_ID_                    "W5500\0"
-
-#define _WIZCHIP_IO_MODE_               _WIZCHIP_IO_MODE_SPI_VDM_
-
 typedef   uint8_t   iodata_t;
 
-typedef struct __WIZCHIP
-{
-    uint16_t  if_mode;               ///< host interface mode
-    uint8_t   id[8];                 ///< @b WIZCHIP ID such as @b 5100, @b 5100S, @b 5200, @b 5500, and so on.
-    struct _CRIS {
-        void (*_enter)  (void);       ///< crtical section enter 
-        void (*_exit) (void);         ///< critial section exit  
-    }CRIS;
-    struct _CS {
-        void (*_select)  (void);      ///< @ref \_WIZCHIP_ selected
-        void (*_deselect)(void);      ///< @ref \_WIZCHIP_ deselected
-    }CS;
-    union _IF {	  
-        struct {
-            iodata_t  (*_read_data)   (uint32_t AddrSel);
-            void      (*_write_data)  (uint32_t AddrSel, iodata_t wb);
-        } BUS;      
-        struct {
-            uint8_t (*_read_byte)   (void);
-            void    (*_write_byte)  (uint8_t wb);
-            void    (*_read_burst)  (uint8_t* pBuf, uint16_t len);
-            void    (*_write_burst) (uint8_t* pBuf, uint16_t len);
-        } SPI;
-    }IF;
-}_WIZCHIP;
-
 // socket
-
-#define CHECK_SOCKNUM()         do{ if(sn > _WIZCHIP_SOCK_NUM_)         return SOCKERR_SOCKNUM;     } while(0);
-#define CHECK_SOCKMODE(mode)    do{ if((getSn_MR(sn) & 0x0F) != mode)   return SOCKERR_SOCKMODE;    } while(0);
-#define CHECK_SOCKINIT()        do{ if((getSn_SR(sn) != SOCK_INIT))     return SOCKERR_SOCKINIT;    } while(0);
-#define CHECK_SOCKDATA()        do{ if(len == 0)                        return SOCKERR_DATALEN;     } while(0);
 
 typedef enum
 {
@@ -260,8 +218,6 @@ typedef enum
 }sockopt_type;
 
 #define SOCK_ANY_PORT_NUM  0xC000
-
-#define SOCKET                uint8_t  ///< SOCKET type define for legacy driver
 
 #define SOCK_OK               1        ///< Result is OK about socket process.
 #define SOCK_BUSY             0        ///< Socket is busy on processing the operation. Valid only Non-block IO Mode.
@@ -287,114 +243,56 @@ typedef enum
 /*
  * SOCKET FLAG
  */
-#define SF_ETHER_OWN           (Sn_MR_MFEN)        ///< In @ref Sn_MR_MACRAW, Receive only the packet as broadcast, multicast and own packet
-#define SF_IGMP_VER2           (Sn_MR_MC)          ///< In @ref Sn_MR_UDP with \ref SF_MULTI_ENABLE, Select IGMP version 2.   
 #define SF_TCP_NODELAY         (Sn_MR_ND)          ///< In @ref Sn_MR_TCP, Use to nodelayed ack.
-#define SF_MULTI_ENABLE        (Sn_MR_MULTI)       ///< In @ref Sn_MR_UDP, Enable multicast mode.
-
-#define SF_BROAD_BLOCK         (Sn_MR_BCASTB)   ///< In @ref Sn_MR_UDP or @ref Sn_MR_MACRAW, Block broadcast packet. Valid only in W5500
-#define SF_MULTI_BLOCK         (Sn_MR_MMB)      ///< In @ref Sn_MR_MACRAW, Block multicast packet. Valid only in W5500
-#define SF_IPv6_BLOCK          (Sn_MR_MIP6B)    ///< In @ref Sn_MR_MACRAW, Block IPv6 packet. Valid only in W5500
-#define SF_UNI_BLOCK           (Sn_MR_UCASTB)   ///< In @ref Sn_MR_UDP with \ref SF_MULTI_ENABLE. Valid only in W5500
 
 #define SF_IO_NONBLOCK           0x01              ///< Socket nonblock io mode. It used parameter in \ref socket().
 
 /*
  * UDP & MACRAW Packet Infomation
  */
-#define PACK_FIRST               0x80              ///< In Non-TCP packet, It indicates to start receiving a packet. (When W5300, This flag can be applied)
-#define PACK_REMAINED            0x01              ///< In Non-TCP packet, It indicates to remain a packet to be received. (When W5300, This flag can be applied)
 #define PACK_COMPLETED           0x00              ///< In Non-TCP packet, It indicates to complete to receive a packet. (When W5300, This flag can be applied)
 
 /***************************************************************************************************
 ** PRIVATE FUNCTION DECLARATIONS
 ***************************************************************************************************/
 
-static void wizchipSelect();
-static void wizchipUnselect();
-static void wizchipReadBurst(uint8_t* buff, uint16_t len);
-static void wizchipWriteBurst(uint8_t* buff, uint16_t len);
-static void ethPortSelect(ethernetHandler_t *heth);
+static void chipSelect(ethernetHandler_t *heth);
+static void chipUnselect(ethernetHandler_t *heth);
+static void readBurst(ethernetHandler_t *heth, uint8_t *buff, uint16_t len);
+static void writeBurst(ethernetHandler_t *heth, uint8_t *buff, uint16_t len);
+static uint8_t readByte(ethernetHandler_t *heth);
 
 // W5500
-uint8_t WIZCHIP_READ(uint32_t AddrSel);
-void WIZCHIP_WRITE(uint32_t AddrSel, uint8_t wb);
-void WIZCHIP_READ_BUF(uint32_t AddrSel, uint8_t* pBuf, uint16_t len);
-void WIZCHIP_WRITE_BUF(uint32_t AddrSel, uint8_t* pBuf, uint16_t len);
-uint16_t getSn_TX_FSR(uint8_t sn);
-uint16_t getSn_RX_RSR(uint8_t sn);
-void wiz_send_data(uint8_t sn, uint8_t *wizdata, uint16_t len);
-void wiz_recv_data(uint8_t sn, uint8_t *wizdata, uint16_t len);
+uint8_t WIZCHIP_READ(ethernetHandler_t *heth, uint32_t AddrSel);
+void WIZCHIP_WRITE(ethernetHandler_t *heth, uint32_t AddrSel, uint8_t wb);
+void WIZCHIP_READ_BUF(ethernetHandler_t *heth, uint32_t AddrSel, uint8_t* pBuf, uint16_t len);
+void WIZCHIP_WRITE_BUF(ethernetHandler_t *heth, uint32_t AddrSel, uint8_t* pBuf, uint16_t len);
+uint16_t getSn_TX_FSR(ethernetHandler_t *heth, uint8_t sn);
+uint16_t getSn_RX_RSR(ethernetHandler_t *heth, uint8_t sn);
+void wiz_send_data(ethernetHandler_t *heth, uint8_t sn, uint8_t *wizdata, uint16_t len);
+void wiz_recv_data(ethernetHandler_t *heth, uint8_t sn, uint8_t *wizdata, uint16_t len);
 
 // wizchip_conf
-static_wizchip_conf_t get_static_wizchip_conf(void);
-void set_static_wizchip_conf(static_wizchip_conf_t static_wizchip_conf);
-void wizchip_cris_enter(void);
-void wizchip_cris_exit(void);
-void wizchip_cs_select(void);
-void wizchip_cs_deselect(void);
-iodata_t wizchip_bus_readdata(uint32_t AddrSel);
-void wizchip_bus_writedata(uint32_t AddrSel, iodata_t wb);
-static void reg_wizchip_cs_cbfunc(void(*cs_sel)(void), void(*cs_desel)(void));
-static void reg_wizchip_spi_cbfunc(uint8_t (*spi_rb)(void), void (*spi_wb)(uint8_t wb));
-static void reg_wizchip_spiburst_cbfunc(void (*spi_rb)(uint8_t* pBuf, uint16_t len), void (*spi_wb)(uint8_t* pBuf, uint16_t len));
-static void wizchip_sw_reset(void);
-static int8_t wizchip_init(uint8_t* txsize, uint8_t* rxsize);
-void wizchip_setnetinfo(wiz_NetInfo* pnetinfo);
+static void wizchip_sw_reset(ethernetHandler_t *heth);
+static int8_t wizchip_init(ethernetHandler_t *heth, uint8_t* txsize, uint8_t* rxsize);
+void wizchip_setnetinfo(ethernetHandler_t *heth, netInfo_t* pnetinfo);
 
 // socket
-static_socket_t get_static_socket(void);
-void set_static_socket(static_socket_t static_socket);
-int8_t socket(uint8_t sn, uint8_t protocol, uint16_t port, uint8_t flag);
-int8_t close_socket(uint8_t sn);
-int8_t listen(uint8_t sn);
-int8_t disconnect(uint8_t sn);
-int32_t send(uint8_t sn, uint8_t *buf, uint16_t len);
-int32_t recv(uint8_t sn, uint8_t *buf, uint16_t len);
-int8_t  getsockopt(uint8_t sn, sockopt_type sotype, void* arg);
+int8_t socket(ethernetHandler_t *heth, uint8_t sn, uint8_t protocol, uint16_t port, uint8_t flag);
+int8_t close_socket(ethernetHandler_t *heth, uint8_t sn);
+int8_t listen(ethernetHandler_t *heth, uint8_t sn);
+int8_t disconnect(ethernetHandler_t *heth, uint8_t sn);
+int32_t send(ethernetHandler_t *heth, uint8_t sn, uint8_t *buf, uint16_t len);
+int32_t recv(ethernetHandler_t *heth, uint8_t sn, uint8_t *buf, uint16_t len);
+int8_t getsockopt(ethernetHandler_t *heth, uint8_t sn, sockopt_type sotype, void* arg);
 
 /***************************************************************************************************
 ** PRIVATE OBJECTS
 ***************************************************************************************************/
 
-// Can change over time is more than one physical Ethernet port is used
-static ethernetHandler_t *currentEthernet = NULL;
-
 static socket_t sockets[NO_OF_SOCKETS] = {0};
 static uint16_t noOfOpenSockets = 0;
 
-// wizchip_conf
-
-_WIZCHIP WIZCHIP =
-{
-    _WIZCHIP_IO_MODE_,
-    _WIZCHIP_ID_ ,
-    {
-        wizchip_cris_enter,
-        wizchip_cris_exit
-    },
-    {
-        wizchip_cs_select,
-        wizchip_cs_deselect
-    },
-    {
-        {
-            wizchip_bus_readdata,
-            wizchip_bus_writedata
-        },
-
-    }
-};
-
-static uint8_t    _DNS_[4];      // DNS server ip address
-static dhcp_mode  _DHCP_;        // DHCP mode
-
-// socket
-
-static uint16_t sock_any_port = SOCK_ANY_PORT_NUM;
-static uint16_t sock_io_mode = 0;
-static uint16_t sock_is_sending = 0;
-static uint16_t sock_remained_size[_WIZCHIP_SOCK_NUM_] = {0,0,};
 uint8_t  sock_pack_info[_WIZCHIP_SOCK_NUM_] = {0,};
 
 /***************************************************************************************************
@@ -404,18 +302,17 @@ uint8_t  sock_pack_info[_WIZCHIP_SOCK_NUM_] = {0,};
 /*!
  * @brief   Callback function to select the W5500 SPI peripheral
 */
-static void wizchipSelect()
+static void chipSelect(ethernetHandler_t *heth)
 {
-    // Chip selected when the pin is grounded
-    stmSetGpio(currentEthernet->select, false);
+    stmSetGpio(heth->select, false);
 }
 
 /*!
  * @brief   Callback function to unselect the W5500 SPI peripheral
 */
-static void wizchipUnselect()
+static void chipUnselect(ethernetHandler_t *heth)
 {
-    stmSetGpio(currentEthernet->select, true);
+    stmSetGpio(heth->select, true);
 }
 
 /*!
@@ -423,9 +320,9 @@ static void wizchipUnselect()
  * @param   buff Pointer to the buffer
  * @param   len Maximum length of the buffer
 */
-static void wizchipReadBurst(uint8_t* buff, uint16_t len)
+static void readBurst(ethernetHandler_t *heth, uint8_t* buff, uint16_t len)
 {
-    HAL_SPI_Receive(currentEthernet->hspi, buff, len, HAL_MAX_DELAY);
+    HAL_SPI_Receive(heth->hspi, buff, len, HAL_MAX_DELAY);
 }
 
 /*!
@@ -433,470 +330,351 @@ static void wizchipReadBurst(uint8_t* buff, uint16_t len)
  * @param   buff Pointer to the buffer
  * @param   len Maximum length of the buffer
 */
-static void wizchipWriteBurst(uint8_t* buff, uint16_t len)
+static void writeBurst(ethernetHandler_t *heth, uint8_t* buff, uint16_t len)
 {
-    HAL_SPI_Transmit(currentEthernet->hspi, buff, len, HAL_MAX_DELAY);
+    HAL_SPI_Transmit(heth->hspi, buff, len, HAL_MAX_DELAY);
 }
 
 /*!
  * @brief   Callback function to read a byte
  * @return  The byte that has been read
 */
-static uint8_t wizchipReadByte()
+static uint8_t readByte(ethernetHandler_t *heth)
 {
     static uint8_t byte;
-    wizchipReadBurst(&byte, sizeof(byte));
+    readBurst(heth, &byte, sizeof(byte));
     return byte;
-}
-
-/*!
- * @brief   Callback function to write a byte
- * @param   byte The byte to be written
-*/
-static void wizchipWriteByte(uint8_t byte)
-{
-    wizchipWriteBurst(&byte, sizeof(byte));
-}
-
-/*!
- * @brief   Selection of the ethernet port
- * @param   heth Pointer to the ethernet handler to be selected
-*/
-static void ethPortSelect(ethernetHandler_t *heth)
-{
-    currentEthernet->static_wizchip_conf = get_static_wizchip_conf();
-    currentEthernet->static_socket = get_static_socket();
-
-    currentEthernet = heth;
-
-    set_static_wizchip_conf(currentEthernet->static_wizchip_conf);
-    set_static_socket(currentEthernet->static_socket);
 }
 
 /**************************************************************
 *               From W5500
 ***************************************************************/
 
-uint8_t WIZCHIP_READ(uint32_t AddrSel)
-{
-    uint8_t ret;
+uint8_t WIZCHIP_READ(ethernetHandler_t *heth, uint32_t AddrSel) {
     uint8_t spi_data[3];
 
-    WIZCHIP.CS._select();
+    chipSelect(heth);
 
     AddrSel |= (_W5500_SPI_READ_ | _W5500_SPI_VDM_OP_);
+    spi_data[0] = (AddrSel & 0x00FF0000) >> 16;
+    spi_data[1] = (AddrSel & 0x0000FF00) >> 8;
+    spi_data[2] = (AddrSel & 0x000000FF) >> 0;
 
-    if(!WIZCHIP.IF.SPI._read_burst || !WIZCHIP.IF.SPI._write_burst) 	// byte operation
-    {
-        WIZCHIP.IF.SPI._write_byte((AddrSel & 0x00FF0000) >> 16);
-        WIZCHIP.IF.SPI._write_byte((AddrSel & 0x0000FF00) >>  8);
-        WIZCHIP.IF.SPI._write_byte((AddrSel & 0x000000FF) >>  0);
-    }
-    else																// burst operation
-    {
-        spi_data[0] = (AddrSel & 0x00FF0000) >> 16;
-        spi_data[1] = (AddrSel & 0x0000FF00) >> 8;
-        spi_data[2] = (AddrSel & 0x000000FF) >> 0;
-        WIZCHIP.IF.SPI._write_burst(spi_data, 3);
-    }
-    ret = WIZCHIP.IF.SPI._read_byte();
+    writeBurst(heth, spi_data, 3);
+    uint8_t ret = readByte(heth);
 
-    WIZCHIP.CS._deselect();
+    chipUnselect(heth);
+
     return ret;
 }
 
-void WIZCHIP_WRITE(uint32_t AddrSel, uint8_t wb)
-{
+void WIZCHIP_WRITE(ethernetHandler_t *heth, uint32_t AddrSel, uint8_t wb) {
     uint8_t spi_data[4];
-    WIZCHIP.CS._select();
+
+    chipSelect(heth);
 
     AddrSel |= (_W5500_SPI_WRITE_ | _W5500_SPI_VDM_OP_);
+    spi_data[0] = (AddrSel & 0x00FF0000) >> 16;
+    spi_data[1] = (AddrSel & 0x0000FF00) >> 8;
+    spi_data[2] = (AddrSel & 0x000000FF) >> 0;
+    spi_data[3] = wb;
 
-    if(!WIZCHIP.IF.SPI._write_burst) 	// byte operation
-    {
-        WIZCHIP.IF.SPI._write_byte((AddrSel & 0x00FF0000) >> 16);
-        WIZCHIP.IF.SPI._write_byte((AddrSel & 0x0000FF00) >>  8);
-        WIZCHIP.IF.SPI._write_byte((AddrSel & 0x000000FF) >>  0);
-        WIZCHIP.IF.SPI._write_byte(wb);
-    }
-    else									// burst operation
-    {
-        spi_data[0] = (AddrSel & 0x00FF0000) >> 16;
-        spi_data[1] = (AddrSel & 0x0000FF00) >> 8;
-        spi_data[2] = (AddrSel & 0x000000FF) >> 0;
-        spi_data[3] = wb;
-        WIZCHIP.IF.SPI._write_burst(spi_data, 4);
-    }
+    writeBurst(heth, spi_data, 4);
 
-    WIZCHIP.CS._deselect();
+    chipUnselect(heth);
 }
             
-void WIZCHIP_READ_BUF(uint32_t AddrSel, uint8_t* pBuf, uint16_t len)
-{
+void WIZCHIP_READ_BUF(ethernetHandler_t *heth, uint32_t AddrSel, uint8_t* pBuf, uint16_t len) {
     uint8_t spi_data[3];
-    uint16_t i;
 
-    WIZCHIP.CS._select();
+    chipSelect(heth);
 
     AddrSel |= (_W5500_SPI_READ_ | _W5500_SPI_VDM_OP_);
+    spi_data[0] = (AddrSel & 0x00FF0000) >> 16;
+    spi_data[1] = (AddrSel & 0x0000FF00) >> 8;
+    spi_data[2] = (AddrSel & 0x000000FF) >> 0;
 
-    if(!WIZCHIP.IF.SPI._read_burst || !WIZCHIP.IF.SPI._write_burst) 	// byte operation
-    {
-        WIZCHIP.IF.SPI._write_byte((AddrSel & 0x00FF0000) >> 16);
-        WIZCHIP.IF.SPI._write_byte((AddrSel & 0x0000FF00) >>  8);
-        WIZCHIP.IF.SPI._write_byte((AddrSel & 0x000000FF) >>  0);
-        for(i = 0; i < len; i++)
-            pBuf[i] = WIZCHIP.IF.SPI._read_byte();
-    }
-    else																// burst operation
-    {
-        spi_data[0] = (AddrSel & 0x00FF0000) >> 16;
-        spi_data[1] = (AddrSel & 0x0000FF00) >> 8;
-        spi_data[2] = (AddrSel & 0x000000FF) >> 0;
-        WIZCHIP.IF.SPI._write_burst(spi_data, 3);
-        WIZCHIP.IF.SPI._read_burst(pBuf, len);
-    }
+    writeBurst(heth, spi_data, 3);
+    readBurst(heth, pBuf, len);
 
-    WIZCHIP.CS._deselect();
+    chipUnselect(heth);
 }
 
-void WIZCHIP_WRITE_BUF(uint32_t AddrSel, uint8_t* pBuf, uint16_t len)
-{
+void WIZCHIP_WRITE_BUF(ethernetHandler_t *heth, uint32_t AddrSel, uint8_t* pBuf, uint16_t len) {
     uint8_t spi_data[3];
-    uint16_t i;
 
-    WIZCHIP.CS._select();
+    chipSelect(heth);
 
     AddrSel |= (_W5500_SPI_WRITE_ | _W5500_SPI_VDM_OP_);
+    spi_data[0] = (AddrSel & 0x00FF0000) >> 16;
+    spi_data[1] = (AddrSel & 0x0000FF00) >> 8;
+    spi_data[2] = (AddrSel & 0x000000FF) >> 0;
 
-    if(!WIZCHIP.IF.SPI._write_burst) 	// byte operation
-    {
-        WIZCHIP.IF.SPI._write_byte((AddrSel & 0x00FF0000) >> 16);
-        WIZCHIP.IF.SPI._write_byte((AddrSel & 0x0000FF00) >>  8);
-        WIZCHIP.IF.SPI._write_byte((AddrSel & 0x000000FF) >>  0);
-        for(i = 0; i < len; i++)
-            WIZCHIP.IF.SPI._write_byte(pBuf[i]);
-    }
-    else									// burst operation
-    {
-        spi_data[0] = (AddrSel & 0x00FF0000) >> 16;
-        spi_data[1] = (AddrSel & 0x0000FF00) >> 8;
-        spi_data[2] = (AddrSel & 0x000000FF) >> 0;
-        WIZCHIP.IF.SPI._write_burst(spi_data, 3);
-        WIZCHIP.IF.SPI._write_burst(pBuf, len);
-    }
 
-    WIZCHIP.CS._deselect();
+    writeBurst(heth, spi_data, 3);
+    writeBurst(heth, pBuf, len);
+
+    chipUnselect(heth);
 }
 
-uint16_t getSn_TX_FSR(uint8_t sn)
-{
-    uint16_t val=0,val1=0;
+uint16_t getSn_TX_FSR(ethernetHandler_t *heth, uint8_t sn) {
+    uint32_t timeStamp = HAL_GetTick();
+    uint16_t val = 1;
+    uint16_t val1 = 0;
 
-    do
-    {
-        val1 = WIZCHIP_READ(Sn_TX_FSR(sn));
-        val1 = (val1 << 8) + WIZCHIP_READ(WIZCHIP_OFFSET_INC(Sn_TX_FSR(sn),1));
-        if (val1 != 0)
-        {
-          val = WIZCHIP_READ(Sn_TX_FSR(sn));
-          val = (val << 8) + WIZCHIP_READ(WIZCHIP_OFFSET_INC(Sn_TX_FSR(sn),1));
+    while (val != val1) {
+        val1 = WIZCHIP_READ(heth, Sn_TX_FSR(sn));
+        val1 = (val1 << 8) + WIZCHIP_READ(heth, WIZCHIP_OFFSET_INC(Sn_TX_FSR(sn), 1));
+
+        if (val1 != 0) {
+            val = WIZCHIP_READ(heth, Sn_TX_FSR(sn));
+            val = (val << 8) + WIZCHIP_READ(heth, WIZCHIP_OFFSET_INC(Sn_TX_FSR(sn), 1));
         }
-    }while (val != val1);
+
+        if (tdiff_u32(HAL_GetTick(), timeStamp) > TIME_OUT_MS) {
+            return 0;
+        }
+    }
+
     return val;
 }
 
-uint16_t getSn_RX_RSR(uint8_t sn)
-{
-    uint16_t val=0,val1=0;
+uint16_t getSn_RX_RSR(ethernetHandler_t *heth, uint8_t sn) {
+    uint32_t timeStamp = HAL_GetTick();
+    uint16_t val = 1;
+    uint16_t val1 = 0;
 
-    do
-    {
-        val1 = WIZCHIP_READ(Sn_RX_RSR(sn));
-        val1 = (val1 << 8) + WIZCHIP_READ(WIZCHIP_OFFSET_INC(Sn_RX_RSR(sn),1));
-        if (val1 != 0)
-        {
-          val = WIZCHIP_READ(Sn_RX_RSR(sn));
-          val = (val << 8) + WIZCHIP_READ(WIZCHIP_OFFSET_INC(Sn_RX_RSR(sn),1));
+    while (val != val1) {
+        val1 = WIZCHIP_READ(heth, Sn_RX_RSR(sn));
+        val1 = (val1 << 8) + WIZCHIP_READ(heth, WIZCHIP_OFFSET_INC(Sn_RX_RSR(sn), 1));
+
+        if (val1 != 0) {
+            val = WIZCHIP_READ(heth, Sn_RX_RSR(sn));
+            val = (val << 8) + WIZCHIP_READ(heth, WIZCHIP_OFFSET_INC(Sn_RX_RSR(sn), 1));
         }
-    }while (val != val1);
+
+        if (tdiff_u32(HAL_GetTick(), timeStamp) > TIME_OUT_MS) {
+            return 0;
+        }
+    }
+
     return val;
 }
 
-void wiz_send_data(uint8_t sn, uint8_t *wizdata, uint16_t len)
-{
+void wiz_send_data(ethernetHandler_t *heth, uint8_t sn, uint8_t *wizdata, uint16_t len) {
     uint16_t ptr = 0;
     uint32_t addrsel = 0;
-    if(len == 0)  return;
-    ptr = getSn_TX_WR(sn);
+
+    if(len == 0) {
+        return;
+    }
+    ptr = getSn_TX_WR(heth, sn);
     addrsel = ((uint32_t)ptr << 8) + (WIZCHIP_TXBUF_BLOCK(sn) << 3);
-    WIZCHIP_WRITE_BUF(addrsel,wizdata, len);
+    WIZCHIP_WRITE_BUF(heth, addrsel, wizdata, len);
     ptr += len;
-    setSn_TX_WR(sn,ptr);
+    setSn_TX_WR(heth, sn,ptr);
 }
 
-void wiz_recv_data(uint8_t sn, uint8_t *wizdata, uint16_t len)
-{
+void wiz_recv_data(ethernetHandler_t *heth, uint8_t sn, uint8_t *wizdata, uint16_t len) {
     uint16_t ptr = 0;
     uint32_t addrsel = 0;
-    if(len == 0) return;
-    ptr = getSn_RX_RD(sn);
+
+    if(len == 0) {
+        return;
+    }
+
+    ptr = getSn_RX_RD(heth, sn);
     addrsel = ((uint32_t)ptr << 8) + (WIZCHIP_RXBUF_BLOCK(sn) << 3);
-    WIZCHIP_READ_BUF(addrsel, wizdata, len);
+    WIZCHIP_READ_BUF(heth, addrsel, wizdata, len);
     ptr += len;
-    setSn_RX_RD(sn,ptr);
+    setSn_RX_RD(heth, sn, ptr);
 }
 
 /**************************************************************
 *               From wizchip_conf
 ***************************************************************/
 
-static_wizchip_conf_t get_static_wizchip_conf(void)
-{
-    static_wizchip_conf_t static_wizchip_conf;
-    for (int i = 0; i < 4; i++)
-    {
-        static_wizchip_conf.dns[i] = _DNS_[i];
-    }
-    static_wizchip_conf.dhcp = _DHCP_;
-    return static_wizchip_conf;
-}
-
-void set_static_wizchip_conf(static_wizchip_conf_t static_wizchip_conf)
-{
-    for (int i = 0; i < 4; i++)
-    {
-        _DNS_[i] = static_wizchip_conf.dns[i];
-    }
-    _DHCP_ = static_wizchip_conf.dhcp;
-}
-
-void wizchip_cris_enter(void) {}
-
-void wizchip_cris_exit(void) {}
-
-void wizchip_cs_select(void) {}
-
-void wizchip_cs_deselect(void) {}
-
-iodata_t wizchip_bus_readdata(uint32_t AddrSel) { return * ((volatile iodata_t *)((ptrdiff_t) AddrSel)); }
-
-void wizchip_bus_writedata(uint32_t AddrSel, iodata_t wb) { *((volatile iodata_t*)((ptrdiff_t)AddrSel)) = wb; }
-
-static void reg_wizchip_cs_cbfunc(void(*cs_sel)(void), void(*cs_desel)(void))
-{
-    WIZCHIP.CS._select   = cs_sel;
-    WIZCHIP.CS._deselect = cs_desel;
-}
-
-static void reg_wizchip_spi_cbfunc(uint8_t (*spi_rb)(void), void (*spi_wb)(uint8_t wb))
-{
-    WIZCHIP.IF.SPI._read_byte   = spi_rb;
-    WIZCHIP.IF.SPI._write_byte  = spi_wb;
-}
-
-static void reg_wizchip_spiburst_cbfunc(void (*spi_rb)(uint8_t* pBuf, uint16_t len), void (*spi_wb)(uint8_t* pBuf, uint16_t len))
-{
-    WIZCHIP.IF.SPI._read_burst   = spi_rb;
-    WIZCHIP.IF.SPI._write_burst  = spi_wb;
-}
-
-static void wizchip_sw_reset(void)
-{
+static void wizchip_sw_reset(ethernetHandler_t *heth) {
     uint8_t gw[4], sn[4], sip[4];
     uint8_t mac[6];
-    getSHAR(mac);
-    getGAR(gw);
-    getSUBR(sn);
-    getSIPR(sip);
-    setMR(MR_RST);
-    getMR(); // for delay
-    setSHAR(mac);
-    setGAR(gw);
-    setSUBR(sn);
-    setSIPR(sip);
+
+    getSHAR(heth, mac);
+    getGAR(heth, gw);
+    getSUBR(heth, sn);
+    getSIPR(heth, sip);
+
+    setMR(heth, MR_RST);
+    getMR(heth); // for delay
+
+    setSHAR(heth, mac);
+    setGAR(heth, gw);
+    setSUBR(heth, sn);
+    setSIPR(heth, sip);
 }
 
-static int8_t wizchip_init(uint8_t* txsize, uint8_t* rxsize)
-{
+static int8_t wizchip_init(ethernetHandler_t *heth, uint8_t *txsize, uint8_t *rxsize) {
     int8_t i;
     int8_t tmp = 0;
-    wizchip_sw_reset();
-    if(txsize)
-    {
+    wizchip_sw_reset(heth);
+    if(txsize) {
         tmp = 0;
-        for(i = 0; i < _WIZCHIP_SOCK_NUM_; i++)
-        {
+        for(i = 0; i < _WIZCHIP_SOCK_NUM_; i++) {
             tmp += txsize[i];
-            if(tmp > 16) return -1;
+            if(tmp > 16) {
+                return -1;
+            }
         }
-        for(i = 0; i < _WIZCHIP_SOCK_NUM_; i++)
-        {
-            setSn_TXBUF_SIZE(i, txsize[i]);
+        for(i = 0; i < _WIZCHIP_SOCK_NUM_; i++) {
+            setSn_TXBUF_SIZE(heth, i, txsize[i]);
         }	
     }
-    if(rxsize)
-    {
+    if (rxsize) {
         tmp = 0;
-        for(i = 0; i < _WIZCHIP_SOCK_NUM_; i++)
-        {
+        for (i = 0; i < _WIZCHIP_SOCK_NUM_; i++) {
             tmp += rxsize[i];
             if(tmp > 16) return -1;
         }
-        for(i = 0; i < _WIZCHIP_SOCK_NUM_; i++)
-        {
-            setSn_RXBUF_SIZE(i, rxsize[i]);
+        for (i = 0; i < _WIZCHIP_SOCK_NUM_; i++) {
+            setSn_RXBUF_SIZE(heth, i, rxsize[i]);
         }
     }
     return 0;
 }
 
-void wizchip_setnetinfo(wiz_NetInfo* pnetinfo)
-{
-    setSHAR(pnetinfo->mac);
-    setGAR(pnetinfo->gw);
-    setSUBR(pnetinfo->sn);
-    setSIPR(pnetinfo->ip);
-    _DNS_[0] = pnetinfo->dns[0];
-    _DNS_[1] = pnetinfo->dns[1];
-    _DNS_[2] = pnetinfo->dns[2];
-    _DNS_[3] = pnetinfo->dns[3];
-    _DHCP_   = pnetinfo->dhcp;
+void wizchip_setnetinfo(ethernetHandler_t *heth, netInfo_t* pnetinfo) {
+    setSHAR(heth, pnetinfo->mac);
+    setGAR(heth, pnetinfo->gw);
+    setSUBR(heth, pnetinfo->sn);
+    setSIPR(heth, pnetinfo->ip);
 }
 
 /**************************************************************
 *               From socket
 ***************************************************************/
 
-static_socket_t get_static_socket(void)
-{
-    static_socket_t static_socket;
-    static_socket.sockAnyPort = sock_any_port;
-    static_socket.sockIoMode = sock_io_mode;
-    static_socket.sockIsSending = sock_is_sending;
-    for (int i = 0; i < _WIZCHIP_SOCK_NUM_; i++)
-    {
-        static_socket.sockRemainedSize[i] = sock_remained_size[i];
-    }
-    return static_socket;
-}
+int8_t socket(ethernetHandler_t *heth, uint8_t sn, uint8_t protocol, uint16_t port, uint8_t flag) {
+    uint32_t timeStamp = HAL_GetTick();
+    uint32_t taddr;
 
-void set_static_socket(static_socket_t static_socket)
-{
-    sock_any_port = static_socket.sockAnyPort;
-    sock_io_mode = static_socket.sockIoMode;
-    sock_is_sending = static_socket.sockIsSending;
-    for (int i = 0; i < _WIZCHIP_SOCK_NUM_; i++)
-    {
-        sock_remained_size[i] = static_socket.sockRemainedSize[i];
-    }
-}
+    getSIPR(heth, (uint8_t*)&taddr);
 
-int8_t socket(uint8_t sn, uint8_t protocol, uint16_t port, uint8_t flag)
-{
-    CHECK_SOCKNUM();
-    switch(protocol)
-    {
-        case Sn_MR_TCP :
-            {
-                uint32_t taddr;
-                getSIPR((uint8_t*)&taddr);
-                if(taddr == 0) return SOCKERR_SOCKINIT;
-         break;
-            }
-        case Sn_MR_UDP :
-        case Sn_MR_MACRAW :
-        case Sn_MR_IPRAW :
-            break;
-        default :
-            return SOCKERR_SOCKMODE;
+    if (taddr == 0) {
+        return SOCKERR_SOCKINIT;
     }
-    if((flag & 0x04) != 0) return SOCKERR_SOCKFLAG;
-        
+
+    if ((flag & 0x04) != 0) {
+        return SOCKERR_SOCKFLAG;
+    }
+
     if(flag != 0)
     {
-        switch(protocol)
-        {
-            case Sn_MR_TCP:
-                  if((flag & (SF_TCP_NODELAY|SF_IO_NONBLOCK))==0) return SOCKERR_SOCKFLAG;
-                break;
-            case Sn_MR_UDP:
-                if(flag & SF_IGMP_VER2)
-                {
-                    if((flag & SF_MULTI_ENABLE)==0) return SOCKERR_SOCKFLAG;
-                }
-                if(flag & SF_UNI_BLOCK)
-                {
-                    if((flag & SF_MULTI_ENABLE) == 0) return SOCKERR_SOCKFLAG;
-                }
-                break;
-            default:
-                break;
+        if ((flag & (SF_TCP_NODELAY | SF_IO_NONBLOCK)) == 0) {
+            return SOCKERR_SOCKFLAG;
         }
     }
-    close_socket(sn);
-    setSn_MR(sn, (protocol | (flag & 0xF0)));
-    if(!port)
-    {
-        port = sock_any_port++;
-        if(sock_any_port == 0xFFF0) sock_any_port = SOCK_ANY_PORT_NUM;
+
+    close_socket(heth, sn);
+
+    setSn_MR(heth, sn, (protocol | (flag & 0xF0)));
+
+    if (!port) {
+        port = heth->sock_any_port++;
+        if(heth->sock_any_port == 0xFFF0) {
+            heth->sock_any_port = SOCK_ANY_PORT_NUM;
+        }
     }
-    setSn_PORT(sn,port);	
-    setSn_CR(sn,Sn_CR_OPEN);
-    while(getSn_CR(sn));
-    sock_io_mode &= ~(1 <<sn);
-    sock_io_mode |= ((flag & SF_IO_NONBLOCK) << sn);   
-    sock_is_sending &= ~(1<<sn);
-    sock_remained_size[sn] = 0;
+
+    setSn_PORT(heth, sn,port);	
+    setSn_CR(heth, sn,Sn_CR_OPEN);
+
+    while (getSn_CR(heth, sn)) {
+        if (tdiff_u32(HAL_GetTick(), timeStamp) > TIME_OUT_MS) {
+            return SOCKERR_TIMEOUT;
+        }
+    }
+
+    heth->sock_io_mode &= ~(1 <<sn);
+    heth->sock_io_mode |= ((flag & SF_IO_NONBLOCK) << sn);   
+    heth->sock_is_sending &= ~(1<<sn);
+    heth->sock_remained_size[sn] = 0;
     sock_pack_info[sn] = PACK_COMPLETED;
-    while(getSn_SR(sn) == SOCK_CLOSED);
+
+    while (getSn_SR(heth, sn) == SOCK_CLOSED) {
+        if (tdiff_u32(HAL_GetTick(), timeStamp) > TIME_OUT_MS) {
+            return SOCKERR_TIMEOUT;
+        }
+    }
+
     return (int8_t)sn;
 }	   
 
-int8_t close_socket(uint8_t sn)
-{
-    setSn_CR(sn,Sn_CR_CLOSE);
-    while( getSn_CR(sn) );
-    setSn_IR(sn, 0xFF);
-    sock_io_mode &= ~(1<<sn);
-    sock_is_sending &= ~(1<<sn);
-    sock_remained_size[sn] = 0;
+int8_t close_socket(ethernetHandler_t *heth, uint8_t sn) {
+    uint32_t timeStamp = HAL_GetTick();
+
+    setSn_CR(heth, sn, Sn_CR_CLOSE);
+
+    while(getSn_CR(heth, sn)) {
+        if (tdiff_u32(HAL_GetTick(), timeStamp) > TIME_OUT_MS) {
+            return SOCKERR_TIMEOUT;
+        }
+    }
+
+    setSn_IR(heth, sn, 0xFF);
+    heth->sock_io_mode &= ~(1<<sn);
+    heth->sock_is_sending &= ~(1<<sn);
+    heth->sock_remained_size[sn] = 0;
     sock_pack_info[sn] = 0;
-    while(getSn_SR(sn) != SOCK_CLOSED);
+
+    while(getSn_SR(heth, sn) != SOCK_CLOSED) {
+        if (tdiff_u32(HAL_GetTick(), timeStamp) > TIME_OUT_MS) {
+            return SOCKERR_TIMEOUT;
+        }
+    }
+
     return SOCK_OK;
 }
 
-int8_t listen(uint8_t sn)
-{
-    setSn_CR(sn,Sn_CR_LISTEN);
-    while(getSn_CR(sn));
-    while(getSn_SR(sn) != SOCK_LISTEN)
+int8_t listen(ethernetHandler_t *heth, uint8_t sn) {
+    uint32_t timeStamp = HAL_GetTick();
+
+    setSn_CR(heth, sn, Sn_CR_LISTEN);
+
+    while (getSn_CR(heth, sn)) {
+        if (tdiff_u32(HAL_GetTick(), timeStamp) > TIME_OUT_MS) {
+            return SOCKERR_TIMEOUT;
+        }
+    }
+
+    if (getSn_SR(heth, sn) != SOCK_LISTEN)
     {
-        close_socket(sn);
+        close_socket(heth, sn);
         return SOCKERR_SOCKCLOSED;
     }
+
     return SOCK_OK;
 }
 
-int8_t disconnect(uint8_t sn)
-{
-    setSn_CR(sn,Sn_CR_DISCON);
+int8_t disconnect(ethernetHandler_t *heth, uint8_t sn) {
+    uint32_t timeStamp = HAL_GetTick();
 
-    // Timeout for disconnect process (max 50ms)
-    uint32_t startTime = HAL_GetTick();
-    while (getSn_CR(sn)) {
-        if (HAL_GetTick() - startTime > 50) {
-            return SOCKERR_TIMEOUT;  // Prevent infinite loop
+    setSn_CR(heth, sn, Sn_CR_DISCON);
+
+    while (getSn_CR(heth, sn)) {
+        if (tdiff_u32(HAL_GetTick(), timeStamp) > TIME_OUT_MS) {
+            return SOCKERR_TIMEOUT;
         }
     }
 
-    sock_is_sending &= ~(1<<sn);
-    if(sock_io_mode & (1<<sn)) return SOCK_BUSY;
+    heth->sock_is_sending &= ~(1<<sn);
 
-    while(getSn_SR(sn) != SOCK_CLOSED)
+    if (heth->sock_io_mode & (1<<sn)) {
+        return SOCK_BUSY;
+    }
+
+    while(getSn_SR(heth, sn) != SOCK_CLOSED)
     {
-        if (HAL_GetTick() - startTime > 50) {
-            close_socket(sn);
+        if (tdiff_u32(HAL_GetTick(), timeStamp) > TIME_OUT_MS) {
+            close_socket(heth, sn);
             return SOCKERR_TIMEOUT;
         }
     }
@@ -904,112 +682,149 @@ int8_t disconnect(uint8_t sn)
     return SOCK_OK;
 }
 
-int32_t send(uint8_t sn, uint8_t * buf, uint16_t len)
-{
-    uint8_t tmp=0;
-    uint16_t freesize=0;
+int32_t send(ethernetHandler_t *heth, uint8_t sn, uint8_t * buf, uint16_t len) {
+    uint32_t timeStamp = HAL_GetTick();
+    uint8_t tmp = 0;
+    uint16_t freesize = 0;
     
-    CHECK_SOCKNUM();
-    CHECK_SOCKMODE(Sn_MR_TCP);
-    CHECK_SOCKDATA();
-    tmp = getSn_SR(sn);
-    if(tmp != SOCK_ESTABLISHED && tmp != SOCK_CLOSE_WAIT) return SOCKERR_SOCKSTATUS;
-    if( sock_is_sending & (1<<sn) )
-    {
-        tmp = getSn_IR(sn);
-        if(tmp & Sn_IR_SENDOK)
-        {
-            setSn_IR(sn, Sn_IR_SENDOK);
-            sock_is_sending &= ~(1<<sn);         
+    tmp = getSn_SR(heth, sn);
+
+    if (tmp != SOCK_ESTABLISHED && tmp != SOCK_CLOSE_WAIT) {
+        return SOCKERR_SOCKSTATUS;
+    }
+    
+    if (heth->sock_is_sending & (1<<sn)) {
+        tmp = getSn_IR(heth, sn);
+        if (tmp & Sn_IR_SENDOK) {
+            setSn_IR(heth, sn, Sn_IR_SENDOK);
+            heth->sock_is_sending &= ~(1<<sn);         
         }
-        else if(tmp & Sn_IR_TIMEOUT)
-        {
-            close_socket(sn);
+        else if (tmp & Sn_IR_TIMEOUT) {
+            close_socket(heth, sn);
             return SOCKERR_TIMEOUT;
         }
-        else return SOCK_BUSY;
+        else {
+            return SOCK_BUSY;
+        }
     }
-    freesize = getSn_TxMAX(sn);
-    if (len > freesize) len = freesize; // check size not to exceed MAX size.
-    while(1)
-    {
-        freesize = getSn_TX_FSR(sn);
-        tmp = getSn_SR(sn);
-        if ((tmp != SOCK_ESTABLISHED) && (tmp != SOCK_CLOSE_WAIT))
-        {
-            close_socket(sn);
+
+    freesize = getSn_TxMAX(heth, sn);
+
+    if (len > freesize) {
+        len = freesize; // check size not to exceed MAX size.
+    }
+
+    while(1) {
+        freesize = getSn_TX_FSR(heth, sn);
+        tmp = getSn_SR(heth, sn);
+
+        if ((tmp != SOCK_ESTABLISHED) && (tmp != SOCK_CLOSE_WAIT)) {
+            close_socket(heth, sn);
             return SOCKERR_SOCKSTATUS;
         }
-        if( (sock_io_mode & (1<<sn)) && (len > freesize) ) return SOCK_BUSY;
-        if(len <= freesize) break;
+
+        if((heth->sock_io_mode & (1<<sn)) && (len > freesize)) {
+            return SOCK_BUSY;
+        }
+        
+        if(len <= freesize) {
+            break;
+        }
+
+        if (tdiff_u32(HAL_GetTick(), timeStamp) > TIME_OUT_MS) {
+            close_socket(heth, sn);
+            return SOCKERR_TIMEOUT;
+        }
     }
-    wiz_send_data(sn, buf, len);
+
+    wiz_send_data(heth, sn, buf, len);
     
-    setSn_CR(sn,Sn_CR_SEND);
+    setSn_CR(heth, sn,Sn_CR_SEND);
+
     /* wait to process the command... */
-    while(getSn_CR(sn));
-    sock_is_sending |= (1 << sn);
+    while(getSn_CR(heth, sn)) {
+        if (tdiff_u32(HAL_GetTick(), timeStamp) > TIME_OUT_MS) {
+            close_socket(heth, sn);
+            return SOCKERR_TIMEOUT;
+        }
+    }
+
+    heth->sock_is_sending |= (1 << sn);
 
     return (int32_t)len;
 }
 
-int32_t recv(uint8_t sn, uint8_t * buf, uint16_t len)
-{
+int32_t recv(ethernetHandler_t *heth, uint8_t sn, uint8_t * buf, uint16_t len) {
+    uint32_t timeStamp = HAL_GetTick();
     uint8_t  tmp = 0;
     uint16_t recvsize = 0;
-
-    CHECK_SOCKNUM();
-    CHECK_SOCKMODE(Sn_MR_TCP);
-    CHECK_SOCKDATA();
     
-    recvsize = getSn_RxMAX(sn);
-    if(recvsize < len) len = recvsize;
-    while(1)
-    {
-        recvsize = getSn_RX_RSR(sn);
-        tmp = getSn_SR(sn);
-        if (tmp != SOCK_ESTABLISHED)
-        {
-            if(tmp == SOCK_CLOSE_WAIT)
-            {
-                if(recvsize != 0) break;
-                else if(getSn_TX_FSR(sn) == getSn_TxMAX(sn))
-                {
-                    close_socket(sn);
+    recvsize = getSn_RxMAX(heth, sn);
+    if(recvsize < len) {
+        len = recvsize;
+    }
+
+    while(1) {
+        recvsize = getSn_RX_RSR(heth, sn);
+        tmp = getSn_SR(heth, sn);
+        if (tmp != SOCK_ESTABLISHED) {
+            if (tmp == SOCK_CLOSE_WAIT) {
+                if(recvsize != 0) {
+                    break;
+                }
+                else if (getSn_TX_FSR(heth, sn) == getSn_TxMAX(heth, sn)) {
+                    close_socket(heth, sn);
                     return SOCKERR_SOCKSTATUS;
                 }
             }
-            else
-            {
-                close_socket(sn);
+            else {
+                close_socket(heth, sn);
                 return SOCKERR_SOCKSTATUS;
             }
         }
-        if((sock_io_mode & (1<<sn)) && (recvsize == 0)) return SOCK_BUSY;
-        if(recvsize != 0) break;
-    };
 
-    if(recvsize < len) len = recvsize;   
-    wiz_recv_data(sn, buf, len);
-    setSn_CR(sn,Sn_CR_RECV);
-    while(getSn_CR(sn));
+        if((heth->sock_io_mode & (1<<sn)) && (recvsize == 0)) {
+            return SOCK_BUSY;
+        }
+
+        if(recvsize != 0) {
+            break;
+        }
+
+        if (tdiff_u32(HAL_GetTick(), timeStamp) > TIME_OUT_MS) {
+            close_socket(heth, sn);
+            return SOCKERR_TIMEOUT;
+        }
+    }
+
+    if(recvsize < len) {
+        len = recvsize;
+    }
+
+    wiz_recv_data(heth, sn, buf, len);
+    setSn_CR(heth, sn,Sn_CR_RECV);
+
+    while (getSn_CR(heth, sn)) {
+        if (tdiff_u32(HAL_GetTick(), timeStamp) > TIME_OUT_MS) {
+            close_socket(heth, sn);
+            return SOCKERR_TIMEOUT;
+        }
+    }
     
     return (int32_t)len;
 }
 
-int8_t  getsockopt(uint8_t sn, sockopt_type sotype, void* arg)
-{
-    CHECK_SOCKNUM();
+int8_t getsockopt(ethernetHandler_t *heth, uint8_t sn, sockopt_type sotype, void* arg) {
     switch(sotype)
     {
         case SO_DESTIP:
-            getSn_DIPR(sn, (uint8_t*)arg);
+            getSn_DIPR(heth, sn, (uint8_t*)arg);
             break;
         case SO_DESTPORT:  
-            *(uint16_t*) arg = getSn_DPORT(sn);
+            *(uint16_t*) arg = getSn_DPORT(heth, sn);
             break;
         case SO_STATUS:
-            *(uint8_t*) arg = getSn_SR(sn);
+            *(uint8_t*) arg = getSn_SR(heth, sn);
             break;
         default:
             return SOCKERR_SOCKOPT;
@@ -1032,41 +847,38 @@ int8_t  getsockopt(uint8_t sn, sockopt_type sotype, void* arg)
  * @return  0 on success, else negative value
  * @note    Should be called one time for each physical ethernet port
 */
-int W5500Init(ethernetHandler_t *heth, SPI_HandleTypeDef *hspi, GPIO_TypeDef *port, uint16_t pin, wiz_NetInfo netInfo, char *sendBuf)
-{
-    currentEthernet = heth;
+int W5500Init(ethernetHandler_t *heth, SPI_HandleTypeDef *hspi, GPIO_TypeDef *port, uint16_t pin, netInfo_t netInfo, char *sendBuf) {
+    heth->hspi = hspi;
+    heth->netInfo = netInfo;
+    stmGpioInit(&heth->select, port, pin, STM_GPIO_OUTPUT);
+    heth->timeStamp = 0;
+    heth->sendBuf = sendBuf;
 
-    currentEthernet->hspi = hspi;
-    currentEthernet->netInfo = netInfo;
-    stmGpioInit(&currentEthernet->select, port, pin, STM_GPIO_OUTPUT);
-    currentEthernet->static_wizchip_conf = get_static_wizchip_conf();
-    currentEthernet->static_socket = get_static_socket();
-    currentEthernet->timeStamp = 0;
-    currentEthernet->sendBuf = sendBuf;
-
-    // Register W5500 callbacks
-    reg_wizchip_cs_cbfunc(wizchipSelect, wizchipUnselect);
-    reg_wizchip_spi_cbfunc(wizchipReadByte, wizchipWriteByte);
-    reg_wizchip_spiburst_cbfunc(wizchipReadBurst, wizchipWriteBurst);
+    heth->sock_any_port = SOCK_ANY_PORT_NUM;
+    heth->sock_io_mode = 0;
+    heth->sock_is_sending = 0;
+    for (uint8_t i = 0; i < _WIZCHIP_SOCK_NUM_; i++) {
+        heth->sock_remained_size[i] = 0;
+    }
 
     // Define the buffer sizes for the 8 sockets in kB (32 kB available in total)
     static uint8_t txBufSize[8] = {8, 8, 0, 0, 0, 0, 0, 0};
     static uint8_t rxBufSize[8] = {8, 8, 0, 0, 0, 0, 0, 0};
 
-    if (wizchip_init(txBufSize, rxBufSize) != 0)
+    if (wizchip_init(heth, txBufSize, rxBufSize) != 0)
     {
         return -1;
     }
 
+    // Necessary to let the chip initialize before sending network information
     HAL_Delay(100);
 
     // To send the network parameters to the W5500
-    wizchip_setnetinfo(&currentEthernet->netInfo);
+    wizchip_setnetinfo(heth, &heth->netInfo);
 
     // TCP initialization
-
     for (uint16_t socketId = 0; socketId < NO_OF_SOCKETS; socketId++) {
-        disconnect(socketId);
+        disconnect(heth, socketId);
     }
     noOfOpenSockets = 0;
 
@@ -1083,11 +895,8 @@ int W5500TCPServer(ethernetHandler_t* heth) {
     static const uint8_t INVALID_SOCKET = 0xffu;
     static uint8_t activeSocket         = INVALID_SOCKET;  // Start with an invalid socket
 
-    // Switch ethernet physical port
-    ethPortSelect(heth);
-
     for (uint8_t socketId = 0; socketId < NO_OF_SOCKETS; socketId++) {
-        sockets[socketId].status = getSn_SR(socketId);
+        sockets[socketId].status = getSn_SR(heth, socketId);
 
         switch (sockets[socketId].status) {
             case SOCK_ESTABLISHED:
@@ -1098,41 +907,40 @@ int W5500TCPServer(ethernetHandler_t* heth) {
                 }
                 // If this is the active socket, handle communication
                 if (socketId == activeSocket) {
-                    if (currentEthernet->newADCReady) {
-                        send(socketId, (uint8_t*)currentEthernet->sendBuf,
-                             strlen(currentEthernet->sendBuf));
-                        currentEthernet->newADCReady = false;
+                    if (heth->newADCReady) {
+                        send(heth, socketId, (uint8_t*)heth->sendBuf, strlen(heth->sendBuf));
+                        heth->newADCReady = false;
                     }
 
                     // If the RX buffer contains data, receive it
-                    if (getSn_RX_RSR(socketId) > 0) {
-                        recv(socketId, (uint8_t*)currentEthernet->recvBuf, TCP_BUF_LEN);
-                        currentEthernet->newMessage = true;
-                        currentEthernet->timeStamp = HAL_GetTick();
+                    if (getSn_RX_RSR(heth, socketId) > 0) {
+                        recv(heth, socketId, (uint8_t*)heth->recvBuf, TCP_BUF_LEN);
+                        heth->newMessage = true;
+                        heth->timeStamp = HAL_GetTick();
                     }
                 } else {
                     // New client detected, disconnect old one first
-                    disconnect(activeSocket);  // Disconnect the previous client
+                    disconnect(heth, activeSocket);  // Disconnect the previous client
                     activeSocket = socketId;    // Assign the new active socket
                 }
                 break;
             
             case SOCK_CLOSE_WAIT:
                 // Disconnect the client and reset the active socket
-                disconnect(socketId);
+                disconnect(heth, socketId);
                 activeSocket = INVALID_SOCKET;
                 break;
 
             case SOCK_CLOSED:
                 // Open a new TCP socket to listen for new clients
                 if (socketId != activeSocket) {
-                    socket(socketId, Sn_MR_TCP, PORT, 0);
+                    socket(heth, socketId, Sn_MR_TCP, PORT, 0);
                 }
                 break;
 
             case SOCK_INIT:
                 // Start listening for new connections
-                listen(socketId);
+                listen(heth, socketId);
                 break;
 
             case SOCK_LISTEN:

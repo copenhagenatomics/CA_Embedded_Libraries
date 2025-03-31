@@ -18,58 +18,40 @@
 ** DEFINES
 ***************************************************************************************************/
 
-typedef enum
-{
-    NETINFO_STATIC = 1,    ///< Static IP configuration by manually.
-    NETINFO_DHCP           ///< Dynamic IP configruation from a DHCP sever
-}dhcp_mode;
-
-typedef struct wiz_NetInfo_t
+typedef struct
 {
     uint8_t mac[6];  ///< Source Mac Address
     uint8_t ip[4];   ///< Source IP Address
     uint8_t sn[4];   ///< Subnet Mask 
     uint8_t gw[4];   ///< Gateway IP Address
-    uint8_t dns[4];  ///< DNS server IP Address
-    dhcp_mode dhcp;  ///< 1 - Static, 2 - DHCP
-}wiz_NetInfo;
-
-typedef struct
-{
-    uint8_t dns[4];
-    dhcp_mode dhcp;
-} static_wizchip_conf_t;
+} netInfo_t;
 
 #define _WIZCHIP_SOCK_NUM_  8
-
-typedef struct
-{
-    uint16_t sockAnyPort;
-    uint16_t sockIoMode;
-    uint16_t sockIsSending;
-    uint16_t sockRemainedSize[_WIZCHIP_SOCK_NUM_];
-} static_socket_t;
 
 #define TCP_BUF_LEN    200                      // Maximum number of characters per TCP message
 
 typedef struct {
     SPI_HandleTypeDef *hspi;                    // Pointer to SPI handler
     StmGpio select;                             // Chip select pin
-    wiz_NetInfo netInfo;                        // Network parameters
-    static_wizchip_conf_t static_wizchip_conf;  // Static variables in wizchip_conf.c
-    static_socket_t static_socket;              // Static variables in socket.c
+    netInfo_t netInfo;                        // Network parameters
+
     char recvBuf[TCP_BUF_LEN];                  // Micro-controller rx buffer
     char *sendBuf;                              // Micro-controller tx buffer
     bool newADCReady;                           // Becomes true when a line is ready (10 Hz)
     bool newMessage;                            // Becomes true when new command is received
     uint32_t timeStamp;                         // Timestamp of last command
+
+    uint16_t sock_any_port;
+    uint16_t sock_io_mode;
+    uint16_t sock_is_sending;
+    uint16_t sock_remained_size[_WIZCHIP_SOCK_NUM_];
 } ethernetHandler_t;
 
 /***************************************************************************************************
 ** PUBLIC FUNCTION DECLARATIONS
 ***************************************************************************************************/
 
-int W5500Init(ethernetHandler_t *heth, SPI_HandleTypeDef *hspi, GPIO_TypeDef *port, uint16_t pin, wiz_NetInfo netInfo, char *sendBuf);
+int W5500Init(ethernetHandler_t *heth, SPI_HandleTypeDef *hspi, GPIO_TypeDef *port, uint16_t pin, netInfo_t netInfo, char *sendBuf);
 int W5500TCPServer(ethernetHandler_t *heth);
 
 #endif /* INC_W5500_H_ */

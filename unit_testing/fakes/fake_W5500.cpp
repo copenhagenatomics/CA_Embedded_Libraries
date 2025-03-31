@@ -12,7 +12,7 @@
 ** PUBLIC FUNCTION DEFINITIONS
 ***************************************************************************************************/
 
-int W5500Init(ethernetHandler_t *heth, SPI_HandleTypeDef *hspi, GPIO_TypeDef *port, uint16_t pin, wiz_NetInfo netInfo, char *sendBuf) {
+int W5500Init(ethernetHandler_t *heth, SPI_HandleTypeDef *hspi, GPIO_TypeDef *port, uint16_t pin, netInfo_t netInfo, char *sendBuf) {
     return 0;
 }
 
