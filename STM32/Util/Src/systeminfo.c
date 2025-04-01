@@ -121,67 +121,47 @@ static const char* productType(uint8_t id) {
     switch (id) {
         case AC_Board:
             return "AC Board";
-            break;
         case DC_Board:
             return "DC Board";
-            break;
         case Temperature:
             return "Temperature";
-            break;
         case Current:
             return "Current";
-            break;
         case GasFlow:
             return "GasFlow";
-            break;
         case HumidityChip:
             return "HumidityChip";
-            break;
         case Pressure:
             return "Pressure";
-            break;
         case SaltFlowBoard:
             return "Salt Flow Board";
-            break;
         case SaltLeak:
             return "SaltLeak";
             break;
         case HotValveController:
             return "HotValveController";
-            break;
         case ZrO2Oxygen:
             return "ZrO2Oxygen";
-            break;
         case AMBcurrent:
             return "AMBcurrent";
-            break;
         case Geiger:
             return "Geiger";
-            break;
         case AirCondition:
             return "AirCondition";
-            break;
         case LightController:
             return "LightController";
-            break;
         case LiquidLevel:
             return "LiquidLevel";
-            break;
         case ER:
             return "ER";
-            break;
         case ERHC:
             return "ERHC";
-            break;
         case VFD:
             return "VFD";
-            break;
         case Tachometer:
             return "Tachometer";
-            break;
         case ACTenChannel:
             return "ACTenChannel";
-            break;
     }
     return "NA";
 }

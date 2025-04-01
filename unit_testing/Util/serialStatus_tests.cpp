@@ -119,7 +119,7 @@ void statusPrintoutTest(SerialStatusTest& sst, vector<const char*> pass_string) 
 ** Initialises the board then sends the 'StatusDef' command. Checks the response matches the protocol 
 ** template and the supplied board specific string.
 */
-void statusDefPrintoutTest(SerialStatusTest& sst, vector<const char*> boardErrorsString, vector<const char*> boardStatusDefString) {
+void statusDefPrintoutTest(SerialStatusTest& sst, const char* boardErrorsString, vector<const char*> boardStatusDefString) {
     sst.boundInit();
     /* Note: usb RX buffer is flushed during the first loop, so a single loop must be done before
     ** printing anything */
@@ -144,7 +144,7 @@ void statusDefPrintoutTest(SerialStatusTest& sst, vector<const char*> boardError
         "End of board status definition.\r"
     };
 
-    bsdPre1.insert(bsdPre1.end(), boardErrorsString.begin(), boardErrorsString.end());
+    bsdPre1.push_back(boardErrorsString);
     bsdPre1.insert(bsdPre1.end(), bsdPre2.begin(), bsdPre2.end());
     bsdPre1.insert(bsdPre1.end(), boardStatusDefString.begin(), boardStatusDefString.end());
     bsdPre1.insert(bsdPre1.end(), bsdPost.begin(), bsdPost.end());
