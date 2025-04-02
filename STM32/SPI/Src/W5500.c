@@ -1119,9 +1119,7 @@ int W5500TCPServer(ethernet_t *heth) {
 
             case SOCK_CLOSED:
                 // Open a new TCP socket to listen for new clients
-                if (socketId != heth->activeSocket) {
-                    socket(heth, socketId, PORT);
-                }
+                socket(heth, socketId, PORT);
                 break;
 
             case SOCK_INIT:
@@ -1129,11 +1127,8 @@ int W5500TCPServer(ethernet_t *heth) {
                 listen(heth, socketId);
                 break;
 
-            case SOCK_LISTEN:
-                // Waiting for a client connection
-                break;
-
             default:
+                // Waiting for a client connection
                 break;
         }
     }
