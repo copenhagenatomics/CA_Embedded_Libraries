@@ -316,7 +316,7 @@ static void chipUnselect(ethernet_t *heth) { stmSetGpio(heth->select, true); }
  * @param   len Maximum length of the buffer
  */
 static void readBurst(ethernet_t *heth, uint8_t *buff, uint16_t len) {
-    HAL_SPI_Receive(heth->hspi, buff, len, HAL_MAX_DELAY);
+    HAL_SPI_Receive(heth->hspi, buff, len, TIME_OUT_MS);
 }
 
 /*!
@@ -326,7 +326,7 @@ static void readBurst(ethernet_t *heth, uint8_t *buff, uint16_t len) {
  * @param   len Maximum length of the buffer
  */
 static void writeBurst(ethernet_t *heth, uint8_t *buff, uint16_t len) {
-    HAL_SPI_Transmit(heth->hspi, buff, len, HAL_MAX_DELAY);
+    HAL_SPI_Transmit(heth->hspi, buff, len, TIME_OUT_MS);
 }
 
 /*!
