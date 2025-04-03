@@ -137,7 +137,6 @@ static const char* productType(uint8_t id) {
             return "Salt Flow Board";
         case SaltLeak:
             return "SaltLeak";
-            break;
         case HotValveController:
             return "HotValveController";
         case ZrO2Oxygen:
@@ -162,6 +161,8 @@ static const char* productType(uint8_t id) {
             return "Tachometer";
         case ACTenChannel:
             return "ACTenChannel";
+        case PhaseMonitor:
+            return "PhaseMonitor";
     }
     return "NA";
 }
