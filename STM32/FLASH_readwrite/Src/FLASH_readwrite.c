@@ -4,7 +4,7 @@
  *  Description:		Provides an interface to read and write FLASH memory.
 */
 
-#if defined(STM32F401xC)
+#if defined(STM32F401xC) || defined(STM32F411xE)
 #include <FLASH_readwrite.h>
 #include <string.h>
 
