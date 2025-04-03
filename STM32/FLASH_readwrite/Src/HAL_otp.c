@@ -9,7 +9,7 @@
  */
 
 // Only include content of file if project targets an STM32F4xx
-#if defined(STM32F401xC) || defined(STM32F411xx)
+#if defined(STM32F401xC) || defined(STM32F411xx) || defined(STM32F411xE)
 
 #include <string.h>
 

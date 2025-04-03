@@ -10,7 +10,7 @@
 
 #include <stdbool.h>
 #include <stdint.h>
-#if defined(STM32F401xC)
+#if defined(STM32F401xC) || defined(STM32F411xE)
 #include "stm32f4xx_hal.h"
 #elif defined(STM32H753xx)
 #include "stm32h7xx_hal.h"
