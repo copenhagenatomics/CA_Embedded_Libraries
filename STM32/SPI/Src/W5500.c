@@ -971,8 +971,11 @@ int setPhyState(ethernet_t *heth, bool activate) {
  * @param   heth Ethernet handler
  */
 void setMACRawMode(ethernet_t *heth) {
-    for (uint16_t socketId = 0; socketId < NO_OF_SOCKETS; socketId++) {
-        setSn_MR(heth, socketId, Sn_MR_MACRAW);
+    setSn_MR(heth, 0, Sn_MR_MACRAW);
+    setSn_CR(heth, 0, Sn_CR_OPEN);
+    while (getSn_SR(heth, 0) != SOCK_MACRAW);
+    for (uint16_t socketId = 1; socketId < 8; socketId++) {
+        setSn_MR(heth, socketId, Sn_MR_CLOSE);
     }
     heth->activeSocket = INVALID_SOCKET;
 }
@@ -1046,6 +1049,7 @@ int W5500Init(ethernet_t *heth, SPI_HandleTypeDef *hspi, GPIO_TypeDef *port, uin
     heth->rxReady    = false;
     heth->txBuf      = txBuf;
     heth->txReady    = false;
+    heth->lastRxTime = 0;
 
     heth->sock_any_port   = SOCK_ANY_PORT_NUM;
     heth->sock_io_mode    = 0;
@@ -1064,9 +1068,6 @@ int W5500Init(ethernet_t *heth, SPI_HandleTypeDef *hspi, GPIO_TypeDef *port, uin
 
     // Set MACRAW mode to not be visible on network
     setMACRawMode(heth);
-
-    // Activate the PHY
-    setPhyState(heth, true);
 
     // Network parameters
     wizchip_setnetinfo(heth, &heth->netInfo);
