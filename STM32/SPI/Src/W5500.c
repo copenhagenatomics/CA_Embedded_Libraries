@@ -45,6 +45,7 @@
 #include <string.h>
 
 #include "StmGpio.h"
+#include "USBprint.h"
 #include "W5500.h"
 #include "stm32f4xx_hal.h"
 #include "time32.h"
@@ -971,13 +972,28 @@ int setPhyState(ethernet_t *heth, bool activate) {
  * @param   heth Ethernet handler
  */
 void setMACRawMode(ethernet_t *heth) {
-    setSn_MR(heth, 0, Sn_MR_MACRAW);
+    uint32_t timeStamp = HAL_GetTick();
+
+    // Socket 0 is changed to MACRAW mode
+    setSn_CR(heth, 0, Sn_CR_CLOSE);
+    uint8_t tmp = getSn_MR(heth, 0);
+    tmp         = (tmp & ~0x0f) | Sn_MR_MACRAW;
+    setSn_MR(heth, 0, tmp);
     setSn_CR(heth, 0, Sn_CR_OPEN);
-    while (getSn_SR(heth, 0) != SOCK_MACRAW);
-    for (uint16_t socketId = 1; socketId < 8; socketId++) {
-        setSn_MR(heth, socketId, Sn_MR_CLOSE);
+
+    while (getSn_SR(heth, 0) != SOCK_MACRAW) {
+        if (tdiff_u32(HAL_GetTick(), timeStamp) > TIME_OUT_MS) {
+            USBnprintf("\r\nSTUCK\r\n");
+            break;
+        }
     }
-    heth->activeSocket = INVALID_SOCKET;
+
+    // All other sockets are closed
+    for (uint16_t socketId = 1; socketId < 8; socketId++) {
+        tmp = getSn_MR(heth, socketId);
+        tmp = (tmp & ~0x0f) | Sn_MR_CLOSE;
+        setSn_MR(heth, socketId, tmp);
+    }
 }
 
 /*!
@@ -987,8 +1003,11 @@ void setMACRawMode(ethernet_t *heth) {
  */
 void setTCPMode(ethernet_t *heth) {
     for (uint16_t socketId = 0; socketId < NO_OF_SOCKETS; socketId++) {
-        setSn_MR(heth, socketId, Sn_MR_TCP);
+        uint8_t tmp = getSn_MR(heth, socketId);
+        tmp         = (tmp & ~0x0f) | Sn_MR_TCP;
+        setSn_MR(heth, socketId, tmp);
     }
+    // No socket open yet
     heth->activeSocket = INVALID_SOCKET;
 }
 
@@ -999,7 +1018,8 @@ void setTCPMode(ethernet_t *heth) {
  */
 void sendGratuitousARP(ethernet_t *heth) {
     static const uint8_t SOCKET_NUMBER = 0;
-    uint8_t packet[42];  // Total packet size (Ethernet Header + ARP Header)
+    static const uint8_t PACKET_SIZE   = 42;
+    uint8_t packet[PACKET_SIZE];  // Total packet size (Ethernet Header + ARP Header)
 
     // Ethernet Header (14 bytes)
     memset(packet, 0xFF, 6);                   // Destination MAC: Broadcast (FF:FF:FF:FF:FF:FF)
@@ -1022,9 +1042,9 @@ void sendGratuitousARP(ethernet_t *heth) {
     memset(&packet[32], 0x00, 6);               // Target MAC Address (ignored for gratuitous ARP)
     memcpy(&packet[38], heth->netInfo.ip, 4);   // Target IP Address (same as sender IP)
 
-    wiz_send_data(heth, SOCKET_NUMBER, packet, 42);  // Send packet
-    setSn_CR(heth, SOCKET_NUMBER, Sn_CR_SEND);       // Trigger send
-    HAL_Delay(1);                                    // Small delay to make sure the packet is sent
+    wiz_send_data(heth, SOCKET_NUMBER, packet, PACKET_SIZE);  // Send packet
+    setSn_CR(heth, SOCKET_NUMBER, Sn_CR_SEND);                // Trigger send
+    HAL_Delay(1);  // Small delay to make sure the packet is sent
 }
 
 /*!
