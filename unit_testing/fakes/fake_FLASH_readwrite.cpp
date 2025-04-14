@@ -11,6 +11,7 @@
 #include <algorithm>
 #include <cstring>
 
+#include "crc.h"
 #include "fake_stm32xxxx_hal.h"
 #include "FLASH_readwrite.h"
 
@@ -84,37 +85,13 @@ int readFromFlash(uint32_t flash_address, uint8_t *data, uint32_t size)
 // error for projects where CRC module is not enabled
 #ifdef HAL_CRC_MODULE_ENABLED
 
-/*!
-** @brief Calculates the CRC-8 checksum for an array of data.
-**
-** @param data Pointer to the data array.
-** @param size Size of the data array.
-** @return The calculated CRC-8 checksum.
-*/
-uint8_t calculateCRC8(const uint8_t *data, size_t size) {
-    const uint8_t polynomial = 0x07; // Standard CRC-8 polynomial
-    uint8_t crc = 0x00; // Initial value
-
-    for (size_t i = 0; i < size; ++i) {
-        crc ^= data[i];
-        for (uint8_t bit = 0; bit < 8; ++bit) {
-            if (crc & 0x80) {
-                crc = (crc << 1) ^ polynomial;
-            } else {
-                crc <<= 1;
-            }
-        }
-    }
-
-    return crc;
-}
-
 // Write data to FLASH_ADDR+indx including CRC.
 int writeToFlashCRC(CRC_HandleTypeDef *hcrc, uint32_t flash_address, uint8_t *data, uint32_t size)
 {
     uint8_t buf[SIZE_OF_MEM_ARRAY];
     memcpy(buf, data, size);
-    uint8_t crc = calculateCRC8(buf, size);
+    initCrc8(0x00, 0x07);
+    uint8_t crc = crc8Calculate(buf, size);
     buf[size] = crc;
     size += 1; // Increase size to include CRC byte
 
@@ -135,7 +112,8 @@ int readFromFlashCRC(CRC_HandleTypeDef *hcrc, uint32_t flash_address, uint8_t *d
 
     /* Real behaviour overwrites data even if CRC is not valid */
     memcpy(data, buf, size);
-    uint8_t crc = calculateCRC8(buf, size);
+    initCrc8(0x00, 0x07);
+    uint8_t crc = crc8Calculate(buf, size);
 
     return crc == buf[size] ? 0 : 1;
 }
