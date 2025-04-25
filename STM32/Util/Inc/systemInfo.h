@@ -77,7 +77,8 @@ typedef enum {
     ERHC               = 18,
     VFD                = 19,
     Tachometer         = 20,
-    ACTenChannel       = 21
+    ACTenChannel       = 21,
+    PhaseMonitor       = 22
 } BoardType;
 typedef uint8_t SubBoardType;  // SubBoardType needed for some boards.
 
