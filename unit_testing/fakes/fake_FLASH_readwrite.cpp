@@ -26,7 +26,7 @@
 ** PRIVATE OBJECTS
 ***************************************************************************************************/
 
-static bool init_flag[VALID_DATAPOINTS] = {true, true, true, true, true};
+static int init_flag[VALID_DATAPOINTS] = {0};
 static uint8_t mem_sectors[VALID_DATAPOINTS][SIZE_OF_MEM_ARRAY] = {0}; 
 static uint32_t addresses[VALID_DATAPOINTS] = {0}; 
 static int num_addresses_used = 0;
@@ -53,9 +53,9 @@ int getFakeSector(uint32_t flash_address)
 int writeToFlash(uint32_t flash_address, uint8_t *data, uint32_t size)
 {
     uint32_t sector = getFakeSector(flash_address);
-    if(init_flag[sector]) {
+    if(!init_flag[sector]) {
         std::fill_n(mem_sectors[sector], SIZE_OF_MEM_ARRAY, 0xFF);
-        init_flag[sector] = false;
+        init_flag[sector] = 1;
     }
 
     if (size < SIZE_OF_MEM_ARRAY) {
@@ -69,9 +69,9 @@ int writeToFlash(uint32_t flash_address, uint8_t *data, uint32_t size)
 int readFromFlash(uint32_t flash_address, uint8_t *data, uint32_t size)
 {
     uint32_t sector = getFakeSector(flash_address);
-    if(init_flag[sector]) {
+    if(!init_flag[sector]) {
         std::fill_n(mem_sectors[sector], SIZE_OF_MEM_ARRAY, 0xFF);
-        init_flag[sector] = false;
+        init_flag[sector] = 1;
     }
 
     if (size < SIZE_OF_MEM_ARRAY) {
