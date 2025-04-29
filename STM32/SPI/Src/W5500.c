@@ -45,7 +45,6 @@
 #include <string.h>
 
 #include "StmGpio.h"
-#include "USBprint.h"
 #include "W5500.h"
 #include "stm32f4xx_hal.h"
 #include "time32.h"
@@ -983,7 +982,6 @@ void setMACRawMode(ethernet_t *heth) {
 
     while (getSn_SR(heth, 0) != SOCK_MACRAW) {
         if (tdiff_u32(HAL_GetTick(), timeStamp) > TIME_OUT_MS) {
-            USBnprintf("\r\nSTUCK\r\n");
             break;
         }
     }
@@ -1098,15 +1096,18 @@ int W5500Init(ethernet_t *heth, SPI_HandleTypeDef *hspi, GPIO_TypeDef *port, uin
 /*!
  * @brief   Implementation of the TCP server
  * @param   heth Physical ethernet port used
- * @return  >= 0 on success, else < 0
+ * @return  >= 0 if TCP connection established, else < 0
  * @note    Should be used in the while(1) loop of the board for each physical ethernet port
  */
 int W5500TCPServer(ethernet_t *heth) {
+    int ret = -1;
+
     for (uint8_t socketId = 0; socketId < NO_OF_SOCKETS; socketId++) {
         heth->sockets[socketId].status = getSn_SR(heth, socketId);
 
         switch (heth->sockets[socketId].status) {
             case SOCK_ESTABLISHED:
+                ret = 0;
                 // If no active socket is set, this is the first connection
                 if (heth->activeSocket == INVALID_SOCKET) {
                     heth->activeSocket = socketId;
@@ -1154,5 +1155,5 @@ int W5500TCPServer(ethernet_t *heth) {
         }
     }
 
-    return heth->activeSocket;
+    return ret;
 }
