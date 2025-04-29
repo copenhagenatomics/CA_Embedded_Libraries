@@ -48,7 +48,7 @@ int USBnprintf(const char * format, ... )
 
     char buf[TX_RX_BUFFER_LENGTH] = {0};
     size_t len = snprintf(buf, 3, "\r\n");
-    len += vsnprintf(&buf[len], TX_RX_BUFFER_LENGTH, format, argptr);
+    len += vsnprintf(&buf[len], TX_RX_BUFFER_LENGTH - 2, format, argptr);
 
     len = writeUSB(buf, len);
 
