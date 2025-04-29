@@ -3,7 +3,7 @@
  * @brief   Header file of W5500.c
  * @date    18/09/2024
  * @author  Timothé D
-*/
+ */
 
 #ifndef INC_W5500_H_
 #define INC_W5500_H_
@@ -11,65 +11,58 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "stm32f4xx_hal.h"
 #include "StmGpio.h"
+#include "stm32f4xx_hal.h"
 
 /***************************************************************************************************
 ** DEFINES
 ***************************************************************************************************/
 
-typedef enum
-{
-    NETINFO_STATIC = 1,    ///< Static IP configuration by manually.
-    NETINFO_DHCP           ///< Dynamic IP configruation from a DHCP sever
-}dhcp_mode;
+typedef struct {
+    uint8_t mac[6];  // Source Mac Address
+    uint8_t ip[4];   // Source IP Address
+    uint8_t sn[4];   // Subnet Mask
+    uint8_t gw[4];   // Gateway IP Address
+} netInfo_t;
 
-typedef struct wiz_NetInfo_t
-{
-    uint8_t mac[6];  ///< Source Mac Address
-    uint8_t ip[4];   ///< Source IP Address
-    uint8_t sn[4];   ///< Subnet Mask 
-    uint8_t gw[4];   ///< Gateway IP Address
-    uint8_t dns[4];  ///< DNS server IP Address
-    dhcp_mode dhcp;  ///< 1 - Static, 2 - DHCP
-}wiz_NetInfo;
-
-typedef struct
-{
-    uint8_t dns[4];
-    dhcp_mode dhcp;
-} static_wizchip_conf_t;
-
-#define _WIZCHIP_SOCK_NUM_  8
-
-typedef struct
-{
-    uint16_t sockAnyPort;
-    uint16_t sockIoMode;
-    uint16_t sockIsSending;
-    uint16_t sockRemainedSize[_WIZCHIP_SOCK_NUM_];
-} static_socket_t;
-
-#define TCP_BUF_LEN    200                      // Maximum number of characters per TCP message
+#define TCP_BUF_LEN   200  // Maximum number of characters per TCP message
+#define NO_OF_SOCKETS 2    // 2 sockets implemented
 
 typedef struct {
-    SPI_HandleTypeDef *hspi;                    // Pointer to SPI handler
-    StmGpio select;                             // Chip select pin
-    wiz_NetInfo netInfo;                        // Network parameters
-    static_wizchip_conf_t static_wizchip_conf;  // Static variables in wizchip_conf.c
-    static_socket_t static_socket;              // Static variables in socket.c
-    char recvBuf[TCP_BUF_LEN];                  // Micro-controller rx buffer
-    char *sendBuf;                              // Micro-controller tx buffer
-    bool newADCReady;                           // Becomes true when a line is ready (10 Hz)
-    bool newMessage;                            // Becomes true when new command is received
-    uint32_t timeStamp;                         // Timestamp of last command
-} ethernetHandler_t;
+    uint8_t remoteIP[4];  // IP address of the client
+    uint16_t remotePort;  // Port of the client
+    uint8_t status;       // Status (Sn_SR register)
+} socket_t;
+
+typedef struct {
+    SPI_HandleTypeDef *hspi;          // Pointer to SPI handler
+    StmGpio select;                   // Chip select pin
+    netInfo_t netInfo;                // Network parameters
+    char *rxBuf;                      // Micro-controller rx buffer
+    bool rxReady;                     // Becomes true when new command is received
+    uint32_t lastRxTime;              // Timestamp of last command
+    char *txBuf;                      // Micro-controller tx buffer
+    bool txReady;                     // Becomes true when a line is ready (10 Hz)
+    bool stopADCPrint;                // To stop 10 Hz ADC print when Status/StatusDef/Serial
+    socket_t sockets[NO_OF_SOCKETS];  // Sockets of the ethernet port
+    uint8_t activeSocket;             // Active socket
+    uint16_t sock_any_port;
+    uint16_t sock_io_mode;
+    uint16_t sock_is_sending;
+} ethernet_t;
 
 /***************************************************************************************************
 ** PUBLIC FUNCTION DECLARATIONS
 ***************************************************************************************************/
 
-int W5500Init(ethernetHandler_t *heth, SPI_HandleTypeDef *hspi, GPIO_TypeDef *port, uint16_t pin, wiz_NetInfo netInfo, char *sendBuf);
-int W5500TCPServer(ethernetHandler_t *heth);
+bool isLinkOn(ethernet_t *heth);
+bool isPhyEnabled(ethernet_t *heth);
+int setPhyState(ethernet_t *heth, bool activate);
+void setMACRawMode(ethernet_t *heth);
+void setTCPMode(ethernet_t *heth);
+void sendGratuitousARP(ethernet_t *heth);
+int W5500Init(ethernet_t *heth, SPI_HandleTypeDef *hspi, GPIO_TypeDef *port, uint16_t pin,
+              netInfo_t netInfo, char *txBuf, char *rxBuf);
+int W5500TCPServer(ethernet_t *heth);
 
 #endif /* INC_W5500_H_ */
