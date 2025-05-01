@@ -12,10 +12,34 @@
 ** PUBLIC FUNCTION DEFINITIONS
 ***************************************************************************************************/
 
-int W5500Init(ethernetHandler_t *heth, SPI_HandleTypeDef *hspi, GPIO_TypeDef *port, uint16_t pin, wiz_NetInfo netInfo, char *sendBuf) {
+bool isLinkOn(ethernet_t *heth) {
+    return true;
+}
+
+bool isPhyEnabled(ethernet_t *heth) {
+    return true;
+}
+
+int setPhyState(ethernet_t *heth, bool activate) {
     return 0;
 }
 
-int W5500TCPServer(ethernetHandler_t *heth) {
+void setMACRawMode(ethernet_t *heth) {
+    return;
+}
+
+void setTCPMode(ethernet_t *heth) {
+    return;
+}
+
+void sendGratuitousARP(ethernet_t *heth) {
+    return;
+}
+
+int W5500Init(ethernet_t *heth, SPI_HandleTypeDef *hspi, GPIO_TypeDef *port, uint16_t pin, netInfo_t netInfo, char *txBuf, char *rxBuf) {
+    return 0;
+}
+
+int W5500TCPServer(ethernet_t *heth) {
     return 0;
 }

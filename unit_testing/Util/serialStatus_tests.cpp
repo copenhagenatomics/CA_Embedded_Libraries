@@ -119,34 +119,37 @@ void statusPrintoutTest(SerialStatusTest& sst, vector<const char*> pass_string) 
 ** Initialises the board then sends the 'StatusDef' command. Checks the response matches the protocol 
 ** template and the supplied board specific string.
 */
-void statusDefPrintoutTest(SerialStatusTest& sst, vector<const char*> pass_string) {
+void statusDefPrintoutTest(SerialStatusTest& sst, const char* boardErrorsString, vector<const char*> boardStatusDefString) {
     sst.boundInit();
     /* Note: usb RX buffer is flushed during the first loop, so a single loop must be done before
     ** printing anything */
     sst.testFixture->_loopFunction(sst.testFixture->bootMsg);
     sst.testFixture->writeBoardMessage("StatusDef\n");
 
-    vector<const char*> bsd_pre = {"\r",
+    vector<const char*> bsdPre1 = {"\r",
         "Boot Unit Test\r",
         "Start of board status definition:\r",
-        "0x7e000000,System errors\r",
-        "0x80000000,Error\r",
-        "0x40000000,Over temperature\r",
-        "0x20000000,Under voltage\r",
-        "0x10000000,Over voltage\r",
-        "0x08000000,Over current\r",
-        "0x04000000,Version error\r",
-        "0x02000000,USB error\r",
-        "0x01000000,Flash ongoing\r",
-        };
-    vector<const char*> bsd_post = {"\r",
+    };
+    vector<const char*> bsdPre2 = {
+            "0x80000000,Error\r",
+            "0x40000000,Over temperature\r",
+            "0x20000000,Under voltage\r",
+            "0x10000000,Over voltage\r",
+            "0x08000000,Over current\r",
+            "0x04000000,Version error\r",
+            "0x02000000,USB error\r",
+            "0x01000000,Flash ongoing\r",
+    };
+    vector<const char*> bsdPost = {"\r",
         "End of board status definition.\r"
     };
 
-    bsd_pre.insert(bsd_pre.end(), pass_string.begin(), pass_string.end());
-    bsd_pre.insert(bsd_pre.end(), bsd_post.begin(), bsd_post.end());
+    bsdPre1.push_back(boardErrorsString);
+    bsdPre1.insert(bsdPre1.end(), bsdPre2.begin(), bsdPre2.end());
+    bsdPre1.insert(bsdPre1.end(), boardStatusDefString.begin(), boardStatusDefString.end());
+    bsdPre1.insert(bsdPre1.end(), bsdPost.begin(), bsdPost.end());
 
-    EXPECT_FLUSH_USB(::testing::ElementsAreArray(bsd_pre));
+    EXPECT_FLUSH_USB(::testing::ElementsAreArray(bsdPre1));
 }
 
 /*!
