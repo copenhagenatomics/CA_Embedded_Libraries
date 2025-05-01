@@ -51,6 +51,12 @@ int16_t extADCMax(ADS7953Device_t *dev, int16_t *pData, uint16_t channel);
 int16_t extADCMin(ADS7953Device_t *dev, int16_t *pData, uint16_t channel);
 double extADCMean(ADS7953Device_t *dev, int16_t *pData, uint16_t channel);
 double extADCRms(ADS7953Device_t *dev, int16_t *pData, uint16_t channel);
+double extADCMeanLimited(ADS7953Device_t *dev, int16_t *pData, uint16_t channel,
+                         uint32_t noOfPoints);
+double extADCRmsLimited(ADS7953Device_t *dev, int16_t *pData, uint16_t channel,
+                        uint32_t noOfPoints);
+double extADCMeanProductLimited(ADS7953Device_t *dev, int16_t *pData, uint16_t channel1,
+                                uint16_t channel2, uint32_t noOfPoints);
 void extADCSetOffset(ADS7953Device_t *dev, int16_t *pData, uint16_t channel, int16_t offset);
 
 int ADS7953Init(ADS7953Device_t *dev, SPI_HandleTypeDef *hspi, TIM_HandleTypeDef *htim,

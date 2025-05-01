@@ -337,7 +337,7 @@ int16_t extADCMin(ADS7953Device_t *dev, int16_t *pData, uint16_t channel) {
  */
 double extADCMean(ADS7953Device_t *dev, int16_t *pData, uint16_t channel) {
     if (pData == NULL || dev == NULL || channel >= dev->noOfChannels) {
-        return 0;
+        return 0.0;
     }
 
     int32_t sum = 0;
@@ -345,6 +345,31 @@ double extADCMean(ADS7953Device_t *dev, int16_t *pData, uint16_t channel) {
         sum += pData[sampleId * dev->noOfChannels + channel];
     }
     return (((double)sum) / ((double)dev->noOfSamples));
+}
+
+/*!
+ * @brief   Calculation of average on limited number of points
+ * @param   dev Pointer to the ADC structure
+ * @param   pData Pointer to the ADC buffer
+ * @param   channel ADC channel
+ * @param   noOfPoints Number of samples to use
+ * @return  Mean of buffer for given channel
+ */
+double extADCMeanLimited(ADS7953Device_t *dev, int16_t *pData, uint16_t channel,
+                         uint32_t noOfPoints) {
+    if (pData == NULL || dev == NULL || channel >= dev->noOfChannels || noOfPoints <= 0) {
+        return 0.0;
+    }
+
+    if (noOfPoints > dev->noOfSamples) {
+        noOfPoints = dev->noOfSamples;
+    }
+
+    int32_t sum = 0;
+    for (uint32_t sampleId = 0; sampleId < noOfPoints; sampleId++) {
+        sum += pData[sampleId * dev->noOfChannels + channel];
+    }
+    return (((double)sum) / ((double)noOfPoints));
 }
 
 /*!
@@ -356,15 +381,68 @@ double extADCMean(ADS7953Device_t *dev, int16_t *pData, uint16_t channel) {
  */
 double extADCRms(ADS7953Device_t *dev, int16_t *pData, uint16_t channel) {
     if (pData == NULL || dev == NULL || channel >= dev->noOfChannels) {
-        return 0;
+        return 0.0;
     }
 
-    double sum = 0;
+    double sum = 0.0;
     for (uint32_t sampleId = 0; sampleId < dev->noOfSamples; sampleId++) {
         double mult = pData[sampleId * dev->noOfChannels + channel];
         sum += (mult * mult);
     }
     return sqrt(sum / ((double)dev->noOfSamples));
+}
+
+/*!
+ * @brief   Calculation of RMS on limited number of points
+ * @param   dev Pointer to the ADC structure
+ * @param   pData Pointer to the ADC buffer
+ * @param   channel ADC channel
+ * @param   noOfPoints Number of samples to use
+ * @return  RMS of buffer for given channel
+ */
+double extADCRmsLimited(ADS7953Device_t *dev, int16_t *pData, uint16_t channel,
+                        uint32_t noOfPoints) {
+    if (pData == NULL || dev == NULL || channel >= dev->noOfChannels || noOfPoints <= 0) {
+        return 0.0;
+    }
+
+    if (noOfPoints > dev->noOfSamples) {
+        noOfPoints = dev->noOfSamples;
+    }
+
+    double sum = 0;
+    for (uint32_t sampleId = 0; sampleId < noOfPoints; sampleId++) {
+        double mult = pData[sampleId * dev->noOfChannels + channel];
+        sum += (mult * mult);
+    }
+    return sqrt(sum / ((double)noOfPoints));
+}
+
+/*!
+ * @brief   Calculation of RMS on limited number of points
+ * @param   dev Pointer to the ADC structure
+ * @param   pData Pointer to the ADC buffer
+ * @param   channel ADC channel
+ * @param   noOfPoints Number of samples to use
+ * @return  RMS of buffer for given channel
+ */
+double extADCMeanProductLimited(ADS7953Device_t *dev, int16_t *pData, uint16_t channel1,
+                                uint16_t channel2, uint32_t noOfPoints) {
+    if (pData == NULL || dev == NULL || channel1 >= dev->noOfChannels ||
+        channel2 >= dev->noOfChannels || noOfPoints <= 0) {
+        return 0.0;
+    }
+
+    if (noOfPoints > dev->noOfSamples) {
+        noOfPoints = dev->noOfSamples;
+    }
+
+    double sum = 0;
+    for (uint32_t sampleId = 0; sampleId < noOfPoints; sampleId++) {
+        sum += ((double)pData[sampleId * dev->noOfChannels + channel1]) *
+               ((double)pData[sampleId * dev->noOfChannels + channel2]);
+    }
+    return sum / ((double)noOfPoints);
 }
 
 /*!
