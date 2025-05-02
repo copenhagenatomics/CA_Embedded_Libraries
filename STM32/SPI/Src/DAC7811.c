@@ -51,7 +51,7 @@ HAL_StatusTypeDef transmitData(DAC7811Device *dev, uint8_t* txBuf)
 
 HAL_StatusTypeDef loadAndUpdate(DAC7811Device *dev, uint16_t data)
 {
-	DAC7811Cmd cmd = { .ctrlbits = LoadUpdate, .dataMsb = (uint8_t) ((data >> 8) & 0x0f), .dataLsb = (data & 0xFF)};
+	DAC7811Cmd cmd = { .dataLsb = (uint8_t)(data & 0xFFU), .dataMsb = (uint8_t) ((data >> 8) & 0x0f), .ctrlbits = LoadUpdate};
 
 	if (transmitData(dev, cmd.data) != HAL_OK)
 		return HAL_ERROR;
@@ -60,7 +60,7 @@ HAL_StatusTypeDef loadAndUpdate(DAC7811Device *dev, uint16_t data)
 
 HAL_StatusTypeDef readOutputValue(DAC7811Device *dev)
 {
-	DAC7811Cmd rxData = { .ctrlbits = ReadBack, .dataMsb = 0, .dataLsb = 0 };
+	DAC7811Cmd rxData = { .dataLsb = 0 , .dataMsb = 0, .ctrlbits = ReadBack};
 
 	if (receiveData(dev, rxData.data) != HAL_OK)
 		return HAL_ERROR;
@@ -72,7 +72,7 @@ HAL_StatusTypeDef readOutputValue(DAC7811Device *dev)
 
 HAL_StatusTypeDef resetMidScale(DAC7811Device *dev)
 {
-	DAC7811Cmd cmd = { .ctrlbits = ResetMidScale, .dataMsb = 0, .dataLsb = 0 };
+	DAC7811Cmd cmd = { .dataLsb = 0, .dataMsb = 0, .ctrlbits = ResetMidScale};
 
 	if (transmitData(dev, cmd.data) != HAL_OK)
 		return HAL_ERROR;
@@ -81,7 +81,7 @@ HAL_StatusTypeDef resetMidScale(DAC7811Device *dev)
 
 HAL_StatusTypeDef disableDaisyChain(DAC7811Device *dev)
 {
-	DAC7811Cmd cmd = { .ctrlbits = DisableDC, .dataMsb = 0, .dataLsb = 0 };
+	DAC7811Cmd cmd = { .dataLsb = 0, .dataMsb = 0, .ctrlbits = DisableDC, };
 
 	if (transmitData(dev, cmd.data) != HAL_OK)
 		return HAL_ERROR;
