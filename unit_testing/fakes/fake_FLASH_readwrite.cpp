@@ -110,7 +110,7 @@ int readFromFlashCRC(CRC_HandleTypeDef *hcrc, uint32_t flash_address, uint8_t *d
 
     (void) readFromFlash(flash_address, buf, size + 1);
 
-    /* Real behaviour does not overwrite data even if CRC is not valid */
+    /* Real behaviour does not overwrite data if CRC is not valid */
     initCrc8(0x00, 0x07);
     uint8_t crc = crc8Calculate(buf, size);
 
