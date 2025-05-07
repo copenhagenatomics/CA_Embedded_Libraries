@@ -48,3 +48,23 @@ void hanning(float *hanningCoef, int16_t *pData, uint32_t noOfChannels, uint32_t
         pData[sampleId * noOfChannels + channel] *= hanningCoef[sampleId];
     }
 }
+
+/*!
+ * @brief   Applies hanning windows while calculating the coefficients on the go
+ * @param   pData Pointer to ADC buffer
+ * @param   noOfChannels Number of ADC channels
+ * @param   noOfSamples Number of samples for each channel
+ * @param   channel ADC channel
+ * @note    Useful before applying a fft, to decrease spectral leakage
+ */
+void hanningFloatDirect(float *pData, uint32_t noOfChannels, uint32_t noOfSamples, uint16_t channel) {
+    if (pData == NULL) {
+        return;
+    }
+
+    float k = 2.0f * M_PI / ((float)noOfSamples);
+
+    for (uint32_t sampleId = 0; sampleId < noOfSamples; sampleId++) {
+        pData[sampleId * noOfChannels + channel] *= 0.5f * (1.0f - cosf(sampleId * k));
+    }
+}

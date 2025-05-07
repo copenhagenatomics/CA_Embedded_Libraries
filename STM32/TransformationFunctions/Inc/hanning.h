@@ -25,6 +25,7 @@ extern "C" {
 void hanningInit(float *pDst, uint32_t length);
 void hanning(float *hanningCoef, int16_t *pData, uint32_t noOfChannels, uint32_t noOfSamples,
              uint16_t channel);
+void hanningFloatDirect(float *pData, uint32_t noOfChannels, uint32_t noOfSamples, uint16_t channel);
 
 #ifdef __cplusplus
 }

@@ -36,6 +36,13 @@ class HanningTest: public ::testing::Test
             for (uint32_t i = 0; i < noOfSamples; i++)
                 pData[i * noOfChannels + channel] = amplitude * sin( 2*M_PI*(i*Ts)*freq );
         }
+
+        static void generateSineFloat(float* pData, uint32_t noOfSamples, uint32_t noOfChannels, uint16_t channel, float amplitude, float freq, float fs)
+        {
+            const float Ts = 1.0/fs;
+            for (uint32_t i = 0; i < noOfSamples; i++)
+                pData[i * noOfChannels + channel] = amplitude * sin( 2*M_PI*(i*Ts)*freq );
+        }
 };
 
 /***************************************************************************************************
@@ -95,4 +102,36 @@ TEST_F(HanningTest, testHanning)
     EXPECT_EQ(pData[0*noOfChannels + 1], 0);
     EXPECT_EQ(pData[2001*noOfChannels + 1], 10592);
     EXPECT_EQ(pData[(noOfSamples - 1)*noOfChannels + 1], 0);
+}
+
+TEST_F(HanningTest, testHanningFloatDirect)
+{
+    uint32_t noOfSamples = 4096;
+    uint32_t noOfChannels = 2;
+    float pData[noOfSamples * noOfChannels] = {0};
+    float amplitude = 15000;
+    float freq = 50;
+    float fs = 400;
+
+    float tol = 1e-2;
+
+    hanningFloatDirect(pData, noOfChannels, noOfSamples, 1);
+
+    for (uint32_t i = 0; i < noOfSamples; i++)
+    {
+        EXPECT_NEAR(pData[i*noOfChannels + 0], 0, tol);
+        EXPECT_NEAR(pData[i*noOfChannels + 1], 0, tol);
+    }
+
+    generateSineFloat(pData, noOfSamples, noOfChannels, 1, amplitude, freq, fs);
+    hanningFloatDirect(pData, noOfChannels, noOfSamples, 1);
+
+    for (uint32_t i = 0; i < noOfSamples; i++)
+    {
+        EXPECT_NEAR(pData[i*noOfChannels + 0], 0, tol);
+    }
+
+    EXPECT_NEAR(pData[0*noOfChannels + 1], 0, tol);
+    EXPECT_NEAR(pData[2001*noOfChannels + 1], 10593.01, tol);
+    EXPECT_NEAR(pData[(noOfSamples - 1)*noOfChannels + 1], 0, tol);
 }
