@@ -8,10 +8,6 @@
 #ifndef INC_CA_HANNING_H_
 #define INC_CA_HANNING_H_
 
-#ifndef M_PI
-#define M_PI 3.14159265358979323846
-#endif
-
 #include <stdint.h>
 
 #ifdef __cplusplus
