@@ -19,10 +19,6 @@ extern "C" {
 ** PUBLIC FUNCTION DECLARATIONS
 ***************************************************************************************************/
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 void initCrc4(uint8_t init, uint8_t poly);
 void initCrc8(uint8_t init, uint8_t poly);
 uint8_t crc8Calculate(uint8_t *data, size_t len);
