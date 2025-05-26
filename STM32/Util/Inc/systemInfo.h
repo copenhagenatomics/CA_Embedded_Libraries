@@ -50,8 +50,6 @@ extern "C" {
     (BS_OVER_TEMPERATURE_Msk | BS_UNDER_VOLTAGE_Msk | BS_OVER_VOLTAGE_Msk | BS_OVER_CURRENT_Msk | \
      BS_VERSION_ERROR_Msk | BS_USB_ERROR_Msk)
 
-#define CA_SNPRINTF(b, l, ...) l += snprintf(&b[l], sizeof(b) - l, __VA_ARGS__)
-
 /***************************************************************************************************
 ** STRUCTURES
 ***************************************************************************************************/

@@ -13,6 +13,14 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+/**
+ * @brief Adds a formatted string at the end of a buffer
+ * @param b Buffer
+ * @param l Length already written (is updated)
+ * @param ... Formatted string
+ */
+#define CA_SNPRINTF(b, l, ...) l += snprintf(&b[l], sizeof(b) - l, __VA_ARGS__)
+
 // Wrap vsnprintf(char *str, size_t size, const char *format, va_list ap)
 // and send data to USB port. The n indicates that buffer overflow is handled.
 // String/n is max 256 bytes.
