@@ -12,6 +12,7 @@
 #include <stddef.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
 
 /**
  * @brief Adds a formatted string at the end of a buffer
