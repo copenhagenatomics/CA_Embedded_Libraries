@@ -272,6 +272,9 @@ void inputCAProtocol(CAProtocolCtx* ctx) {
     if (parseError) {
         HALundefined(input);
     }
+
+    /* The message has been parsed, clear the buffer */
+    memset(ctx->data->buf, 0, sizeof(ctx->data->buf));
 }
 
 void initCAProtocol(CAProtocolCtx* ctx, ReaderFn fn) {

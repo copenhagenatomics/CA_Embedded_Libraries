@@ -26,6 +26,6 @@ typedef struct {
 ** PUBLIC FUNCTION DECLARATIONS
 ***************************************************************************************************/
 
-void ACDCInputHandler(ACDCProtocolCtx* ctx, const char* input);
+void ACDCInputHandler(ACDCProtocolCtx* ctx, char* input);
 
 #endif /* INC_CAPROTOCOLACDC_H_ */

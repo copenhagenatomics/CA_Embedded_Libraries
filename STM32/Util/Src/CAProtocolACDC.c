@@ -17,7 +17,7 @@
 ** PRIVATE FUNCTION DECLARATIONS
 ***************************************************************************************************/
 
-static int getArgs(const char *input, char delim, char **argv, int max_len);
+static int getArgs(char *input, char delim, char **argv, int max_len);
 
 /***************************************************************************************************
 ** PRIVATE FUNCTION DEFINITIONS
@@ -31,16 +31,13 @@ static int getArgs(const char *input, char delim, char **argv, int max_len);
 ** @param[out] argv    Pointer to a list of arguments
 ** @param[in]  max_len Maximum number of arguments that can be stored in args
 */
-static int getArgs(const char *input, char delim, char **argv, int max_len) {
-    char *tok = strtok((char *)input, &delim);
+static int getArgs(char *input, char delim, char **argv, int max_len) {
+    char *tok = strtok(input, &delim);
     int count = 0;
 
     for (; count < max_len && tok; count++) {
         argv[count] = tok;
         tok = strtok(NULL, &delim);
-        if (tok) {
-            *(tok - 1) = 0;  // Zero terminate previous string.
-        }
     }
 
     return count;
@@ -53,7 +50,7 @@ static int getArgs(const char *input, char delim, char **argv, int max_len) {
 /*!
 ** @brief Common input handler for AC and DC boards
 */
-void ACDCInputHandler(ACDCProtocolCtx *ctx, const char *input) {
+void ACDCInputHandler(ACDCProtocolCtx *ctx, char *input) {
     int duration;
     if (sscanf(input, "all on %d", &duration) == 1) {
         if (ctx->allOn) {
