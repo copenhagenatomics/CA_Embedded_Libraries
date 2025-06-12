@@ -14,10 +14,24 @@
 #include "CAProtocolACDC.h"
 
 /***************************************************************************************************
+** DEFINES
+***************************************************************************************************/
+
+#define MAX_CMD_CHARS 13
+
+/***************************************************************************************************
 ** PRIVATE FUNCTION DECLARATIONS
 ***************************************************************************************************/
 
-static int getArgs(const char *input, char delim, char **argv, int max_len);
+static int getArgs(char *input, char delim, char **argv, int max_len);
+
+/***************************************************************************************************
+** PRIVATE OBJECT DECLARATIONS
+***************************************************************************************************/
+
+/* Buffer for preventing modifications to original message. 2x MAX_CMD_CHARS to allow for sensible 
+** number of additional spaces, trailiing newline, etc...*/
+char buf[2 * MAX_CMD_CHARS] = {0}; 
 
 /***************************************************************************************************
 ** PRIVATE FUNCTION DEFINITIONS
@@ -31,19 +45,27 @@ static int getArgs(const char *input, char delim, char **argv, int max_len);
 ** @param[out] argv    Pointer to a list of arguments
 ** @param[in]  max_len Maximum number of arguments that can be stored in args
 */
-static int getArgs(const char *input, char delim, char **argv, int max_len) {
-    char *tok = strtok((char *)input, &delim);
-    int count = 0;
+static int getArgs(char *input, char delim, char **argv, int max_len) {
+    int len           = strlen(input);
+    bool search_delim = false;
+    int k             = 0;
 
-    for (; count < max_len && tok; count++) {
-        argv[count] = tok;
-        tok = strtok(NULL, &delim);
-        if (tok) {
-            *(tok - 1) = 0;  // Zero terminate previous string.
+    for (int i = 0; i < len; i++) {
+        if (!search_delim && input[i] != delim) {
+            argv[k++]    = input + i;
+            search_delim = true;
+        }
+        else if (search_delim && input[i] == delim) {
+            input[i]     = '\0';
+            search_delim = false;
+        }
+
+        if (k >= max_len) {
+            break;  // Avoid buffer overflow.
         }
     }
 
-    return count;
+    return k;
 }
 
 /***************************************************************************************************
@@ -94,8 +116,13 @@ void ACDCInputHandler(ACDCProtocolCtx *ctx, const char *input) {
             ctx->portState(port, false, 0, -1);
         }
         else if (strncmp(cmd, "on", 2) == 0) {
+            /* getArgs modifies the message, so retain the original for debug printout in case of 
+            ** error */
+            strncpy(buf, input, sizeof(buf) - 1);
+            buf[sizeof(buf) - 1] = '\0';  // Ensure some null termination
+
             char *argv[4] = {0};  // There should not be more then 4 args.
-            int count = getArgs(input, ' ', argv, 4);
+            int count = getArgs(buf, ' ', argv, 4);
             char percent = 0;
 
             switch (count) {
