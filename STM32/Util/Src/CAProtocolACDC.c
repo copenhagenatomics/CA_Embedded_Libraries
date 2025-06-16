@@ -30,7 +30,7 @@ static int getArgs(char *input, char delim, char **argv, int max_len);
 ***************************************************************************************************/
 
 /* Buffer for preventing modifications to original message. 2x MAX_CMD_CHARS to allow for sensible 
-** number of additional spaces, trailiing newline, etc...*/
+** number of additional spaces, trailing newline, etc...*/
 char buf[2 * MAX_CMD_CHARS] = {0}; 
 
 /***************************************************************************************************
@@ -43,7 +43,7 @@ char buf[2 * MAX_CMD_CHARS] = {0};
 ** @param[in]  input   Input string
 ** @param[in]  delim   Delimiter used to separate arguments
 ** @param[out] argv    Pointer to a list of arguments
-** @param[in]  max_len Maximum number of arguments that can be stored in args
+** @param[in]  max_len Maximum number of arguments that can be stored in argv
 */
 static int getArgs(char *input, char delim, char **argv, int max_len) {
     int len           = strlen(input);
