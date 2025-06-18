@@ -78,7 +78,10 @@ typedef enum {
     VFD                = 19,
     Tachometer         = 20,
     ACTenChannel       = 21,
-    PhaseMonitor       = 22
+    PhaseMonitor       = 22,
+    SaltLeakCal        = 23,
+    PressureCal        = 24,
+    ERUHC              = 25
 } BoardType;
 typedef uint8_t SubBoardType;  // SubBoardType needed for some boards.
 
