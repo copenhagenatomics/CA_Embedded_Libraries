@@ -80,7 +80,9 @@ typedef enum {
     ACTenChannel       = 21,
     PhaseMonitor       = 22,
     SaltLeakCal        = 23,
-    PressureCal        = 24
+    PressureCal        = 24,
+    ERUHC              = 25,
+    FanController      = 26
 } BoardType;
 typedef uint8_t SubBoardType;  // SubBoardType needed for some boards.
 
