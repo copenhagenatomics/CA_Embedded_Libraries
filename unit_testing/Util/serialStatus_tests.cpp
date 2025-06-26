@@ -139,6 +139,7 @@ void statusDefPrintoutTest(SerialStatusTest& sst, const char* boardErrorsString,
             "0x04000000,Version error\r",
             "0x02000000,USB error\r",
             "0x01000000,Flash ongoing\r",
+            "0x00800000,100Hz Output\r",
     };
     vector<const char*> bsdPost = {"\r",
         "End of board status definition.\r"

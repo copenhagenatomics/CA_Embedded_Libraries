@@ -326,6 +326,9 @@ const char* statusDefInfo(bool printStart) {
                     (uint32_t)BS_USB_ERROR_Msk);
     len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",Flash ongoing\r\n",
                     (uint32_t)BS_FLASH_ONGOING_Msk);
+    len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",100Hz Output\r\n",
+                    (uint32_t)BS_100_HZ_OUTPUT_Msk);
+    
 
     return buf;
 }
