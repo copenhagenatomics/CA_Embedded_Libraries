@@ -182,6 +182,15 @@ HAL_StatusTypeDef HAL_TIM_OC_Stop(TIM_HandleTypeDef *htim, uint32_t Channel) {
     return HAL_OK;
 }
 
+HAL_StatusTypeDef HAL_TIM_IC_Start_IT(TIM_HandleTypeDef *htim, uint32_t Channel) {
+    /* Do nothing */
+    return HAL_OK;
+}
+
+uint32_t HAL_TIM_ReadCapturedValue(const TIM_HandleTypeDef *htim, uint32_t Channel) {
+    return 0;
+}
+
 #endif
 
 #ifdef HAL_SPI_MODULE_ENABLED
