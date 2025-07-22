@@ -163,6 +163,14 @@ static const char* productType(uint8_t id) {
             return "ACTenChannel";
         case PhaseMonitor:
             return "PhaseMonitor";
+        case SaltLeakCal:
+            return "SaltLeakCal";
+        case PressureCal:
+            return "PressureCal";
+        case ERUHC:
+            return "ERUHC";
+        case FanController:
+            return "FanController";
     }
     return "NA";
 }
