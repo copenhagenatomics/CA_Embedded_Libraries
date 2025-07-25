@@ -21,6 +21,11 @@ typedef enum
     INPUT_CALIBRATE // calibration, measure (AVDD-AVSS)/2.
 } ADS1120_input;
 
+typedef enum {
+    ST_THERMOCOUPLE = 0, // Thermocouple
+    ST_RTD               // RTD
+} ADC1120_SensorType;
+
 typedef struct ADS1120Data {
     double chA;
     double chB;
@@ -39,6 +44,8 @@ typedef struct ADS1120Device {
 
     // Data acquired from device and state information.
     ADS1120Data data;
+
+    ADC1120_SensorType sensor_type;;
 } ADS1120Device;
 
 /* Description: Configure a single ADS1120 device. Configuration is fixed

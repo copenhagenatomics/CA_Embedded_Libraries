@@ -59,8 +59,25 @@ typedef union ADS1120Cmd {
     uint8_t byte;
 } ADS1120Cmd;
 
-// Function prototypes
+/***************************************************************************************************
+** PRIVATE FUNCTION DECLARATIONS
+***************************************************************************************************/
+
 static HAL_StatusTypeDef readRegisters(ADS1120Device *dev, ADS1120_RegConfig* regs);
+static ADS1120_input nextInput(ADS1120_input current);
+static double adc2Temp(int16_t adcValue, int16_t calibration, float internalTemp, float delta, float cj_delta);
+static double rtd2Temp(int16_t adcValue, int16_t calibration, float bias_resistor, float lead_compensation);
+static bool isDataReady(ADS1120Device *dev);
+static HAL_StatusTypeDef verifyTransmission(ADS1120Device *dev, const ADS1120_RegConfig *result);
+static HAL_StatusTypeDef reset(ADS1120Device *dev);
+static HAL_StatusTypeDef ADCSync(ADS1120Device *dev);
+static HAL_StatusTypeDef readADC(ADS1120Device *dev, uint16_t* value);
+static HAL_StatusTypeDef writeRegister(ADS1120Device *dev, const ADS1120_RegConfig* regs, uint8_t count, uint8_t offset);
+static int setInput(ADS1120Device *dev, ADS1120_input selectedInput);
+
+/***************************************************************************************************
+** PRIVATE FUNTION DEFINITIONS
+***************************************************************************************************/
 
 static ADS1120_input nextInput(ADS1120_input current)
 {
@@ -85,11 +102,36 @@ static double adc2Temp(int16_t adcValue, int16_t calibration, float internalTemp
 
     adcValue -= calibration;
     // Voltage across thermocouple
-    float vTC = (float) adcValue/QUANTIZATION*INTERVAL_VOLTAGE_REF/GAIN;
+    float vTC = (float) adcValue/(QUANTIZATION / 2) *INTERVAL_VOLTAGE_REF/GAIN;
     // Voltage across cold-junction
     float vCJ = internalTemp*cj_delta;
     // return temperature
     return (vTC + vCJ)/delta;
+}
+
+/*!
+** @brief  Convert RTD ADC value to temperature.
+**
+** @param adcValue ADC value from the ADS1120.
+** @param calibration Offset calibration value from last cal cycle
+** @param bias_resistor Bias resistor value in Ohms.
+** @param lead_compensation Lead compensation value in Ohms.
+** @return Temperature in degrees Celsius.
+*/
+static double rtd2Temp(int16_t adcValue, int16_t calibration, float bias_resistor, float lead_compensation) {
+    // Nothing in port, send 10000 to set an invalid value.
+    if (adcValue == 0x7fff) {
+        return 10000;
+    }
+    // TODO: How to detect a short?
+
+    adcValue -= calibration;
+    // Temperature of RTD
+    double vRTD = (adcValue * INTERVAL_VOLTAGE_REF) / (GAIN * (QUANTIZATION / 2));
+    double rRTD = (2 * bias_resistor * vRTD) / (3.3 - vRTD) - lead_compensation;
+    
+    // Polynomial fit for PT100, res -> temp degC
+    return 1.0128e-3 * rRTD * rRTD + 2.3554 * rRTD - 2.4567e2;
 }
 
 // Helper function to test if device has new data.
@@ -204,7 +246,7 @@ static int setInput(ADS1120Device *dev, ADS1120_input selectedInput)
     ADS1120_RegConfig cfg =
     {
             .pga_bypass = 0, // large gain should be used so this is invalid
-            .gain       = 5, // Multiply input by 16.
+            .gain       = 4, // Multiply input by 16.
             .mux        = 0, // This is altered below.
             .bcs        = 0, // Burn-out current sensor not used
 
@@ -251,7 +293,10 @@ static int setInput(ADS1120Device *dev, ADS1120_input selectedInput)
     return 0;
 }
 
-// Public functions begin.
+/***************************************************************************************************
+** PUBLIC FUNCTION DEFINITIONS
+***************************************************************************************************/
+
 int ADS1120Init(ADS1120Device *dev)
 {
     int ret = 0;
@@ -278,28 +323,26 @@ int ADS1120Init(ADS1120Device *dev)
     return ret;
 }
 
-int ADS1120Loop(ADS1120Device *dev, float *type_calibration)
-{
+int ADS1120Loop(ADS1120Device *dev, float *type_calibration) {
     int ret = 0;
-    const int mAvgTime = 6; // Moving average time, see https://en.wikipedia.org/wiki/Moving_average.
+    // Moving average time, see https://en.wikipedia.org/wiki/Moving_average.
+    const int mAvgTime = 6; 
 
-    ADS1120Data* data = &dev->data;
+    ADS1120Data *data = &dev->data;
 
     // current setting is lowest sample rate, 1/20 Sec. Timeout is 70mSec.
-    if (tdiff_u32(HAL_GetTick(), data->readStart) > 70)
-    {
+    if (tdiff_u32(HAL_GetTick(), data->readStart) > 70) {
         // Something is wrong. Restart from calibrate
         stmSetGpio(dev->cs, false);
         ret = setInput(dev, INPUT_CALIBRATE);
-        ADCSync(dev); // If no change in SPI flags a new ADC acquire is not started.
+        ADCSync(dev);  // If no change in SPI flags a new ADC acquire is not started.
         stmSetGpio(dev->cs, true);
 
         // TODO: How to invalidate?
         return ret;
     }
 
-    if (!isDataReady(dev))
-    {
+    if (!isDataReady(dev)) {
         // Data is not ready. This is OK since SPI device needs to acquire the data
         return ret;
     }
@@ -308,42 +351,58 @@ int ADS1120Loop(ADS1120Device *dev, float *type_calibration)
     stmSetGpio(dev->cs, false);
 
     uint16_t adcValue;
-    if (readADC(dev, &adcValue) != HAL_OK)
-    {
+    if (readADC(dev, &adcValue) != HAL_OK) {
         // Something is wrong. Restart from calibrate
         ret = setInput(dev, INPUT_CALIBRATE);
-        ADCSync(dev); // If no change in SPI flags a new ADC acquire is not started.
+        ADCSync(dev);  // If no change in SPI flags a new ADC acquire is not started.
     }
-    else
-    {
+    else {
         // The smallest possible State machine
         double temp;
-        switch(data->currentInput)
-        {
-        case INPUT_TEMP:
-            data->internalTemp += (((int16_t) adcValue)/4.0 * 0.03125 - data->internalTemp)/mAvgTime;
-            break;
+        switch (data->currentInput) {
+            case INPUT_TEMP:
+                data->internalTemp +=
+                    (((int16_t)adcValue) / 4.0 * 0.03125 - data->internalTemp) / mAvgTime;
+                break;
 
-        case INPUT_CHA:
-            temp = adc2Temp(((int16_t) adcValue), data->calibration, data->internalTemp, *type_calibration, *(type_calibration + 1));
-            if (temp == 10000 || data->chA == 10000)
-                data->chA = temp;
-            else
-                data->chA += (temp - data->chA)/mAvgTime;
-            break;
+            case INPUT_CHA:
+                if (dev->sensor_type == ST_THERMOCOUPLE) {
+                    temp = adc2Temp(((int16_t)adcValue), data->calibration, data->internalTemp,
+                                    *type_calibration, *(type_calibration + 1));
+                }
+                else {
+                    temp = rtd2Temp(((int16_t)adcValue), data->calibration, *type_calibration,
+                                    *(type_calibration + 1));
+                }
+                if (temp == 10000 || data->chA == 10000) {
+                    data->chA = temp;
+                }
+                else {
+                    data->chA += (temp - data->chA) / mAvgTime;
+                }
+                break;
 
-        case INPUT_CHB:
-            temp = adc2Temp(((int16_t) adcValue), data->calibration, data->internalTemp, *type_calibration, *(type_calibration + 1));
-            if (temp == 10000 || data->chB == 10000)
-                data->chB = temp;
-            else
-                data->chB += (temp - data->chB)/mAvgTime;
-            break;
+            case INPUT_CHB:
+                if (dev->sensor_type == ST_THERMOCOUPLE) {
+                    temp = adc2Temp(((int16_t)adcValue), data->calibration, data->internalTemp,
+                                    *type_calibration, *(type_calibration + 1));
+                }
+                else {
+                    temp = rtd2Temp(((int16_t)adcValue), data->calibration, *type_calibration,
+                                    *(type_calibration + 1));
+                }
+                if (temp == 10000 || data->chB == 10000) {
+                    data->chB = temp;
+                }
+                else {
+                    data->chB += (temp - data->chB) / mAvgTime;
+                }
+                break;
 
-        case INPUT_CALIBRATE:
-            // The offset value from ADC1120 can be either negative or positive.
-            data->calibration += (((int16_t) adcValue) - data->calibration) / mAvgTime;
-            break;
+            case INPUT_CALIBRATE:
+                // The offset value from ADC1120 can be either negative or positive.
+                data->calibration += (((int16_t)adcValue) - data->calibration) / mAvgTime;
+                break;
         }
         ret = setInput(dev, nextInput(data->currentInput));
     }
