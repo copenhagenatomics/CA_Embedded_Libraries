@@ -43,7 +43,7 @@ static CRC_HandleTypeDef* hcrc = NULL;
 static int no_of_channels      = 0;  // Number of channels to track
 
 /* Last software version.  */
-static char* last_sw_version = {0};
+static char* last_sw_version    = {0};
 static CounterChannel* channels = NULL;  // Array of channels
 
 static char* uptime_channel_desc[NUM_DEFAULT_CHANNELS] = {
@@ -67,7 +67,8 @@ static char** custom_channel_desc = NULL;  // Custom channel descriptions, if an
 static int loadUptime() {
     // Read in stored uptime after power cycling
     size_t channelsSize = no_of_channels * sizeof(CounterChannel) + SW_VERSION_MAX_LENGTH;
-    return readFromFlashCRC(hcrc, (uint32_t)FLASH_ADDR_UPTIME, (uint8_t*)last_sw_version, channelsSize);
+    return readFromFlashCRC(hcrc, (uint32_t)FLASH_ADDR_UPTIME, (uint8_t*)last_sw_version,
+                            channelsSize);
 }
 
 /*!
@@ -77,7 +78,8 @@ static int loadUptime() {
 */
 static void storeUptime() {
     size_t channelsSize = no_of_channels * sizeof(CounterChannel) + SW_VERSION_MAX_LENGTH;
-    (void)writeToFlashCRC(hcrc, (uint32_t)FLASH_ADDR_UPTIME, (uint8_t*)last_sw_version, channelsSize);
+    (void)writeToFlashCRC(hcrc, (uint32_t)FLASH_ADDR_UPTIME, (uint8_t*)last_sw_version,
+                          channelsSize);
 }
 
 /***************************************************************************************************
@@ -237,8 +239,9 @@ int uptime_init(CRC_HandleTypeDef* _hcrc, int _no_of_channels, char** channel_de
 
     /* Note: SW_VERSION_MAX_LENGTH must be an integer multiple of uint32 (e.g. 4) */
     size_t channelsSize = no_of_channels * sizeof(CounterChannel) + SW_VERSION_MAX_LENGTH;
-    last_sw_version = aligned_alloc(4U, channelsSize);
-    channels = (CounterChannel*)(last_sw_version + SW_VERSION_MAX_LENGTH);  // Point to the start of channels
+    last_sw_version     = aligned_alloc(4U, channelsSize);
+    channels            = (CounterChannel*)(last_sw_version +
+                                 SW_VERSION_MAX_LENGTH);  // Point to the start of channels
 
     if (channels == NULL) {
         return -2;
