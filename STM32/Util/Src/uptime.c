@@ -46,14 +46,14 @@ static int no_of_channels      = 0;  // Number of channels to track
 static char* last_sw_version    = {0};
 static CounterChannel* channels = NULL;  // Array of channels
 
-static char* uptime_channel_desc[NUM_DEFAULT_CHANNELS] = {
+static const char* uptime_channel_desc[NUM_DEFAULT_CHANNELS] = {
     "Total board uptime minutes",
     "Minutes since rework",
     "Minutes since last software update",
     "Software failures",
 };
 
-static char** custom_channel_desc = NULL;  // Custom channel descriptions, if any
+static const char** custom_channel_desc = NULL;  // Custom channel descriptions, if any
 
 /***************************************************************************************************
 ** PRIVATE FUNCTIONS
@@ -166,7 +166,7 @@ void uptime_print() {
 
         for (int i = 0; i < no_of_channels; i++) {
             /* Add a string descriptor of each channel, if one was provided at initialisation */
-            char* desc = NULL;
+            const char* desc = NULL;
             if (i < NUM_DEFAULT_CHANNELS) {
                 desc = uptime_channel_desc[i];
             }
@@ -226,7 +226,7 @@ void uptime_inputHandler(const char* input) {
 **
 ** @return 0 on success, <0 on failure (e.g. -1 for too many channels, -2 for malloc failure).
 */
-int uptime_init(CRC_HandleTypeDef* _hcrc, int _no_of_channels, char** channel_desc,
+int uptime_init(CRC_HandleTypeDef* _hcrc, int _no_of_channels, const char** channel_desc,
                 const char* boot_msg, const char* sw_version) {
     hcrc                = _hcrc;
     custom_channel_desc = channel_desc;
@@ -239,7 +239,7 @@ int uptime_init(CRC_HandleTypeDef* _hcrc, int _no_of_channels, char** channel_de
 
     /* Note: SW_VERSION_MAX_LENGTH must be an integer multiple of uint32 (e.g. 4) */
     size_t channelsSize = no_of_channels * sizeof(CounterChannel) + SW_VERSION_MAX_LENGTH;
-    last_sw_version     = aligned_alloc(4U, channelsSize);
+    last_sw_version     = (char*)aligned_alloc(4U, channelsSize);
     channels            = (CounterChannel*)(last_sw_version +
                                  SW_VERSION_MAX_LENGTH);  // Point to the start of channels
 

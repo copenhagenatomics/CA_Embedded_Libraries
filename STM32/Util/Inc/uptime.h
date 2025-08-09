@@ -39,7 +39,7 @@ enum defaultChannels {
 ** PUBLIC FUNCTION PROTOTYPES
 ***************************************************************************************************/
 
-int uptime_init(CRC_HandleTypeDef* _hcrc, int _no_of_channels, char** channel_desc,
+int uptime_init(CRC_HandleTypeDef* _hcrc, int _no_of_channels, const char** channel_desc,
                 const char* boot_msg, const char* sw_version);
 void uptime_incChannel(int ch);
 uint32_t uptime_incChannelMinutes(int ch, uint32_t lastUpdate);
