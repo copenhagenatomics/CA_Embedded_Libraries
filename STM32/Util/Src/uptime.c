@@ -240,12 +240,12 @@ int uptime_init(CRC_HandleTypeDef* _hcrc, int _no_of_channels, const char** chan
     /* Note: SW_VERSION_MAX_LENGTH must be an integer multiple of uint32 (e.g. 4) */
     size_t channelsSize = no_of_channels * sizeof(CounterChannel) + SW_VERSION_MAX_LENGTH;
     last_sw_version     = (char*)aligned_alloc(4U, channelsSize);
-    channels            = (CounterChannel*)(last_sw_version +
-                                 SW_VERSION_MAX_LENGTH);  // Point to the start of channels
-
-    if (channels == NULL) {
+    if (last_sw_version == NULL) {
         return -2;
     }
+
+    /* First 16-bytes reserved for last SW version */
+    channels = (CounterChannel*)(last_sw_version + SW_VERSION_MAX_LENGTH);
 
     /* First time programming */
     if (loadUptime() != 0) {
