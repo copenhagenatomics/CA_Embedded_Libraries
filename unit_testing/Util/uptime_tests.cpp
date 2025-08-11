@@ -68,7 +68,7 @@ class TestUptime: public ::testing::Test
 
 TEST_F(TestUptime, testInitGolden) {
     /* Attempt to init with too many channels */
-    EXPECT_EQ(-1, uptime_init(&hcrc, MAX_COUNTER_CHANNELS + 1, NULL, "reconnected Reset Reason: Power On", "V1.0.0"));
+    EXPECT_EQ(-1, uptime_init(&hcrc, MAX_COUNTER_CHANNELS - NUM_DEFAULT_CHANNELS + 1, NULL, "reconnected Reset Reason: Power On", "V1.0.0"));
 
     /* TODO: Force alloc to return NULL? */
 

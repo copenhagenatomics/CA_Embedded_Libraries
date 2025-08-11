@@ -66,7 +66,7 @@ static const char** custom_channel_desc = NULL;  // Custom channel descriptions,
 */
 static int loadUptime() {
     // Read in stored uptime after power cycling
-    size_t channelsSize = no_of_channels * sizeof(CounterChannel) + SW_VERSION_MAX_LENGTH;
+    uint32_t channelsSize = no_of_channels * sizeof(CounterChannel) + SW_VERSION_MAX_LENGTH;
     return readFromFlashCRC(hcrc, (uint32_t)FLASH_ADDR_UPTIME, (uint8_t*)last_sw_version,
                             channelsSize);
 }
@@ -77,7 +77,7 @@ static int loadUptime() {
 ** Note: last_sw_version is stored contiguously with channels, so they can all be stored together
 */
 static void storeUptime() {
-    size_t channelsSize = no_of_channels * sizeof(CounterChannel) + SW_VERSION_MAX_LENGTH;
+    uint32_t channelsSize = no_of_channels * sizeof(CounterChannel) + SW_VERSION_MAX_LENGTH;
     (void)writeToFlashCRC(hcrc, (uint32_t)FLASH_ADDR_UPTIME, (uint8_t*)last_sw_version,
                           channelsSize);
 }
@@ -90,7 +90,7 @@ static void storeUptime() {
 ** @brief Increment the count of a channel
 */
 void uptime_incChannel(int ch) {
-    if (channels) {
+    if (channels && (ch >= 0) && (ch < no_of_channels)) {
         channels[ch].count++;
     }
 }
@@ -106,7 +106,7 @@ void uptime_incChannel(int ch) {
 uint32_t uptime_incChannelMinutes(int ch, uint32_t lastUpdate) {
     uint32_t now = 0;
 
-    if (channels) {
+    if (channels && (ch >= 0) && (ch < no_of_channels)) {
         now = HAL_GetTick();
         if (tdiff_u32(now, lastUpdate) >= UPDATE_INTERVAL_SESSION) {
             lastUpdate = now;
@@ -150,7 +150,7 @@ void uptime_update() {
 ** @brief Reset a channel's count to 0 and increment the reset count
 */
 void uptime_resetChannel(int ch) {
-    /* channel 0 is the total operating hours for a board and may not be reset */
+    /* channel 0 is the total operating minutes for a board and may not be reset */
     if ((ch > 0) && (ch < no_of_channels) && channels) {
         channels[ch].reset_count++;
         channels[ch].count = 0;
@@ -188,9 +188,9 @@ void uptime_print() {
 */
 void uptime_inputHandler(const char* input, void (*serialPrint)(void)) {
     if (strncmp(input, "uptime", 6) == 0) {
-        char reset = '\0';
+        char action = '\0';
         int ch     = -1;
-        int args   = sscanf(input, "uptime %c %d", &reset, &ch);
+        int args   = sscanf(input, "uptime %c %d", &action, &ch);
 
         if (args < 1) {
             USBnprintf("Start of uptime");
@@ -200,16 +200,16 @@ void uptime_inputHandler(const char* input, void (*serialPrint)(void)) {
             uptime_print();
             USBnprintf("End of uptime");
         }
-        else if (args == 2 && reset == 'r') {
+        else if (args == 2 && action == 'r') {
             if (ch > 0 && ch < no_of_channels) {
                 uptime_resetChannel(ch);
                 USBnprintf("Reset channel %d", ch);
             }
         }
-        else if (args == 1 && reset == 's') {
+        else if (args == 1 && action == 's') {
             storeUptime();
         }
-        else if (args == 1 && reset == 'l') {
+        else if (args == 1 && action == 'l') {
             loadUptime();
         }
     }
@@ -250,7 +250,7 @@ int uptime_init(CRC_HandleTypeDef* _hcrc, int _no_of_channels, const char** chan
     /* First 16-bytes reserved for last SW version */
     channels = (CounterChannel*)(last_sw_version + SW_VERSION_MAX_LENGTH);
 
-    /* First time programming */
+    /* First time programming / CRC corruption */
     if (loadUptime() != 0) {
         for (int i = 0; i < no_of_channels; i++) {
             channels[i].channel     = i;

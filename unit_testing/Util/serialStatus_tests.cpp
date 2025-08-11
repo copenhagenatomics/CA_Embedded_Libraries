@@ -248,7 +248,8 @@ void uptimeTest(SerialStatusTest& sst, uintptr_t flashAddr) {
             Contains("Minutes since last software update, 2, " + std::to_string(r) + ", " + std::to_string(j) + "\r")));
     }
 
-    // Read from FLASH and see that it has been stored
+    /* Read from FLASH and see that it has been stored. Don't use CRC as it may not be valid, 
+    ** depending on how many custom channels are implemented for the board */
     struct {
         uint8_t reserved[16U]; /* Space for SW string */
         CounterChannel total_uptime_channel;
