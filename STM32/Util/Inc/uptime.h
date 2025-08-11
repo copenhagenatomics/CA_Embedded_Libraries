@@ -46,6 +46,6 @@ uint32_t uptime_incChannelMinutes(int ch, uint32_t lastUpdate);
 void uptime_update();
 void uptime_resetChannel(int ch);
 void uptime_print();
-void uptime_inputHandler(const char* input);
+void uptime_inputHandler(const char* input, void (*serialPrint)(void));
 
 #endif /* INC_UPTIME_H_ */

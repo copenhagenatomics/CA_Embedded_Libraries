@@ -186,7 +186,7 @@ void uptime_print() {
 /*!
 ** @brief Default handler for uptime input commands
 */
-void uptime_inputHandler(const char* input) {
+void uptime_inputHandler(const char* input, void (*serialPrint)(void)) {
     if (strncmp(input, "uptime", 6) == 0) {
         char reset = '\0';
         int ch     = -1;
@@ -194,6 +194,9 @@ void uptime_inputHandler(const char* input) {
 
         if (args < 1) {
             USBnprintf("Start of uptime");
+            if(serialPrint) {
+                serialPrint();
+            }
             uptime_print();
             USBnprintf("End of uptime");
         }

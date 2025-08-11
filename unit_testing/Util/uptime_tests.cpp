@@ -258,13 +258,21 @@ TEST_F(TestUptime, testUpdate) {
     }
 }
 
+/* To test printing of board specific info, see test below */
+static void testPrint() {
+    USBnprintf("testPrint\r\n");
+}
+
 TEST_F(TestUptime, testInputHandler) {
+
     EXPECT_EQ(0, uptime_init(&hcrc, 0, NULL, "reconnected Reset Reason: Power On", "V1.0.0"));
 
     /* Print */
-    uptime_inputHandler("uptime");
+    uptime_inputHandler("uptime", testPrint);
     EXPECT_FLUSH_USB(ElementsAre("\r",
         "Start of uptime\r",
+        "testPrint\r",
+        "\r",
         "Name, channel, reset, count\r",
         "Total board uptime minutes, 0, 0, 0\r",
         "Minutes since rework, 1, 0, 0\r",
@@ -277,18 +285,18 @@ TEST_F(TestUptime, testInputHandler) {
     uptime_incChannel(1);
     uptime_print();
     EXPECT_FLUSH_USB(Contains("Minutes since rework, 1, 0, 1\r"));
-    uptime_inputHandler("uptime r 1");
+    uptime_inputHandler("uptime r 1", NULL);
     uptime_print();
     EXPECT_FLUSH_USB(Contains("Minutes since rework, 1, 1, 0\r"));
 
     /* Load from memory */
-    uptime_inputHandler("uptime l");
+    uptime_inputHandler("uptime l", NULL);
     uptime_print();
     EXPECT_FLUSH_USB(Contains("Minutes since rework, 1, 0, 0\r"));
 
     /* Store to memory */
     uptime_incChannel(1);
-    uptime_inputHandler("uptime s");
+    uptime_inputHandler("uptime s", NULL);
 
     uptime_data_t uptime_data = {0};
     readFromFlashCRC(&hcrc, (uint32_t)FLASH_ADDR_UPTIME, (uint8_t*)&uptime_data, sizeof(uptime_data));
