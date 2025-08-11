@@ -312,6 +312,12 @@ HAL_StatusTypeDef HAL_DMA_Start_IT(DMA_HandleTypeDef *hdma, uint32_t SrcAddress,
 
 #endif
 
+#ifdef HAL_GPIO_MODULE_ENABLED
+
+void  HAL_GPIO_Init(GPIO_TypeDef  *GPIOx, GPIO_InitTypeDef *GPIO_Init) {}
+
+#endif
+
 void forceTick(uint32_t next_val)
 {
     force_tick = true;
@@ -358,6 +364,8 @@ void HAL_NVIC_SystemReset(void)
 #ifdef HAL_CORTEX_MODULE_ENABLED
 
 void HAL_NVIC_EnableIRQ(IRQn_Type IRQn) {}
+
+void HAL_NVIC_SetPriority(IRQn_Type IRQn, uint32_t PreemptPriority, uint32_t SubPriority) {}
 
 void HAL_NVIC_DisableIRQ(IRQn_Type IRQn) {}
 
