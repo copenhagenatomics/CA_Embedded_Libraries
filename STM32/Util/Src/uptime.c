@@ -33,7 +33,6 @@
 ***************************************************************************************************/
 
 static int loadUptime();
-static void storeUptime();
 
 /***************************************************************************************************
 ** PRIVATE OBJECTS
@@ -71,20 +70,20 @@ static int loadUptime() {
                             channelsSize);
 }
 
+/***************************************************************************************************
+** PUBLIC FUNCTIONS
+***************************************************************************************************/
+
 /*!
 ** @brief Save uptime counters to FLASH
 **
 ** Note: last_sw_version is stored contiguously with channels, so they can all be stored together
 */
-static void storeUptime() {
+void uptime_store() {
     uint32_t channelsSize = no_of_channels * sizeof(CounterChannel) + SW_VERSION_MAX_LENGTH;
     (void)writeToFlashCRC(hcrc, (uint32_t)FLASH_ADDR_UPTIME, (uint8_t*)last_sw_version,
                           channelsSize);
 }
-
-/***************************************************************************************************
-** PUBLIC FUNCTIONS
-***************************************************************************************************/
 
 /*!
 ** @brief Increment the count of a channel
@@ -92,6 +91,15 @@ static void storeUptime() {
 void uptime_incChannel(int ch) {
     if (channels && (ch >= 0) && (ch < no_of_channels)) {
         channels[ch].count++;
+    }
+}
+
+/*!
+** @brief Set the count of a channel to a particular value (used for transferring legacy data)
+*/
+void uptime_setChannel(int ch, uint32_t count) {
+    if (channels && (ch >= 0) && (ch < no_of_channels)) {
+        channels[ch].count = count;
     }
 }
 
@@ -140,7 +148,7 @@ void uptime_update() {
 
         if (tdiff_u32(now, timestamp_save) >= UPDATE_INTERVAL_FLASH) {
             timestamp_save = now;
-            storeUptime();
+            uptime_store();
             bsClearField(BS_FLASH_ONGOING_Msk);
         }
     }
@@ -207,7 +215,7 @@ void uptime_inputHandler(const char* input, void (*serialPrint)(void)) {
             }
         }
         else if (args == 1 && action == 's') {
-            storeUptime();
+            uptime_store();
         }
         else if (args == 1 && action == 'l') {
             loadUptime();
@@ -259,7 +267,7 @@ int uptime_init(CRC_HandleTypeDef* _hcrc, int _no_of_channels, const char** chan
         }
 
         strncpy(last_sw_version, sw_version, SW_VERSION_MAX_LENGTH - 1);
-        storeUptime();
+        uptime_store();
     }
 
     /* If the Watchdog has been triggered, this counts as a software failure */
@@ -272,7 +280,7 @@ int uptime_init(CRC_HandleTypeDef* _hcrc, int _no_of_channels, const char** chan
         uptime_resetChannel(MINS_SINCE_SW_UPDATE);
 
         strncpy(last_sw_version, sw_version, SW_VERSION_MAX_LENGTH - 1);
-        storeUptime();
+        uptime_store();
     }
 
     return 0;

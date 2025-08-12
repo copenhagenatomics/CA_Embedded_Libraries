@@ -42,10 +42,12 @@ enum defaultChannels {
 int uptime_init(CRC_HandleTypeDef* _hcrc, int _no_of_channels, const char** channel_desc,
                 const char* boot_msg, const char* sw_version);
 void uptime_incChannel(int ch);
+void uptime_setChannel(int ch, uint32_t count);
 uint32_t uptime_incChannelMinutes(int ch, uint32_t lastUpdate);
 void uptime_update();
 void uptime_resetChannel(int ch);
 void uptime_print();
 void uptime_inputHandler(const char* input, void (*serialPrint)(void));
+void uptime_store();
 
 #endif /* INC_UPTIME_H_ */
