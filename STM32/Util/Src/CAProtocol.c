@@ -264,6 +264,12 @@ void inputCAProtocol(CAProtocolCtx* ctx) {
             }
         }
     }
+    else if (strncmp(input, "uptime", 6) == 0) {
+        if (ctx->uptime) {
+            ctx->uptime(input);
+            parseError = 0;
+        }
+    }
     else if (ctx->undefined) {
         ctx->undefined(input);
         parseError = 0;
