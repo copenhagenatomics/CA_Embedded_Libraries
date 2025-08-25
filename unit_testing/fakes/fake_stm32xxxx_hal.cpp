@@ -312,6 +312,14 @@ HAL_StatusTypeDef HAL_DMA_Start_IT(DMA_HandleTypeDef *hdma, uint32_t SrcAddress,
 
 #endif
 
+#ifdef HAL_GPIO_MODULE_ENABLED
+
+void HAL_GPIO_Init(GPIO_TypeDef  *GPIOx, GPIO_InitTypeDef *GPIO_Init) {}
+
+void HAL_GPIO_WritePin(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin, GPIO_PinState PinState) {}
+
+#endif
+
 void forceTick(uint32_t next_val)
 {
     force_tick = true;
