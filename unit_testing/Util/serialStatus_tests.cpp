@@ -10,7 +10,9 @@
 #include "fake_stm32xxxx_hal.h"
 #include "pcbversion.h"
 #include "serialStatus_tests.h"
+#ifdef HAL_CRC_MODULE_ENABLED
 #include "uptime.h"
+#endif
 #include "FLASH_readwrite.h"
 
 using namespace std;
@@ -217,6 +219,7 @@ void serialPrintoutTest(SerialStatusTest& sst, const char* boardName, const char
 ** checks the data is stored in flash memory correctly.
 */
 void uptimeTest(SerialStatusTest& sst, uintptr_t flashAddr) {
+#ifdef HAL_CRC_MODULE_ENABLED
     // Initialise board
     sst.boundInit();
 
@@ -257,4 +260,5 @@ void uptimeTest(SerialStatusTest& sst, uintptr_t flashAddr) {
     } uptime_test = {0};
     (void)readFromFlash((uint32_t)flashAddr, (uint8_t*)&uptime_test, sizeof(uptime_test));
     EXPECT_EQ(uptime_test.total_uptime_channel.count, 1440);
+#endif
 }
