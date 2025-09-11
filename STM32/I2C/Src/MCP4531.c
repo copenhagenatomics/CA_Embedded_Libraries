@@ -1,8 +1,11 @@
 /*!
- * @file    mcp4xxx.c
+ * @file    MCP4531.c
  * @brief   Driver file for MCP4x family of digital potentiometers/rheostats
  * @date    28/07/2025
  * @authors Luke Walker
+ * 
+ * Full set of Part numbers: MCP4531, MCP4532, MCP4541, MCP4542, MCP4551, MCP4552, MCP4561, MCP4562
+ *                           MCP4631, MCP4632, MCP4641, MCP4642, MCP4651, MCP4652, MCP4661, MCP4662
  * 
  * Datasheet: https://ww1.microchip.com/downloads/en/DeviceDoc/22096b.pdf
  */
@@ -11,7 +14,7 @@
 
 #include "stm32f4xx_hal.h"
 
-#include "mcp4x.h"
+#include "MCP4531.h"
 
 /***************************************************************************************************
 ** DEFINES
@@ -39,7 +42,7 @@
 ** @param device_num Which device to initialise (valid for dual devices, always 0 for single devices)
 ** @return 0 on success, -1 on failure
 */
-int mcp4x_init(mcp4x_handle_t* handle, I2C_HandleTypeDef* hi2c, uint8_t i2c_address, uint8_t num_bits, uint8_t device_num) {
+int mcp4531_init(mcp4531_handle_t* handle, I2C_HandleTypeDef* hi2c, uint8_t i2c_address, uint8_t num_bits, uint8_t device_num) {
     if (!handle || !hi2c || num_bits > 8 || num_bits < 7 || device_num > 1) {
         return -1;
     }
@@ -64,8 +67,8 @@ int mcp4x_init(mcp4x_handle_t* handle, I2C_HandleTypeDef* hi2c, uint8_t i2c_addr
         return -3; // I2C communication error
     }
 
-    /* Note: STATUS is fixed at 1F7h acc. datasheet for volatile devices. TODO: will this work for 
-    ** non-volatile devices too? */
+    /* Note: STATUS is fixed at 1F7h acc. datasheet for volatile devices. It is unclear from the 
+    ** datasheet if this is also the expected return value for non-volatile devices */
     return (data[0] == 0x01) && (data[1] == 0xF1) ? 0 : -4;
 }
 
@@ -74,9 +77,9 @@ int mcp4x_init(mcp4x_handle_t* handle, I2C_HandleTypeDef* hi2c, uint8_t i2c_addr
  *
  * @param handle Pointer to the initialized MCP4x handle
  * @param wiper_position Position to set the wiper (0 to max_value)
- * @return HAL status code
+ * @return Error code
  */
-int mcp4x_setWiperPos(mcp4x_handle_t* handle, uint16_t wiper_position) {
+int mcp4531_setWiperPos(mcp4531_handle_t* handle, uint16_t wiper_position) {
     if (!handle || wiper_position > handle->max_value) {
         return -1;
     }
@@ -99,9 +102,9 @@ int mcp4x_setWiperPos(mcp4x_handle_t* handle, uint16_t wiper_position) {
  *
  * @param handle Pointer to the initialized MCP4x handle
  * @param wiper_position Pointer to store the wiper position
- * @return HAL status code
+ * @return Error code
  */
-int mcp4x_getWiperPos(mcp4x_handle_t* handle, uint16_t* wiper_position) {
+int mcp4531_getWiperPos(mcp4531_handle_t* handle, uint16_t* wiper_position) {
     if (!handle || !wiper_position) {
         return -1;
     }
