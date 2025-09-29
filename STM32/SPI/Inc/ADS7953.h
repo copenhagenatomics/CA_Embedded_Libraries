@@ -20,6 +20,9 @@
 // Part of the buffer that is ready for further calculations
 typedef enum { FirstPart, SecondPart } ADS7953Buffer_t;
 
+// Type of function called when the buffer is half-full or full
+typedef void (*extADCCallBack)(int16_t *pBuffer);
+
 typedef struct {
     DMA_HandleTypeDef *hdma_spi_rx;         // SPI RX DMA handler
     DMA_HandleTypeDef *hdma_tim_receiving;  // Timer DMA handler triggering the SPI receive
@@ -37,15 +40,14 @@ typedef struct {
     uint32_t bufLength;            // Total length of the circular buffer
     ADS7953Buffer_t lastBuffer;    // Part of the circular buffer used for the last measurement
     ADS7953Buffer_t activeBuffer;  // Part of the circular buffer used for the next measurement
+    extADCCallBack cb;             // Callback function
 } ADS7953Device_t;
-
-// Type of function called when the buffer is half-full or full
-typedef void (*extADCCallBack)(int16_t *pBuffer);
 
 /***************************************************************************************************
 ** PUBLIC FUNCTION DECLARATIONS
 ***************************************************************************************************/
-
+uint16_t getChannelAddress(uint16_t message);
+uint16_t getConversionResult(uint16_t message);
 bool checkAndCleanBuffer(ADS7953Device_t *dev, int16_t *pData);
 int16_t extADCMax(ADS7953Device_t *dev, int16_t *pData, uint16_t channel);
 int16_t extADCMin(ADS7953Device_t *dev, int16_t *pData, uint16_t channel);
@@ -54,7 +56,8 @@ double extADCRms(ADS7953Device_t *dev, int16_t *pData, uint16_t channel);
 void extADCSetOffset(ADS7953Device_t *dev, int16_t *pData, uint16_t channel, int16_t offset);
 
 int ADS7953Init(ADS7953Device_t *dev, SPI_HandleTypeDef *hspi, TIM_HandleTypeDef *htim,
-                ADS7953DMAs_t DMAs, int16_t *buff, uint32_t length, uint8_t noOfChannels);
+                ADS7953DMAs_t DMAs, int16_t *buff, uint32_t length, uint8_t noOfChannels,
+                extADCCallBack callback);
 int ADS7953Reset(ADS7953Device_t *dev);
 void ADS7953Loop(ADS7953Device_t *dev, extADCCallBack callback);
 
