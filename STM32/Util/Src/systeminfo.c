@@ -171,6 +171,8 @@ static const char* productType(uint8_t id) {
             return "ERUHC";
         case FanController:
             return "FanController";
+        case AnalogInput:
+            return "AnalogInput";
     }
     return "NA";
 }
