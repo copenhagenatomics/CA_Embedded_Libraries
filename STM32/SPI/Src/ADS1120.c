@@ -123,8 +123,7 @@ static double rtd2Temp(int16_t adcValue, int16_t calibration, float bias_resisto
     if (adcValue == 0x7fff) {
         return 10000;
     }
-    // TODO: How to detect a short?
-
+    
     adcValue -= calibration;
     // Temperature of RTD
     double vRTD = (adcValue * INTERVAL_VOLTAGE_REF) / (GAIN * (QUANTIZATION / 2));
