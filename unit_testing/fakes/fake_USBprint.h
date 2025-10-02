@@ -16,18 +16,18 @@
 ** DEFINES
 ***************************************************************************************************/
 
+using namespace std;
+
 /* Allow a range of single line container tests */
 #define EXPECT_READ_USB(x) { \
-    vector<string>* ss = hostUSBread(); \
-    EXPECT_THAT(*ss, (x)); \
-    delete ss; \
+    vector<string> ss = hostUSBread(); \
+    EXPECT_THAT(ss, (x)); \
 }
 
 /* Allow a range of single line container tests */
 #define EXPECT_FLUSH_USB(x) { \
-    vector<string>* ss = hostUSBread(true); \
-    EXPECT_THAT(*ss, (x)); \
-    delete ss; \
+    vector<string> ss = hostUSBread(true); \
+    EXPECT_THAT(ss, (x)); \
 }
 
 /***************************************************************************************************
@@ -35,10 +35,12 @@
 ***************************************************************************************************/
 
 void hostUSBprintf(const char * format, ...);
-std::vector<std::string>* hostUSBread(bool flush=false);
+vector<string> hostUSBread(bool flush=false);
 
 void hostUSBConnect();
 void hostUSBDisconnect();
 void itoa(int n, char* s, int radix);
+
+vector<string> getChannelsFromLine(string& channel_line);
 
 #endif /* FAKE_USBPRINT_H_ */

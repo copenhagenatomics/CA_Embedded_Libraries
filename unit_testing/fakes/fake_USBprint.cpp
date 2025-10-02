@@ -143,18 +143,18 @@ void usbFlush()
 /*!
 ** @brief Acts as the read function for the host (to allow checking what the device sent)
 */
-vector<string>* hostUSBread(bool flush)
+vector<string> hostUSBread(bool flush)
 {
-    vector<string>* result = new vector<string>;
+    vector<string> result;
     string str;
     while(getline(test_ss, str)) {
-        result->push_back(str);
+        result.push_back(str);
     }
 
     if(!flush) {
         /* Put everything back into the stream */
         test_ss.clear();
-        for(vector<string>::iterator it = result->begin(); it != result->end(); it++) {
+        for(vector<string>::iterator it = result.begin(); it != result.end(); it++) {
             test_ss << *it;
         }
     }
@@ -181,4 +181,20 @@ void hostUSBDisconnect()
 void itoa(int n, char* s, int radix)
 {
     
+}
+
+/*!
+** @brief Breaks down a "line" from the board into channels
+*/
+vector<string> getChannelsFromLine(string& channel_line) {
+    vector<string> channels;
+
+
+    stringstream ss(channel_line);
+    string item;
+    while(getline(ss, item, ',')) {
+        channels.push_back(item);
+    }
+
+    return channels;
 }

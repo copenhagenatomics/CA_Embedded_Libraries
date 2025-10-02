@@ -121,11 +121,11 @@ void incorrectBoardTest(SerialStatusTest& sst, int firstPrintTick) {
     sst.testFixture->goToTick(firstPrintTick);
 
     /* Check the printout is correct */
-    vector<string>* ss = hostUSBread();
+    vector<string> ss = hostUSBread();
 
     /* Get the final element of the most recent message, strip any whitespace, parse as an integer
     ** and check the error bit */
-    string final = ss->back();
+    string final = ss.back();
     uint32_t status = parseFinalHex(final);
     EXPECT_TRUE(status & BS_VERSION_ERROR_Msk);
 }
@@ -162,11 +162,11 @@ void incorrectBoardVersionTest(SerialStatusTest& sst, int firstPrintTick) {
     sst.testFixture->goToTick(firstPrintTick);
 
     /* Check the printout is correct */
-    vector<string>* ss = hostUSBread();
+    vector<string> ss = hostUSBread();
 
     /* Get the final element of the most recent message, strip any whitespace, parse as an integer
     ** and check the error bit */
-    string final = ss->back();
+    string final = ss.back();
     uint32_t status = parseFinalHex(final);
     EXPECT_TRUE(status & BS_VERSION_ERROR_Msk);
 }
@@ -185,8 +185,7 @@ void statusPrintoutTest(SerialStatusTest& sst, vector<const char*> pass_string) 
     /* Note: usb RX buffer is flushed during the first loop, so a single loop must be done before
     ** printing anything */
     sst.testFixture->_loopFunction(sst.testFixture->bootMsg);
-    vector<string>* ss = hostUSBread(true);
-    delete ss;
+    (void) hostUSBread(true);
 
     sst.testFixture->writeBoardMessage("Status\n");
 
