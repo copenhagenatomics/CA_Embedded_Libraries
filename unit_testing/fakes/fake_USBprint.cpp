@@ -35,6 +35,31 @@ static char     RX_buffer[TX_RX_BUFFER_LENGTH] = {0};
 static size_t   rx_len = 0, rx_off = 0;
 static bool     connected = false;
 
+/***************************************************************************************************
+** PRIVATE FUNCTION DECLARATIONS
+***************************************************************************************************/
+
+string trim(const string& str);
+
+/***************************************************************************************************
+** PRIVATE FUNCTION DEFINITIONS
+***************************************************************************************************/
+
+/*!
+** @brief Trims whitespace from start and end of a string
+*/
+string trim(const string& str) {
+    size_t first = str.find_first_not_of(" \t\n\r\f\v");
+    if (first == string::npos)
+        return ""; // string is all whitespace
+    size_t last = str.find_last_not_of(" \t\n\r\f\v");
+    return str.substr(first, last - first + 1);
+}
+
+/***************************************************************************************************
+** PUBLIC FUNCTION DECLARATIONS
+***************************************************************************************************/
+
 /* TODO: Make this Log transmissions to a "log_stdout" file, and "receive" transmissions from a 
 ** "stdin" file. Writing to a the output log file is pretty easy, but input in a way that mimics 
 ** the USB link for the CDC will be harder. Perhaps make a new thread that continually checks an 
@@ -189,11 +214,10 @@ void itoa(int n, char* s, int radix)
 vector<string> getChannelsFromLine(string& channel_line) {
     vector<string> channels;
 
-
     stringstream ss(channel_line);
     string item;
     while(getline(ss, item, ',')) {
-        channels.push_back(item);
+        channels.push_back(trim(item));
     }
 
     return channels;
