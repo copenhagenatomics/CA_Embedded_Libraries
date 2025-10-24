@@ -15,8 +15,12 @@
 #include "fake_stm32xxxx_hal.h"
 #include "pcbversion.h"
 #include "serialStatus_tests.h"
-#include "uptime.h"
 #include "FLASH_readwrite.h"
+
+/* Uptime won't compile properly if CRC not enabled */
+#ifdef HAL_CRC_MODULE_ENABLED
+    #include "uptime.h"
+#endif
 
 using namespace std;
 using ::testing::Contains;
@@ -292,55 +296,57 @@ void serialPrintoutTest(SerialStatusTest& sst, const char* boardName, const char
     EXPECT_FLUSH_USB(::testing::ElementsAreArray(pass_string));
 }
 
-/*!
-** @brief Tests that the uptime counting functionality works correctly
-**
-** @param[in] sst         Test data object
-** @param[in] flashAddr   The address in flash memory where uptime information is stored
-**
-** Initialises the board, and simulates one day of uptime. Checks that the output of the "uptime" 
-** command is as expected. Checks that "uptime r" correctly resets a channel count, and finally 
-** checks the data is stored in flash memory correctly.
-*/
-void uptimeTest(SerialStatusTest& sst, uintptr_t flashAddr) {
-    // Initialise board
-    sst.boundInit();
+#ifdef HAL_CRC_MODULE_ENABLED
+    /*!
+    ** @brief Tests that the uptime counting functionality works correctly
+    **
+    ** @param[in] sst         Test data object
+    ** @param[in] flashAddr   The address in flash memory where uptime information is stored
+    **
+    ** Initialises the board, and simulates one day of uptime. Checks that the output of the "uptime" 
+    ** command is as expected. Checks that "uptime r" correctly resets a channel count, and finally 
+    ** checks the data is stored in flash memory correctly.
+    */
+    void uptimeTest(SerialStatusTest& sst, uintptr_t flashAddr) {
+        // Initialise board
+        sst.boundInit();
 
-    uint32_t tickUpdateVal   = 60000;  // 1 minute of tick (ms)
-    uint32_t minutes_per_day = 1440;
+        uint32_t tickUpdateVal   = 60000;  // 1 minute of tick (ms)
+        uint32_t minutes_per_day = 1440;
 
-    for (uint32_t i = 0; i <= minutes_per_day; i++) {
-        // Increment ticker value 1 min at a time until it has reached one day of run time
-        forceTick(tickUpdateVal * i);
-        sst.testFixture->_loopFunction(sst.testFixture->bootMsg);
-        sst.testFixture->writeBoardMessage("uptime\n");
-        usbFlush();
+        for (uint32_t i = 0; i <= minutes_per_day; i++) {
+            // Increment ticker value 1 min at a time until it has reached one day of run time
+            forceTick(tickUpdateVal * i);
+            sst.testFixture->_loopFunction(sst.testFixture->bootMsg);
+            sst.testFixture->writeBoardMessage("uptime\n");
+            usbFlush();
 
-        /* Test reset channel functionality halfway through */
-        if(i == 720) {
-            // Reset one channel to test reset count
-            sst.testFixture->writeBoardMessage("uptime r 2\n");
+            /* Test reset channel functionality halfway through */
+            if(i == 720) {
+                // Reset one channel to test reset count
+                sst.testFixture->writeBoardMessage("uptime r 2\n");
+            }
+
+            int j = i;
+            int r = 0;
+            if(i > 720) {
+                j = i - 720;
+                r = 1;
+            }
+
+            // Check the board total time updates every minute, i = number of minutes simulated
+            EXPECT_FLUSH_USB(AllOf(
+                Contains("Total board uptime minutes, 0, 0, " + std::to_string(i) + "\r"),
+                Contains("Minutes since last software update, 2, " + std::to_string(r) + ", " + std::to_string(j) + "\r")));
         }
 
-        int j = i;
-        int r = 0;
-        if(i > 720) {
-            j = i - 720;
-            r = 1;
-        }
-
-        // Check the board total time updates every minute, i = number of minutes simulated
-        EXPECT_FLUSH_USB(AllOf(
-            Contains("Total board uptime minutes, 0, 0, " + std::to_string(i) + "\r"),
-            Contains("Minutes since last software update, 2, " + std::to_string(r) + ", " + std::to_string(j) + "\r")));
+        /* Read from FLASH and see that it has been stored. Don't use CRC as it may not be valid, 
+        ** depending on how many custom channels are implemented for the board */
+        struct {
+            uint8_t reserved[16U]; /* Space for SW string */
+            CounterChannel total_uptime_channel;
+        } uptime_test = {0};
+        (void)readFromFlash((uint32_t)flashAddr, (uint8_t*)&uptime_test, sizeof(uptime_test));
+        EXPECT_EQ(uptime_test.total_uptime_channel.count, 1440);
     }
-
-    /* Read from FLASH and see that it has been stored. Don't use CRC as it may not be valid, 
-    ** depending on how many custom channels are implemented for the board */
-    struct {
-        uint8_t reserved[16U]; /* Space for SW string */
-        CounterChannel total_uptime_channel;
-    } uptime_test = {0};
-    (void)readFromFlash((uint32_t)flashAddr, (uint8_t*)&uptime_test, sizeof(uptime_test));
-    EXPECT_EQ(uptime_test.total_uptime_channel.count, 1440);
-}
+#endif
