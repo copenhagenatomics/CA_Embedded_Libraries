@@ -42,5 +42,6 @@ void hostUSBDisconnect();
 void itoa(int n, char* s, int radix);
 
 vector<string> getChannelsFromLine(string& channel_line);
+double getChannelNAsDouble(string& channel_line, int n);
 
 #endif /* FAKE_USBPRINT_H_ */

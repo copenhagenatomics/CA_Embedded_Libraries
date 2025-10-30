@@ -222,3 +222,10 @@ vector<string> getChannelsFromLine(string& channel_line) {
 
     return channels;
 }
+
+/*!
+** @brief Gives the Nth output channel as a double
+*/
+double getChannelNAsDouble(string& channel_line, int n) {
+    return stod(getChannelsFromLine(channel_line)[n]);
+}
