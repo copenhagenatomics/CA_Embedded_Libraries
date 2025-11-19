@@ -85,7 +85,8 @@ typedef enum {
     SaltLeakCal        = 23,
     PressureCal        = 24,
     ERUHC              = 25,
-    FanController      = 26
+    FanController      = 26,
+    AnalogInput        = 27,
 } BoardType;
 typedef uint8_t SubBoardType;  // SubBoardType needed for some boards.
 

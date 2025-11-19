@@ -35,6 +35,31 @@ static char     RX_buffer[TX_RX_BUFFER_LENGTH] = {0};
 static size_t   rx_len = 0, rx_off = 0;
 static bool     connected = false;
 
+/***************************************************************************************************
+** PRIVATE FUNCTION DECLARATIONS
+***************************************************************************************************/
+
+string trim(const string& str);
+
+/***************************************************************************************************
+** PRIVATE FUNCTION DEFINITIONS
+***************************************************************************************************/
+
+/*!
+** @brief Trims whitespace from start and end of a string
+*/
+string trim(const string& str) {
+    size_t first = str.find_first_not_of(" \t\n\r\f\v");
+    if (first == string::npos)
+        return ""; // string is all whitespace
+    size_t last = str.find_last_not_of(" \t\n\r\f\v");
+    return str.substr(first, last - first + 1);
+}
+
+/***************************************************************************************************
+** PUBLIC FUNCTION DECLARATIONS
+***************************************************************************************************/
+
 /* TODO: Make this Log transmissions to a "log_stdout" file, and "receive" transmissions from a 
 ** "stdin" file. Writing to a the output log file is pretty easy, but input in a way that mimics 
 ** the USB link for the CDC will be harder. Perhaps make a new thread that continually checks an 
@@ -143,18 +168,18 @@ void usbFlush()
 /*!
 ** @brief Acts as the read function for the host (to allow checking what the device sent)
 */
-vector<string>* hostUSBread(bool flush)
+vector<string> hostUSBread(bool flush)
 {
-    vector<string>* result = new vector<string>;
+    vector<string> result;
     string str;
     while(getline(test_ss, str)) {
-        result->push_back(str);
+        result.push_back(str);
     }
 
     if(!flush) {
         /* Put everything back into the stream */
         test_ss.clear();
-        for(vector<string>::iterator it = result->begin(); it != result->end(); it++) {
+        for(vector<string>::iterator it = result.begin(); it != result.end(); it++) {
             test_ss << *it;
         }
     }
@@ -181,4 +206,26 @@ void hostUSBDisconnect()
 void itoa(int n, char* s, int radix)
 {
     
+}
+
+/*!
+** @brief Breaks down a "line" from the board into channels
+*/
+vector<string> getChannelsFromLine(string& channel_line) {
+    vector<string> channels;
+
+    stringstream ss(channel_line);
+    string item;
+    while(getline(ss, item, ',')) {
+        channels.push_back(trim(item));
+    }
+
+    return channels;
+}
+
+/*!
+** @brief Gives the Nth output channel as a double
+*/
+double getChannelNAsDouble(string& channel_line, int n) {
+    return stod(getChannelsFromLine(channel_line)[n]);
 }

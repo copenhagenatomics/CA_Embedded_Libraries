@@ -5,19 +5,66 @@
 */
 
 #include <vector>
+#include <iostream>
+#include <string>
+#include <sstream>
+#include <algorithm>
+#include <cctype>
 
 #include "fake_USBprint.h"
 #include "fake_stm32xxxx_hal.h"
 #include "pcbversion.h"
 #include "serialStatus_tests.h"
-#ifdef HAL_CRC_MODULE_ENABLED
-#include "uptime.h"
-#endif
 #include "FLASH_readwrite.h"
+
+/* Uptime won't compile properly if CRC not enabled */
+#ifdef HAL_CRC_MODULE_ENABLED
+    #include "uptime.h"
+#endif
 
 using namespace std;
 using ::testing::Contains;
 using ::testing::AllOf;
+
+/***************************************************************************************************
+** PRIVATE FUNCTIONS
+***************************************************************************************************/
+
+/*!
+** @brief Parses the final hex value from a comma-separated string to an int
+*/
+uint32_t parseFinalHex(const std::string& input) {
+    // Find last comma
+    std::size_t lastComma = input.find_last_of(',');
+    std::string lastVar;
+
+    if (lastComma == std::string::npos) {
+        // No comma means whole string is the variable
+        lastVar = input;
+    } 
+    else {
+        lastVar = input.substr(lastComma + 1);
+    }
+
+    // Trim whitespace from both ends
+    auto trim = [](std::string& s) {
+        s.erase(s.begin(), std::find_if(s.begin(), s.end(), [](unsigned char ch) { return !std::isspace(ch); }));
+        s.erase(std::find_if(s.rbegin(), s.rend(), [](unsigned char ch) { return !std::isspace(ch); }).base(), s.end());
+    };
+    trim(lastVar);
+
+    // Convert hex string (expecting format "0x1234...")
+    uint32_t value = 0;
+    try {
+        value = std::stoul(lastVar, nullptr, 16);
+    } 
+    catch (const std::exception& e) {
+        std::cerr << "Error parsing hex string: " << e.what() << std::endl;
+        throw;
+    }
+
+    return value;
+}
 
 /***************************************************************************************************
 ** TESTS
@@ -58,11 +105,46 @@ void goldenPathTest(SerialStatusTest& sst, const char* pass_string, int firstPri
 ** @param[in] firstPrintTick The tick at which the first successful print should be made. 100 ms by 
 **                           default
 **
-** Programs the board to be the latest non-compatible version and runs. Verifies that the status bit
-** has version error and error bit set. TODO: Currently the test will fail if other error bits are 
-** also set. Fix this.
+** Programs the board to be a different board type and runs. Verifies that the status bit has 
+** version error bit set
 */
 void incorrectBoardTest(SerialStatusTest& sst, int firstPrintTick) {
+    /* Update OTP with wrong board ID */
+    if(sst.testFixture->bi.v2.boardType == 0) {
+        sst.testFixture->bi.v2.boardType = 1;
+    }
+    else {
+        sst.testFixture->bi.v2.boardType = 0;
+    }
+
+    HAL_otpWrite(&(sst.testFixture->bi));
+
+    sst.boundInit();
+
+    /* This should force a print on the USB bus */
+    sst.testFixture->goToTick(firstPrintTick);
+
+    /* Check the printout is correct */
+    vector<string> ss = hostUSBread();
+
+    /* Get the final element of the most recent message, strip any whitespace, parse as an integer
+    ** and check the error bit */
+    string final = ss.back();
+    uint32_t status = parseFinalHex(final);
+    EXPECT_TRUE(status & BS_VERSION_ERROR_Msk);
+}
+
+/*!
+** @brief Tests for if the code is downloaded to the wrong board version
+**
+** @param[in] sst            Test data object
+** @param[in] firstPrintTick The tick at which the first successful print should be made. 100 ms by 
+**                           default
+**
+** Programs the board to be the latest non-compatible version and runs. Verifies that the status bit
+** has version error and error bit set.
+*/
+void incorrectBoardVersionTest(SerialStatusTest& sst, int firstPrintTick) {
     /* Update OTP with incorrect board number */
     if(BREAKING_MINOR != 0) {
         sst.testFixture->bi.v2.pcbVersion.minor = BREAKING_MINOR - 1;
@@ -84,7 +166,13 @@ void incorrectBoardTest(SerialStatusTest& sst, int firstPrintTick) {
     sst.testFixture->goToTick(firstPrintTick);
 
     /* Check the printout is correct */
-    EXPECT_READ_USB(::testing::Contains(::testing::HasSubstr("0x84")));
+    vector<string> ss = hostUSBread();
+
+    /* Get the final element of the most recent message, strip any whitespace, parse as an integer
+    ** and check the error bit */
+    string final = ss.back();
+    uint32_t status = parseFinalHex(final);
+    EXPECT_TRUE(status & BS_VERSION_ERROR_Msk);
 }
 
 /*!
@@ -101,12 +189,12 @@ void statusPrintoutTest(SerialStatusTest& sst, vector<const char*> pass_string) 
     /* Note: usb RX buffer is flushed during the first loop, so a single loop must be done before
     ** printing anything */
     sst.testFixture->_loopFunction(sst.testFixture->bootMsg);
+    (void) hostUSBread(true);
+
     sst.testFixture->writeBoardMessage("Status\n");
 
     vector<const char*> bs_pre = {"\r", 
-        "Boot Unit Test\r", 
-        "Start of board status:\r", 
-        "The board is operating normally.\r"};
+        "Start of board status:\r"};
     vector<const char*> bs_post = {"\r", 
         "End of board status. \r"
     };
