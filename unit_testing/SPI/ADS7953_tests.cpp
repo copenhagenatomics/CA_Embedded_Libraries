@@ -72,7 +72,8 @@ TEST_F(ADS7953Test, testCheckAndCleanBuffer)
         pData[noOfChannels*i + 1] |= 0x1000;
     }
 
-    ADS7953Init(&dev, &hspi, &htim, DMAs, pData, sizeof(pData)/sizeof(int16_t), noOfChannels);
+    extADCCallBack cb = NULL;
+    ADS7953Init(&dev, &hspi, &htim, DMAs, pData, sizeof(pData)/sizeof(int16_t), noOfChannels, cb);
 
     EXPECT_EQ(checkAndCleanBuffer(&dev, pData), true);
     EXPECT_NEAR(extADCRms(&dev, pData, 0), 2506.606445, tol);
@@ -108,7 +109,8 @@ TEST_F(ADS7953Test, testExtADCMax)
     generateSine(pData, noOfChannels, noOfSamples, 3, OFFSET_2, AMPLITUDE, 1000);
     generateSine(pData, noOfChannels, noOfSamples, 4, OFFSET_3, AMPLITUDE, 1000);
 
-    ADS7953Init(&dev, &hspi, &htim, DMAs, pData, sizeof(pData)/sizeof(int16_t), noOfChannels);
+    extADCCallBack cb = NULL;
+    ADS7953Init(&dev, &hspi, &htim, DMAs, pData, sizeof(pData)/sizeof(int16_t), noOfChannels, cb);
 
     EXPECT_EQ(extADCMax(&dev, pData, 0), noOfSamples - 1);
     EXPECT_EQ(extADCMax(&dev, pData, 1), (noOfSamples - 1)*2);
@@ -137,7 +139,8 @@ TEST_F(ADS7953Test, testExtADCMin)
     generateSine(pData, noOfChannels, noOfSamples, 3, OFFSET_2, AMPLITUDE, 1000);
     generateSine(pData, noOfChannels, noOfSamples, 4, OFFSET_3, AMPLITUDE, 1000);
 
-    ADS7953Init(&dev, &hspi, &htim, DMAs, pData, sizeof(pData)/sizeof(int16_t), noOfChannels);
+    extADCCallBack cb = NULL;
+    ADS7953Init(&dev, &hspi, &htim, DMAs, pData, sizeof(pData)/sizeof(int16_t), noOfChannels, cb);
 
     EXPECT_EQ(extADCMin(&dev, pData, 0), 12);
     EXPECT_EQ(extADCMin(&dev, pData, 1), (1 - noOfSamples)*2);
@@ -158,7 +161,8 @@ TEST_F(ADS7953Test, testExtADCMean)
         pData[noOfChannels*i + 1] = i*2 + 1;
     }
 
-    ADS7953Init(&dev, &hspi, &htim, DMAs, pData, sizeof(pData)/sizeof(int16_t), noOfChannels);
+    extADCCallBack cb = NULL;
+    ADS7953Init(&dev, &hspi, &htim, DMAs, pData, sizeof(pData)/sizeof(int16_t), noOfChannels, cb);
 
     EXPECT_EQ(extADCMean(&dev, pData, 0), 50.5);
     EXPECT_EQ(extADCMean(&dev, pData, 1), 100);
@@ -174,7 +178,8 @@ TEST_F(ADS7953Test, testExtADCRms)
     generateSine(pData, noOfChannels, noOfSamples, 0, 2047, 2047, 1000);
     generateSine(pData, noOfChannels, noOfSamples, 1, 2047, 1023, 1000);
 
-    ADS7953Init(&dev, &hspi, &htim, DMAs, pData, sizeof(pData)/sizeof(int16_t), noOfChannels);
+    extADCCallBack cb = NULL;
+    ADS7953Init(&dev, &hspi, &htim, DMAs, pData, sizeof(pData)/sizeof(int16_t), noOfChannels, cb);
 
     EXPECT_NEAR(extADCRms(&dev, pData, 0), 2506.606445, tol);
     EXPECT_NEAR(extADCRms(&dev, pData, 1), 2170.527588, tol);
@@ -194,7 +199,8 @@ TEST_F(ADS7953Test, testExtADCSetOffset)
         pData[noOfChannels*i + 2] = dcValues[2];
     }
 
-    ADS7953Init(&dev, &hspi, &htim, DMAs, pData, sizeof(pData)/sizeof(int16_t), noOfChannels);
+    extADCCallBack cb = NULL;
+    ADS7953Init(&dev, &hspi, &htim, DMAs, pData, sizeof(pData)/sizeof(int16_t), noOfChannels, cb);
 
     extADCSetOffset(&dev, pData, 0, -dcValues[0]);
     extADCSetOffset(&dev, pData, 1, -dcValues[1]);
