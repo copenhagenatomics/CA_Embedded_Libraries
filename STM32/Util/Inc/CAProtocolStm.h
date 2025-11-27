@@ -2,6 +2,10 @@
 #include "CAProtocol.h"
 #include <stdbool.h>
 
+#ifdef __cplusplus
+    extern "C" {
+#endif
+
 /***************************************************************************************************
 ** PUBLIC FUNCTION DECLARATIONS
 ***************************************************************************************************/
@@ -18,3 +22,7 @@ const char* CAonBoot();
 
 // Generic handler for a CAProtocolCtx handler.
 bool CAhandleUserInputs(CAProtocolCtx* ctx, const char* startMsg);
+
+#ifdef __cplusplus
+    }
+#endif

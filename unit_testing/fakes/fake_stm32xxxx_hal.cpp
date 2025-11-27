@@ -158,7 +158,7 @@ HAL_StatusTypeDef HAL_TIM_PWM_Stop_IT(TIM_HandleTypeDef *htim, uint32_t Channel)
     return HAL_OK;
 }
 
-HAL_TIM_StateTypeDef HAL_TIM_Base_GetState(TIM_HandleTypeDef *htim) {
+HAL_TIM_StateTypeDef HAL_TIM_Base_GetState(const TIM_HandleTypeDef *htim) {
     return htim->State;
 }
 
@@ -312,6 +312,14 @@ HAL_StatusTypeDef HAL_DMA_Start_IT(DMA_HandleTypeDef *hdma, uint32_t SrcAddress,
 
 #endif
 
+#ifdef HAL_GPIO_MODULE_ENABLED
+
+void  HAL_GPIO_Init(GPIO_TypeDef  *GPIOx, GPIO_InitTypeDef *GPIO_Init) {}
+
+void HAL_GPIO_WritePin(GPIO_TypeDef* GPIOx, uint16_t GPIO_Pin, GPIO_PinState PinState) {}
+
+#endif
+
 void forceTick(uint32_t next_val)
 {
     force_tick = true;
@@ -358,6 +366,8 @@ void HAL_NVIC_SystemReset(void)
 #ifdef HAL_CORTEX_MODULE_ENABLED
 
 void HAL_NVIC_EnableIRQ(IRQn_Type IRQn) {}
+
+void HAL_NVIC_SetPriority(IRQn_Type IRQn, uint32_t PreemptPriority, uint32_t SubPriority) {}
 
 void HAL_NVIC_DisableIRQ(IRQn_Type IRQn) {}
 

@@ -163,6 +163,16 @@ static const char* productType(uint8_t id) {
             return "ACTenChannel";
         case PhaseMonitor:
             return "PhaseMonitor";
+        case SaltLeakCal:
+            return "SaltLeakCal";
+        case PressureCal:
+            return "PressureCal";
+        case ERUHC:
+            return "ERUHC";
+        case FanController:
+            return "FanController";
+        case AnalogInput:
+            return "AnalogInput";
     }
     return "NA";
 }
@@ -326,6 +336,9 @@ const char* statusDefInfo(bool printStart) {
                     (uint32_t)BS_USB_ERROR_Msk);
     len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",Flash ongoing\r\n",
                     (uint32_t)BS_FLASH_ONGOING_Msk);
+    len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",100Hz Output\r\n",
+                    (uint32_t)BS_100_HZ_OUTPUT_Msk);
+    
 
     return buf;
 }

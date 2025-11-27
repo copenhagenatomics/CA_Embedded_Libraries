@@ -51,6 +51,9 @@ typedef struct
     void (*otpRead)();
     void (*otpWrite)(BoardInfo *boardInfo);
 
+    /* Print generic uptime information */
+    void (*uptime)(const char* inputString);
+
     struct CAProtocolData *data; // Private data for CAProtocol.
 } CAProtocolCtx;
 

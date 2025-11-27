@@ -39,9 +39,11 @@ class SerialStatusTest {
 */
 
 void goldenPathTest(SerialStatusTest& sst, const char* pass_string, int firstPrintTick=100);
+void incorrectBoardVersionTest(SerialStatusTest& sst, int firstPrintTick=100);
 void incorrectBoardTest(SerialStatusTest& sst, int firstPrintTick=100);
 void statusPrintoutTest(SerialStatusTest& sst, std::vector<const char*> pass_string);
 void statusDefPrintoutTest(SerialStatusTest& sst, const char* boardErrorsString, std::vector<const char*> boardStatusDefString);
 void serialPrintoutTest(SerialStatusTest& sst, const char* boardName, const char* cal_string=nullptr);
+void uptimeTest(SerialStatusTest& sst, uintptr_t flashAddr);
 
 #endif /* SERIAL_STATUS_TESTS_H_ */

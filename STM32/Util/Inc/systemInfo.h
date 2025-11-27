@@ -45,6 +45,9 @@ extern "C" {
 #define BS_FLASH_ONGOING_Pos 24U
 #define BS_FLASH_ONGOING_Msk (1UL << BS_FLASH_ONGOING_Pos)
 
+#define BS_100_HZ_OUTPUT_Pos 23U
+#define BS_100_HZ_OUTPUT_Msk (1UL << BS_100_HZ_OUTPUT_Pos)
+
 /* Used for defining which bits are errors, and which are statuses */
 #define BS_SYSTEM_ERRORS_Msk                                                                      \
     (BS_OVER_TEMPERATURE_Msk | BS_UNDER_VOLTAGE_Msk | BS_OVER_VOLTAGE_Msk | BS_OVER_CURRENT_Msk | \
@@ -78,7 +81,12 @@ typedef enum {
     VFD                = 19,
     Tachometer         = 20,
     ACTenChannel       = 21,
-    PhaseMonitor       = 22
+    PhaseMonitor       = 22,
+    SaltLeakCal        = 23,
+    PressureCal        = 24,
+    ERUHC              = 25,
+    FanController      = 26,
+    AnalogInput        = 27,
 } BoardType;
 typedef uint8_t SubBoardType;  // SubBoardType needed for some boards.
 
