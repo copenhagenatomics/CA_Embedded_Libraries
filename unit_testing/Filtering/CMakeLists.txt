@@ -66,3 +66,10 @@ target_include_directories(notchfilter_test PRIVATE ${UT_FAKES} ${UT_STUBS} ${IN
 target_link_libraries(notchfilter_test GTest::gtest_main gmock_main)
 target_compile_options(notchfilter_test PRIVATE -Wall)
 gtest_discover_tests(notchfilter_test)
+
+# IIR filters tests
+add_executable(iir_filters_tests iir_filters_tests.cpp)
+target_include_directories(iir_filters_tests PRIVATE ${UT_FAKES} ${UT_STUBS} ${INC_LIB} ${SRC}/Filtering/Src ${SRC}/Filtering/Inc)
+target_link_libraries(iir_filters_tests GTest::gtest_main gmock_main)
+target_compile_options(iir_filters_tests PRIVATE -Wall)
+gtest_discover_tests(iir_filters_tests)
