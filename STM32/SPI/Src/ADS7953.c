@@ -37,8 +37,6 @@ typedef union {
 ***************************************************************************************************/
 
 static uint16_t lastInputProgramming(uint16_t noOfChannels);
-static uint16_t getChannelAddress(uint16_t message);
-static uint16_t getConversionResult(uint16_t message);
 static uint16_t createModeCtrllRegMessage();
 static uint16_t createProgramRegMessage(uint16_t noOfChannels);
 static int setRegisters(ADS7953Device_t *dev);
@@ -70,20 +68,6 @@ static ADS7953Device_t *listOfDevices[MAX_DEVICES_NO] = {NULL};
 static uint16_t lastInputProgramming(uint16_t noOfInputs) {
     return (((noOfInputs - 1) & 0x0FU) << 6);
 }
-
-/*!
- * @brief   Extraction of channel address from SPI message
- * @param   message SPI message received
- * @return  ADC channel address
- */
-static uint16_t getChannelAddress(uint16_t message) { return ((message & 0xF000U) >> 12); }
-
-/*!
- * @brief   Extraction of ADC value from SPI message
- * @param   message SPI message received
- * @return  12-bits ADC value
- */
-static uint16_t getConversionResult(uint16_t message) { return (message & 0x0FFFU); }
 
 /*!
  * @brief   Creation of Mode Control Register Message
@@ -155,7 +139,11 @@ static void bufferHalfFullCallback(DMA_HandleTypeDef *hdma) {
             return;
         }
     }
-    listOfDevices[deviceIndex]->activeBuffer = FirstPart;
+    ADS7953Device_t *dev = listOfDevices[deviceIndex];
+    dev->activeBuffer = FirstPart;
+    if (dev->cb != NULL) {
+        dev->cb(dev->buffer);
+    }
 }
 
 /*!
@@ -171,7 +159,11 @@ static void bufferFullCallback(DMA_HandleTypeDef *hdma) {
             return;
         }
     }
-    listOfDevices[deviceIndex]->activeBuffer = SecondPart;
+    ADS7953Device_t *dev = listOfDevices[deviceIndex];
+    dev->activeBuffer = SecondPart;
+    if (dev->cb != NULL) {
+        dev->cb(&dev->buffer[dev->bufLength / 2]);
+    }
 }
 
 /*!
@@ -257,6 +249,20 @@ static void initTimer(ADS7953Device_t *dev) {
 /***************************************************************************************************
 ** PUBLIC FUNCTION DEFINITIONS
 ***************************************************************************************************/
+
+/*!
+ * @brief   Extraction of channel address from SPI message
+ * @param   message SPI message received
+ * @return  ADC channel address
+ */
+uint16_t getChannelAddress(uint16_t message) { return ((message & 0xF000U) >> 12); }
+
+/*!
+ * @brief   Extraction of ADC value from SPI message
+ * @param   message SPI message received
+ * @return  12-bits ADC value
+ */
+uint16_t getConversionResult(uint16_t message) { return (message & 0x0FFFU); }
 
 /*!
  * @brief   Verification of ADC buffer health
@@ -398,9 +404,16 @@ void extADCSetOffset(ADS7953Device_t *dev, int16_t *pData, uint16_t channel, int
  * @return  0 on success, else negative value
  */
 int ADS7953Init(ADS7953Device_t *dev, SPI_HandleTypeDef *hspi, TIM_HandleTypeDef *htim,
-                ADS7953DMAs_t DMAs, int16_t *buff, uint32_t length, uint8_t noOfChannels) {
+                ADS7953DMAs_t DMAs, int16_t *buff, uint32_t length, uint8_t noOfChannels,
+                extADCCallBack callback) {
     if ((noOfChannels > MAX_CHANNELS_NO) || (noOfChannels < 1)) {
         return ADS7943_ERR_NO_CHANNELS;
+    }
+    if (callback == NULL) {
+        dev->cb = NULL;
+    }
+    else {
+        dev->cb = callback;
     }
 
     // SPI
