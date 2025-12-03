@@ -46,6 +46,7 @@ typedef struct {
 /***************************************************************************************************
 ** PUBLIC FUNCTION DECLARATIONS
 ***************************************************************************************************/
+
 uint16_t getChannelAddress(uint16_t message);
 uint16_t getConversionResult(uint16_t message);
 bool checkAndCleanBuffer(ADS7953Device_t *dev, int16_t *pData);
