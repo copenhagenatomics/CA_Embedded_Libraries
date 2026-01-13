@@ -68,9 +68,11 @@ int mcp4531_init(mcp4531_handle_t* handle, I2C_HandleTypeDef* hi2c, uint8_t i2c_
     }
 
     /* Note: STATUS is fixed at 1F7h acc. datasheet for volatile devices. It is unclear from the 
-    ** datasheet if this is also the expected return value for non-volatile devices. In all 
-    ** prototypes the actual return value was 0x1F1. The reason for this is not known. */
-    return (data[0] == 0x01) && (data[1] == 0xF1) ? 0 : -4;
+    ** datasheet if this is also the expected return value for non-volatile devices.In all 
+    ** For MCP4531 prototypes the actual return value was 0x1F1
+    ** For MCP4651 prototypes the actual return value was 0x1F0
+    ** The reason for this is not known. */
+    return data[0] == 0x01 && (data[1] == 0xF0 || data[1] == 0xF1) ? 0 : -4;
 }
 
 /*!

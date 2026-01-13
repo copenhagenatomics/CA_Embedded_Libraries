@@ -39,7 +39,7 @@ typedef struct _lps28dfw {
 ** PUBLIC FUNCTION DECLARATIONS
 ***************************************************************************************************/
 
-void lps28dfw_init(lps28dfw_t *dev, I2C_HandleTypeDef *hi2c, uint8_t address);
+void lps28dfw_init(lps28dfw_t *dev, I2C_HandleTypeDef *hi2c, uint8_t address, StmGpio *intDrdy);
 void lps28dfw_loop(lps28dfw_t *dev);
 
 #endif /* INC_LPS28DFW_H_ */

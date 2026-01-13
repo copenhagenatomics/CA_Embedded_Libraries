@@ -14,25 +14,35 @@
 ** DEFINES
 ***************************************************************************************************/
 
+// Commands
 #define WRITE_CMD 0x01
 #define READ_CMD  0x00
 
+// Register addresses
+#define STATUS          0x27
 #define PRESSURE_OUT_XL 0x28
 #define PRESSURE_OUT_L  0x29
 #define PRESSURE_OUT_H  0x2A
 #define TEMP_OUT_L      0x2B
 #define TEMP_OUT_H      0x2C
+#define CTRL_REG1       0x10
+#define CTRL_REG2       0x11
+#define CTRL_REG3       0x12
+#define CTRL_REG4       0x13
 
-#define CTRL_REG1 0x10
-#define CTRL_REG2 0x11
-#define CTRL_REG3 0x12
-#define CTRL_REG4 0x13
-
-#define CTRL_REG1_ODR_AVG      0x00
+// Control registers custom values
+#define CTRL_REG1_ODR_10HZ     0x18
+#define CTRL_REG1_AVG_512      0x07
 #define CTRL_REG2_FS_MODE_1260 0x00
 #define CTRL_REG2_FS_MODE_4060 0x40
 #define CTRL_REG2_SWRESET      0x04
 #define CTRL_REG4_DRDY         0x20
+
+// Status register mapping
+#define STATUS_T_OR_Msk 0x01
+#define STATUS_P_OR_Msk 0x02
+#define STATUS_T_DA_Msk 0x10
+#define STATUS_P_DA_Msk 0x11
 
 /***************************************************************************************************
 ** PRIVATE FUNCTION DECLARATIONS
@@ -47,21 +57,34 @@ static void get_new_measurement(lps28dfw_t *dev);
 ** PRIVATE FUNCTION DEFINITIONS
 ***************************************************************************************************/
 
-static void write_register(lps28dfw_t *dev, uint8_t reg_address, uint8_t value) {
-    HAL_I2C_Master_Transmit(dev->hi2c, dev->address | WRITE_CMD, &value, 1, 1);
+static void write_register(lps28dfw_t *dev, uint8_t reg_address, uint8_t byte) {
+    uint8_t message[2] = {reg_address, byte};
+    if (HAL_I2C_Master_Transmit(dev->hi2c, (dev->address << 1) | WRITE_CMD, message, 2, 1) !=
+        HAL_OK) {
+    }
 }
 
-static uint8_t read_register(lps28dfw_t *dev, uint8_t reg_address) {return 1;}
+static uint8_t read_register(lps28dfw_t *dev, uint8_t reg_address) {
+    uint8_t byte = 0;
+    if (HAL_I2C_Master_Transmit(dev->hi2c, (dev->address << 1) | WRITE_CMD, &reg_address, 1, 1) !=
+        HAL_OK) {
+    }
+    if (HAL_I2C_Master_Receive(dev->hi2c, (dev->address << 1) | READ_CMD, &byte, 1, 1) !=
+        HAL_OK) {
+    }
+    return byte;
+}
 
 static void config_registers(lps28dfw_t *dev) {
-    write_register(dev, CTRL_REG1, CTRL_REG1_ODR_AVG);
+    write_register(dev, CTRL_REG2, CTRL_REG2_SWRESET);
+    write_register(dev, CTRL_REG1, CTRL_REG1_ODR_10HZ | CTRL_REG1_AVG_512);
     write_register(dev, CTRL_REG4, CTRL_REG4_DRDY);
 }
 
 static void get_new_measurement(lps28dfw_t *dev) {
-    static const float PRESSURE_SENSITIVITY_HI = 2.048;  // [1/bar]  - High range
-    static const float PRESSURE_SENSITIVITY_LO = 4.096;  // [1/bar]  - Low range
-    static const float TEMPERATURE_SENSITIVITY = 100.0;  // [1/degC]
+    static const float PRESSURE_SENSITIVITY_HI = 2.048e6;  // [1/bar]  - High range
+    static const float PRESSURE_SENSITIVITY_LO = 4.096e6;  // [1/bar]  - Low range
+    static const float TEMPERATURE_SENSITIVITY = 100.0;    // [1/degC]
 
     int32_t press_out_xl = (int32_t)read_register(dev, PRESSURE_OUT_XL);
     int32_t press_out_l  = (int32_t)read_register(dev, PRESSURE_OUT_L);
@@ -82,9 +105,10 @@ static void get_new_measurement(lps28dfw_t *dev) {
 ** PUBLIC FUNCTION DEFINITIONS
 ***************************************************************************************************/
 
-void lps28dfw_init(lps28dfw_t *dev, I2C_HandleTypeDef *hi2c, uint8_t address) {
+void lps28dfw_init(lps28dfw_t *dev, I2C_HandleTypeDef *hi2c, uint8_t address, StmGpio *intDrdy) {
     dev->hi2c    = hi2c;
     dev->address = address;
+    dev->intDrdy = intDrdy;
 
     config_registers(dev);
 }
