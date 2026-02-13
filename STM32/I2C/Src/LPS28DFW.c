@@ -9,14 +9,13 @@
 
 #include "LPS28DFW.h"
 #include "stm32f4xx_hal.h"
+#include "time32.h"
 
 /***************************************************************************************************
 ** DEFINES
 ***************************************************************************************************/
 
-// Commands
-#define WRITE_CMD 0x01
-#define READ_CMD  0x00
+#define MAX_TIME_MS 150  // Time out between measurements
 
 // Register addresses
 #define STATUS          0x27
@@ -48,73 +47,186 @@
 ** PRIVATE FUNCTION DECLARATIONS
 ***************************************************************************************************/
 
-static void write_register(lps28dfw_t *dev, uint8_t reg_address, uint8_t value);
-static uint8_t read_register(lps28dfw_t *dev, uint8_t reg_address);
-static void config_registers(lps28dfw_t *dev);
-static void get_new_measurement(lps28dfw_t *dev);
+static int write_register(lps28dfw_t *dev, uint8_t reg_address, uint8_t byte);
+static int read_register(lps28dfw_t *dev, uint8_t reg_address, uint8_t *value);
+static int config_registers(lps28dfw_t *dev);
+static int set_range(lps28dfw_t *dev, bool high);
+static int get_new_measurement(lps28dfw_t *dev);
 
 /***************************************************************************************************
 ** PRIVATE FUNCTION DEFINITIONS
 ***************************************************************************************************/
 
-static void write_register(lps28dfw_t *dev, uint8_t reg_address, uint8_t byte) {
+/*!
+ * @brief  Writes a byte on the given register
+ * @param  dev Pressure device
+ * @param  reg_address Register address
+ * @param  byte Byte to write
+ * @return 0 if OK, else < 0
+ */
+static int write_register(lps28dfw_t *dev, uint8_t reg_address, uint8_t byte) {
     uint8_t message[2] = {reg_address, byte};
-    if (HAL_I2C_Master_Transmit(dev->hi2c, (dev->address << 1) | WRITE_CMD, message, 2, 1) !=
-        HAL_OK) {
+    if (HAL_I2C_Master_Transmit(dev->hi2c, (dev->address << 1), message, 2, 1) != HAL_OK) {
+        return -1;
     }
+    return 0;
 }
 
-static uint8_t read_register(lps28dfw_t *dev, uint8_t reg_address) {
-    uint8_t byte = 0;
-    if (HAL_I2C_Master_Transmit(dev->hi2c, (dev->address << 1) | WRITE_CMD, &reg_address, 1, 1) !=
-        HAL_OK) {
+/*!
+ * @brief  Reads a byte from the given register
+ * @param  dev Pressure device
+ * @param  reg_address Register address
+ * @param  byte Pointer to destination byte
+ * @return 0 if OK, else < 0
+ */
+static int read_register(lps28dfw_t *dev, uint8_t reg_address, uint8_t *byte) {
+    // Reading command
+    if (HAL_I2C_Master_Transmit(dev->hi2c, (dev->address << 1), &reg_address, 1, 1) != HAL_OK) {
+        return -1;
     }
-    if (HAL_I2C_Master_Receive(dev->hi2c, (dev->address << 1) | READ_CMD, &byte, 1, 1) !=
-        HAL_OK) {
+    // Receiving one byte
+    if (HAL_I2C_Master_Receive(dev->hi2c, (dev->address << 1), byte, 1, 1) != HAL_OK) {
+        return -2;
     }
-    return byte;
+    return 0;
 }
 
-static void config_registers(lps28dfw_t *dev) {
-    write_register(dev, CTRL_REG2, CTRL_REG2_SWRESET);
-    write_register(dev, CTRL_REG1, CTRL_REG1_ODR_10HZ | CTRL_REG1_AVG_512);
-    write_register(dev, CTRL_REG4, CTRL_REG4_DRDY);
+/*!
+ * @brief  Initial configuration of registers
+ * @param  dev Pressure device
+ * @return 0 if OK, else < 0
+ */
+static int config_registers(lps28dfw_t *dev) {
+    // Software reset
+    if (write_register(dev, CTRL_REG2, CTRL_REG2_SWRESET) != 0) {
+        return -1;
+    }
+    // Sets output frequency and averaging filter length
+    if (write_register(dev, CTRL_REG1, CTRL_REG1_ODR_10HZ | CTRL_REG1_AVG_512) != 0) {
+        return -2;
+    }
+    // Setup DRDY pin
+    if (write_register(dev, CTRL_REG4, CTRL_REG4_DRDY) != 0) {
+        return -3;
+    }
+    return 0;
 }
 
-static void get_new_measurement(lps28dfw_t *dev) {
+/*!
+ * @brief  Sets the pressure range
+ * @param  dev Pressure device
+ * @param  high true for 4060 hPa, false for 1260 hPa
+ * @return 0 if OK, else < 0
+ */
+static int set_range(lps28dfw_t *dev, bool high) {
+    if (write_register(dev, CTRL_REG2, high ? CTRL_REG2_FS_MODE_4060 : CTRL_REG2_FS_MODE_1260) !=
+        0) {
+        return -1;
+    }
+    dev->fullScale = high;
+    return 0;
+}
+
+/*!
+ * @brief  Gets new presssure and temperature
+ * @param  dev Pressure device
+ * @return 0 if OK, else < 0
+ */
+static int get_new_measurement(lps28dfw_t *dev) {
     static const float PRESSURE_SENSITIVITY_HI = 2.048e6;  // [1/bar]  - High range
     static const float PRESSURE_SENSITIVITY_LO = 4.096e6;  // [1/bar]  - Low range
     static const float TEMPERATURE_SENSITIVITY = 100.0;    // [1/degC]
 
-    int32_t press_out_xl = (int32_t)read_register(dev, PRESSURE_OUT_XL);
-    int32_t press_out_l  = (int32_t)read_register(dev, PRESSURE_OUT_L);
-    int32_t press_out_h  = (int32_t)read_register(dev, PRESSURE_OUT_H);
+    int32_t press_out_xl = 0;
+    int32_t press_out_l  = 0;
+    int32_t press_out_h  = 0;
+    int32_t temp_out_l   = 0;
+    int32_t temp_out_h   = 0;
+
+    if (read_register(dev, PRESSURE_OUT_XL, (uint8_t *)&press_out_xl) != 0) {
+        return -1;
+    }
+    if (read_register(dev, PRESSURE_OUT_L, (uint8_t *)&press_out_l) != 0) {
+        return -2;
+    }
+    if (read_register(dev, PRESSURE_OUT_H, (uint8_t *)&press_out_h) != 0) {
+        return -3;
+    }
 
     int32_t pressureAdc = (press_out_h << 16) | (press_out_l << 8) | (press_out_xl);
     dev->data.pressure  = (dev->fullScale) ? (pressureAdc / PRESSURE_SENSITIVITY_HI)
                                            : (pressureAdc / PRESSURE_SENSITIVITY_LO);
 
-    int32_t temp_out_l = (int32_t)read_register(dev, TEMP_OUT_L);
-    int32_t temp_out_h = (int32_t)read_register(dev, TEMP_OUT_H);
+    if (read_register(dev, TEMP_OUT_L, (uint8_t *)&temp_out_l) != 0) {
+        return -4;
+    }
+    if (read_register(dev, TEMP_OUT_H, (uint8_t *)&temp_out_h) != 0) {
+        return -5;
+    }
 
     int32_t temperatureAdc = (temp_out_h << 8) | temp_out_l;
     dev->data.temperature  = temperatureAdc / TEMPERATURE_SENSITIVITY;
+
+    return 0;
 }
 
 /***************************************************************************************************
 ** PUBLIC FUNCTION DEFINITIONS
 ***************************************************************************************************/
 
-void lps28dfw_init(lps28dfw_t *dev, I2C_HandleTypeDef *hi2c, uint8_t address, StmGpio *intDrdy) {
-    dev->hi2c    = hi2c;
-    dev->address = address;
-    dev->intDrdy = intDrdy;
+/*!
+ * @brief  Initializes pressure sensor
+ * @param  dev Pressure device
+ * @param  hi2c I2C handler
+ * @param  address I2C address
+ * @param  intDrdy Data ready pin
+ * @return 0 if OK, else < 0
+ */
+int lps28dfw_init(lps28dfw_t *dev, I2C_HandleTypeDef *hi2c, uint8_t address, StmGpio *intDrdy) {
+    dev->hi2c             = hi2c;
+    dev->intDrdy          = intDrdy;
+    dev->address          = address;
+    dev->fullScale        = true;
+    dev->data.pressure    = INCORRECT_VALUE;
+    dev->data.temperature = INCORRECT_VALUE;
+    dev->lastAdcTime      = HAL_GetTick();
+    dev->error            = false;
 
-    config_registers(dev);
+    // Setup registers
+    if (config_registers(dev) != 0) {
+        dev->error = true;
+        return -1;
+    }
+    // High range by default
+    if (set_range(dev, true) != 0) {
+        dev->error = true;
+        return -2;
+    }
+    dev->error = false;
+    return 0;
 }
 
-void lps28dfw_loop(lps28dfw_t *dev) {
+/*!
+ * @brief  Pressure sensor loop
+ * @return 0 if OK, else < 0
+ */
+int lps28dfw_loop(lps28dfw_t *dev) {
+    uint32_t now = HAL_GetTick();
     if (stmGetGpio(*dev->intDrdy)) {
-        get_new_measurement(dev);
+        dev->lastAdcTime = now;
+        if (get_new_measurement(dev) != 0) {
+            dev->data.pressure    = INCORRECT_VALUE;
+            dev->data.temperature = INCORRECT_VALUE;
+            dev->error            = true;
+            return -1;
+        }
     }
+    else if (tdiff_u32(now, dev->lastAdcTime) > MAX_TIME_MS) {
+        dev->data.pressure    = INCORRECT_VALUE;
+        dev->data.temperature = INCORRECT_VALUE;
+        dev->error            = true;
+        return -2;
+    }
+    dev->error = false;
+    return 0;
 }
