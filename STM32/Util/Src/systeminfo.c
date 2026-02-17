@@ -177,6 +177,8 @@ static const char* productType(uint8_t id) {
             return "GasSampler";
         case AnalogOutput:
             return "AnalogOutput";
+        case AnalogInputCal:
+            return "AnalogInputCal";
     }
     return "NA";
 }
