@@ -193,14 +193,12 @@ void statusPrintoutTest(SerialStatusTest& sst, vector<const char*> pass_string) 
 
     sst.testFixture->writeBoardMessage("Status\n");
 
-    vector<const char*> bs_pre = {"\r", 
-        "Start of board status:\r"};
-    vector<const char*> bs_post = {"\r", 
-        "End of board status. \r"
-    };
+    vector<const char*> bs_pre  = {"\r", "Start of board status:\r"};
+    vector<const char*> bs_post = {"End of board status."};
 
     bs_pre.insert(bs_pre.end(), pass_string.begin(), pass_string.end());
     bs_pre.insert(bs_pre.end(), bs_post.begin(), bs_post.end());
+
 
     EXPECT_FLUSH_USB(::testing::ElementsAreArray(bs_pre));
 }
@@ -236,9 +234,7 @@ void statusDefPrintoutTest(SerialStatusTest& sst, const char* boardErrorsString,
             "0x01000000,Flash ongoing\r",
             "0x00800000,100Hz Output\r",
     };
-    vector<const char*> bsdPost = {"\r",
-        "End of board status definition.\r"
-    };
+    vector<const char*> bsdPost = {"End of board status definition."};
 
     bsdPre1.push_back(boardErrorsString);
     bsdPre1.insert(bsdPre1.end(), bsdPre2.begin(), bsdPre2.end());

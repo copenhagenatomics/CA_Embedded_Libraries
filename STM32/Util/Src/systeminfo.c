@@ -247,7 +247,7 @@ const char* statusInfo(bool printStart) {
 
     // Print end of message and return
     if (!printStart) {
-        len += snprintf(&buf[len], sizeof(buf) - len, "\r\nEnd of board status. \r\n");
+        len += snprintf(&buf[len], sizeof(buf) - len, "\r\nEnd of board status.");
         return buf;
     }
 
@@ -318,7 +318,7 @@ const char* statusDefInfo(bool printStart) {
 
     // Print end of message and return
     if (!printStart) {
-        len += snprintf(&buf[len], sizeof(buf) - len, "\r\nEnd of board status definition.\r\n");
+        len += snprintf(&buf[len], sizeof(buf) - len, "\r\nEnd of board status definition.");
         return buf;
     }
 
@@ -344,7 +344,6 @@ const char* statusDefInfo(bool printStart) {
                     (uint32_t)BS_FLASH_ONGOING_Msk);
     len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",100Hz Output\r\n",
                     (uint32_t)BS_100_HZ_OUTPUT_Msk);
-    
 
     return buf;
 }
