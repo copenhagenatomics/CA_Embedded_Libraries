@@ -199,40 +199,39 @@ const char* systemInfo() {
     }
 
     int len = 0;
-    len     = snprintf(&buf[len], sizeof(buf) - len, "Serial Number: %lX%lX%lX\r\n", ID1, ID2, ID3);
+    len     = snprintf(&buf[len], sizeof(buf) - len, "Serial Number: %lX%lX%lX", ID1, ID2, ID3);
     switch (info.otpVersion) {
         case OTP_VERSION_1:
-            len += snprintf(&buf[len], sizeof(buf) - len, "Product Type: %s\r\n",
+            len += snprintf(&buf[len], sizeof(buf) - len, "\r\nProduct Type: %s",
                             productType(info.v1.boardType));
             break;
         case OTP_VERSION_2:
-            len += snprintf(&buf[len], sizeof(buf) - len, "Product Type: %s\r\n",
+            len += snprintf(&buf[len], sizeof(buf) - len, "\r\nProduct Type: %s",
                             productType(info.v2.boardType));
-            len += snprintf(&buf[len], sizeof(buf) - len, "Sub Product Type: %u\r\n",
+            len += snprintf(&buf[len], sizeof(buf) - len, "\r\nSub Product Type: %u",
                             info.v2.subBoardType);
             break;
         default:
-            len += snprintf(&buf[len], sizeof(buf) - len, "Product Type: NA\r\n");
+            len += snprintf(&buf[len], sizeof(buf) - len, "\r\nProduct Type: NA");
             break;
     }
-    len += snprintf(&buf[len], sizeof(buf) - len, "MCU Family: %s\r\n", mcuType());
-    len += snprintf(&buf[len], sizeof(buf) - len, "Software Version: %s\r\n", GIT_VERSION);
-    len += snprintf(&buf[len], sizeof(buf) - len, "Compile Date: %s\r\n", GIT_DATE);
-    len += snprintf(&buf[len], sizeof(buf) - len, "Git SHA: %s\r\n", GIT_SHA);
+    len += snprintf(&buf[len], sizeof(buf) - len, "\r\nMCU Family: %s", mcuType());
+    len += snprintf(&buf[len], sizeof(buf) - len, "\r\nSoftware Version: %s", GIT_VERSION);
+    len += snprintf(&buf[len], sizeof(buf) - len, "\r\nCompile Date: %s", GIT_DATE);
+    len += snprintf(&buf[len], sizeof(buf) - len, "\r\nGit SHA: %s", GIT_SHA);
     switch (info.otpVersion) {
         case OTP_VERSION_1:
-            len += snprintf(&buf[len], sizeof(buf) - len, "PCB Version: %d.%d",
+            len += snprintf(&buf[len], sizeof(buf) - len, "\r\nPCB Version: %d.%d",
                             info.v1.pcbVersion.major, info.v1.pcbVersion.minor);
             break;
         case OTP_VERSION_2:
-            len += snprintf(&buf[len], sizeof(buf) - len, "PCB Version: %d.%d",
+            len += snprintf(&buf[len], sizeof(buf) - len, "\r\nPCB Version: %d.%d",
                             info.v2.pcbVersion.major, info.v2.pcbVersion.minor);
             break;
         default:
-            len += snprintf(&buf[len], sizeof(buf) - len, "PCB Version: NA");
+            len += snprintf(&buf[len], sizeof(buf) - len, "\r\nPCB Version: NA");
             break;
     }
-    len += snprintf(&buf[len], sizeof(buf) - len, "\r\n");
 
     return buf;
 }
@@ -251,35 +250,35 @@ const char* statusInfo(bool printStart) {
         return buf;
     }
 
-    len += snprintf(&buf[len], sizeof(buf) - len, "\r\nStart of board status:\r\n");
+    len += snprintf(&buf[len], sizeof(buf) - len, "\r\nStart of board status:");
     if (!(BS.boardStatus & BS_ERROR_Msk)) {
-        len += snprintf(&buf[len], sizeof(buf) - len, "The board is operating normally.\r\n");
+        len += snprintf(&buf[len], sizeof(buf) - len, "\r\nThe board is operating normally.");
         return buf;
     }
 
     if (BS.boardStatus & BS_OVER_TEMPERATURE_Msk) {
         len += snprintf(&buf[len], sizeof(buf) - len,
-                        "Over temperature. The board temperature is %.2fC.\r\n", BS.temp);
+                        "\r\nOver temperature. The board temperature is %.2fC.", BS.temp);
     }
 
     if (BS.boardStatus & BS_UNDER_VOLTAGE_Msk) {
         len += snprintf(&buf[len], sizeof(buf) - len,
-                        "Under voltage. The board operates at too low voltage of %.2fV. Check "
-                        "power supply.\r\n",
+                        "\r\nUnder voltage. The board operates at too low voltage of %.2fV. Check "
+                        "power supply.",
                         BS.voltage);
     }
 
     if (BS.boardStatus & BS_OVER_VOLTAGE_Msk) {
         len += snprintf(&buf[len], sizeof(buf) - len,
-                        "Over voltage. The board operates at too high voltage of %.2fV. Check "
-                        "power supply.\r\n",
+                        "\r\nOver voltage. The board operates at too high voltage of %.2fV. Check "
+                        "power supply.",
                         BS.voltage);
     }
 
     if (BS.boardStatus & BS_OVER_CURRENT_Msk) {
         len += snprintf(&buf[len], sizeof(buf) - len,
-                        "Over current. One of the ports has reached a current out of its "
-                        "measurement range at %.2fA.\r\n",
+                        "\r\nOver current. One of the ports has reached a current out of its "
+                        "measurement range at %.2fA.",
                         BS.current);
     }
 
@@ -289,18 +288,18 @@ const char* statusInfo(bool printStart) {
         (void)getBoardInfo(&bt, NULL);
         (void)getPcbVersion(&pv);
         len += snprintf(&buf[len], sizeof(buf) - len,
-                        "Error: Incorrect Version.\r\n"
+                        "\r\nError: Incorrect Version.\r\n"
                         "   Board is: %d.\r\n"
                         "   Board should be: %d.\r\n"
                         "   PCB Version is: %d.%d.\r\n"
-                        "   PCB Version should be > %d.%d.\r\n",
+                        "   PCB Version should be >= %d.%d.",
                         (int)bt, (int)BS.boardType, pv.major, pv.minor, BS.pcb_version.major,
                         BS.pcb_version.minor);
     }
 
     if (BS.usb) {
         len += snprintf(&buf[len], sizeof(buf) - len,
-                        "USB. USB communication error 0x%08" PRIx32 " occurred most recently.\r\n",
+                        "\r\nUSB communication error 0x%08" PRIx32 " occurred most recently.",
                         BS.usb);
         BS.usb = 0U;
     }
@@ -322,27 +321,27 @@ const char* statusDefInfo(bool printStart) {
         return buf;
     }
 
-    len += snprintf(&buf[len], sizeof(buf) - len, "\r\nStart of board status definition:\r\n");
+    len += snprintf(&buf[len], sizeof(buf) - len, "\r\nStart of board status definition:");
 
-    len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",System errors\r\n",
+    len += snprintf(&buf[len], sizeof(buf) - len, "\r\n0x%08" PRIx32 ",System errors",
                     (uint32_t)BS.boardErrorsMsk);
     len +=
-        snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",Error\r\n", (uint32_t)BS_ERROR_Msk);
-    len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",Over temperature\r\n",
+        snprintf(&buf[len], sizeof(buf) - len, "\r\n0x%08" PRIx32 ",Error", (uint32_t)BS_ERROR_Msk);
+    len += snprintf(&buf[len], sizeof(buf) - len, "\r\n0x%08" PRIx32 ",Over temperature",
                     (uint32_t)BS_OVER_TEMPERATURE_Msk);
-    len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",Under voltage\r\n",
+    len += snprintf(&buf[len], sizeof(buf) - len, "\r\n0x%08" PRIx32 ",Under voltage",
                     (uint32_t)BS_UNDER_VOLTAGE_Msk);
-    len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",Over voltage\r\n",
+    len += snprintf(&buf[len], sizeof(buf) - len, "\r\n0x%08" PRIx32 ",Over voltage",
                     (uint32_t)BS_OVER_VOLTAGE_Msk);
-    len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",Over current\r\n",
+    len += snprintf(&buf[len], sizeof(buf) - len, "\r\n0x%08" PRIx32 ",Over current",
                     (uint32_t)BS_OVER_CURRENT_Msk);
-    len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",Version error\r\n",
+    len += snprintf(&buf[len], sizeof(buf) - len, "\r\n0x%08" PRIx32 ",Version error",
                     (uint32_t)BS_VERSION_ERROR_Msk);
-    len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",USB error\r\n",
+    len += snprintf(&buf[len], sizeof(buf) - len, "\r\n0x%08" PRIx32 ",USB error",
                     (uint32_t)BS_USB_ERROR_Msk);
-    len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",Flash ongoing\r\n",
+    len += snprintf(&buf[len], sizeof(buf) - len, "\r\n0x%08" PRIx32 ",Flash ongoing",
                     (uint32_t)BS_FLASH_ONGOING_Msk);
-    len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",100Hz Output\r\n",
+    len += snprintf(&buf[len], sizeof(buf) - len, "\r\n0x%08" PRIx32 ",100Hz Output",
                     (uint32_t)BS_100_HZ_OUTPUT_Msk);
 
     return buf;
