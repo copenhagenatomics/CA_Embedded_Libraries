@@ -21,7 +21,7 @@ extern uint32_t _FlashAddrUptime;  // Variable defined in ld linker script.
 
 typedef struct CounterChannel {
     uint32_t channel;      // Channel number
-    uint32_t reset_count;  // Number of times the channel has been reset
+    uint32_t resetCount;  // Number of times the channel has been reset
     uint32_t count;        // Current count value
 } CounterChannel;
 

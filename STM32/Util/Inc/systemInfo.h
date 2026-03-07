@@ -115,7 +115,7 @@ void bsClearError(uint32_t field);
 void bsSetField(uint32_t field);
 void bsClearField(uint32_t field);
 void bsUpdateField(uint32_t field, bool set);
-void bsUpdateError(uint32_t field, bool set, uint32_t error_bits);
+void bsUpdateError(uint32_t field, bool set, uint32_t errorBits);
 uint32_t bsGetStatus();
 uint32_t bsGetField(uint32_t field);
 
@@ -126,7 +126,7 @@ void setBoardUsbError(uint32_t err);
 void setFirmwareBoardType(BoardType type);
 void setFirmwareBoardVersion(pcbVersion version);
 
-int boardSetup(BoardType type, pcbVersion breaking_version, uint32_t boardErrorsMsk);
+int boardSetup(BoardType type, pcbVersion breakingVersion, uint32_t boardErrorsMsk);
 
 #ifdef __cplusplus
 }
