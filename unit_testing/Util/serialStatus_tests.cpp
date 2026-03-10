@@ -193,8 +193,8 @@ void statusPrintoutTest(SerialStatusTest& sst, vector<const char*> pass_string) 
 
     sst.testFixture->writeBoardMessage("Status\n");
 
-    vector<const char*> bs_pre  = {"\r", "Start of board status:\r"};
-    vector<const char*> bs_post = {"End of board status."};
+    vector<const char*> bs_pre  = {"Start of board status:\r"};
+    vector<const char*> bs_post = {"End of board status.\r"};
 
     bs_pre.insert(bs_pre.end(), pass_string.begin(), pass_string.end());
     bs_pre.insert(bs_pre.end(), bs_post.begin(), bs_post.end());
@@ -217,11 +217,11 @@ void statusDefPrintoutTest(SerialStatusTest& sst, const char* boardErrorsString,
     /* Note: usb RX buffer is flushed during the first loop, so a single loop must be done before
     ** printing anything */
     sst.testFixture->_loopFunction(sst.testFixture->bootMsg);
+    (void) hostUSBread(true);
+
     sst.testFixture->writeBoardMessage("StatusDef\n");
 
-    vector<const char*> bsdPre1 = {"\r",
-        "Boot Unit Test\r",
-        "Start of board status definition:\r",
+    vector<const char*> bsdPre1 = {"Start of board status definition:\r",
     };
     vector<const char*> bsdPre2 = {
             "0x80000000,Error\r",
@@ -234,7 +234,7 @@ void statusDefPrintoutTest(SerialStatusTest& sst, const char* boardErrorsString,
             "0x01000000,Flash ongoing\r",
             "0x00800000,100Hz Output\r",
     };
-    vector<const char*> bsdPost = {"End of board status definition."};
+    vector<const char*> bsdPost = {"End of board status definition.\r"};
 
     bsdPre1.push_back(boardErrorsString);
     bsdPre1.insert(bsdPre1.end(), bsdPre2.begin(), bsdPre2.end());
@@ -260,18 +260,18 @@ void serialPrintoutTest(SerialStatusTest& sst, const char* boardName, const char
     /* Note: usb RX buffer is flushed during the first loop, so a single loop must be done before
     ** printing anything */
     sst.testFixture->_loopFunction(sst.testFixture->bootMsg);
+    (void) hostUSBread(true);
+    
     sst.testFixture->writeBoardMessage("Serial\n");
 
     /* The basic printout doesn't change on a board-to-board version */
     vector<const char *> pass_string = {
-        "\r", 
-        "Boot Unit Test\r", 
-        "Serial Number: 000\r", 
+        "Serial Number: 000\r",
         "PT",
-        "Sub Product Type: 0\r", 
-        "MCU Family: Unknown 0x  0 Rev 0\r", 
-        "Software Version: 0\r", 
-        "Compile Date: 0\r", 
+        "Sub Product Type: 0\r",
+        "MCU Family: Unknown 0x  0 Rev 0\r",
+        "Software Version: 0\r",
+        "Compile Date: 0\r",
         "Git SHA: 0\r",
         "PB",
         "CA"
@@ -279,11 +279,11 @@ void serialPrintoutTest(SerialStatusTest& sst, const char* boardName, const char
 
     string pt_string = "Product Type: " + string(boardName) + "\r";
     string pb_string = "PCB Version: " + to_string(LATEST_MAJOR) + "." + to_string(LATEST_MINOR) + "\r";
-    pass_string[3] = pt_string.c_str();
-    pass_string[9] = pb_string.c_str();
+    pass_string[1] = pt_string.c_str();
+    pass_string[7] = pb_string.c_str();
 
     if(cal_string) {
-        pass_string[10] = cal_string;
+        pass_string[8] = cal_string;
     }
     else {
         pass_string.pop_back();

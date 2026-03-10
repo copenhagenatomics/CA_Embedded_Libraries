@@ -84,7 +84,7 @@ class CaBoardUnitTest: public ::testing::Test
         ** MEMBERS
         *******************************************************************************************/
         
-        const char * bootMsg = "Boot Unit Test";
+        const char * bootMsg = "Boot Unit Test\r\n";
         loopFunction_t _loopFunction;
         int tickCounter = 0;
 

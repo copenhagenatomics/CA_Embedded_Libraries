@@ -77,13 +77,13 @@ TEST_F(TestUptime, testInitGolden) {
 
     /* Blank memory means channels should be initialised to 0 */
     uptime_print();
-    EXPECT_FLUSH_USB(ElementsAre("\r",
+    EXPECT_FLUSH_USB(ElementsAre(
         "Name, channel, reset, count\r",
         "Total board uptime minutes, 0, 0, 0\r",
         "Minutes since rework, 1, 0, 0\r",
         "Minutes since last software update, 2, 0, 0\r",
         "Software failures, 3, 0, 0\r",
-        "Custom channel, 4, 0, 0"
+        "Custom channel, 4, 0, 0\r"
     ));
 
 
@@ -107,12 +107,12 @@ TEST_F(TestUptime, testInitExistingChannels) {
 
     /* Channels should be initialised */
     uptime_print();
-    EXPECT_FLUSH_USB(ElementsAre("\r",
+    EXPECT_FLUSH_USB(ElementsAre(
         "Name, channel, reset, count\r",
         "Total board uptime minutes, 0, 0, 100\r",
         "Minutes since rework, 1, 0, 200\r",
         "Minutes since last software update, 2, 0, 300\r",
-        "Software failures, 3, 0, 400"
+        "Software failures, 3, 0, 400\r"
     ));
 }
 
@@ -122,12 +122,12 @@ TEST_F(TestUptime, testInitSwError) {
 
     /* Channels should be initialised */
     uptime_print();
-    EXPECT_FLUSH_USB(ElementsAre("\r",
+    EXPECT_FLUSH_USB(ElementsAre(
         "Name, channel, reset, count\r",
         "Total board uptime minutes, 0, 0, 0\r",
         "Minutes since rework, 1, 0, 0\r",
         "Minutes since last software update, 2, 0, 0\r",
-        "Software failures, 3, 0, 1"
+        "Software failures, 3, 0, 1\r"
     ));
 }
 
@@ -149,12 +149,12 @@ TEST_F(TestUptime, testInitSwVersion) {
 
     /* Channels should be initialised */
     uptime_print();
-    EXPECT_FLUSH_USB(ElementsAre("\r",
+    EXPECT_FLUSH_USB(ElementsAre(
         "Name, channel, reset, count\r",
         "Total board uptime minutes, 0, 0, 100\r",
         "Minutes since rework, 1, 0, 200\r",
         "Minutes since last software update, 2, 1, 0\r",
-        "Software failures, 3, 0, 400"
+        "Software failures, 3, 0, 400\r"
     ));
 
     /* Verify the new version has been stored in flash correctly */
@@ -206,12 +206,12 @@ TEST_F(TestUptime, testUpdate) {
     /* Update should do nothing without a time shift */
     uptime_update();
     uptime_print();
-    EXPECT_FLUSH_USB(ElementsAre("\r",
+    EXPECT_FLUSH_USB(ElementsAre(
         "Name, channel, reset, count\r",
         "Total board uptime minutes, 0, 0, 0\r",
         "Minutes since rework, 1, 0, 0\r",
         "Minutes since last software update, 2, 0, 0\r",
-        "Software failures, 3, 0, 0"
+        "Software failures, 3, 0, 0\r"
     ));
 
     /* After 1 minute, the time channels should be incremented */
@@ -269,16 +269,15 @@ TEST_F(TestUptime, testInputHandler) {
 
     /* Print */
     uptime_inputHandler("uptime", testPrint);
-    EXPECT_FLUSH_USB(ElementsAre("\r",
+    EXPECT_FLUSH_USB(ElementsAre(
         "Start of uptime\r",
         "testPrint\r",
-        "\r",
         "Name, channel, reset, count\r",
         "Total board uptime minutes, 0, 0, 0\r",
         "Minutes since rework, 1, 0, 0\r",
         "Minutes since last software update, 2, 0, 0\r",
         "Software failures, 3, 0, 0\r",
-        "End of uptime"
+        "End of uptime\r"
     ));
 
     /* Reset Channel */

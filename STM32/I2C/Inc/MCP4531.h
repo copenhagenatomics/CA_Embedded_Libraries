@@ -8,6 +8,7 @@
 #ifndef MCP4531_H_
 #define MCP4531_H_
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include "stm32f4xx_hal.h" // Adjust this include to your MCU
@@ -22,6 +23,7 @@ typedef struct {
     uint8_t num_bits; /* Number of bits of the device (7/8) */
     uint16_t max_value; /* Maximum value of the device wiper (corresponds to number of bits) */
     uint8_t device_num; /* Sub-circuit on device - 0 or 1. Use 0 for single circuit devices */
+    bool error; /* Communication error */
 } mcp4531_handle_t;
 
 /***************************************************************************************************
