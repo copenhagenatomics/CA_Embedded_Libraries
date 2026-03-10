@@ -67,7 +67,7 @@ static struct BS {
     float current;
     uint32_t usb;
     BoardType boardType;
-    pcbVersion pcbVersion;
+    pcbVersion pcbVer;
 } BS = {0};
 
 // Print buffer for systemInfo, statusInfo and statusDefInfo
@@ -296,8 +296,8 @@ const char* statusInfo(bool printStart) {
                     "   Board should be: %d.\r\n"
                     "   PCB Version is: %d.%d.\r\n"
                     "   PCB Version should be >= %d.%d.\r\n",
-                    (int)bt, (int)BS.boardType, pv.major, pv.minor, BS.pcbVersion.major,
-                    BS.pcbVersion.minor);
+                    (int)bt, (int)BS.boardType, pv.major, pv.minor, BS.pcbVer.major,
+                    BS.pcbVer.minor);
     }
 
     if (BS.usb) {
@@ -538,7 +538,7 @@ void setFirmwareBoardType(BoardType type) { BS.boardType = type; }
  * @brief   Sets the board version, the firmware is expecting to be used with
  * @param   version Board version
  */
-void setFirmwareBoardVersion(pcbVersion version) { BS.pcbVersion = version; }
+void setFirmwareBoardVersion(pcbVersion version) { BS.pcbVer = version; }
 
 /*!
  * @brief   Sets the board type and version the firmware was compiled for

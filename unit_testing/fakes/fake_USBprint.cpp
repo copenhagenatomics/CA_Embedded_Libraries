@@ -72,7 +72,7 @@ int USBnprintf(const char * format, ... )
     va_start(argptr, format);
 
     char buf[TX_RX_BUFFER_LENGTH] = {0};
-    size_t len = snprintf(buf, 3, "\r\n");
+    size_t len = 0;
     len += vsnprintf(&buf[len], TX_RX_BUFFER_LENGTH - 2, format, argptr);
 
     len = writeUSB(buf, len);
@@ -180,7 +180,7 @@ vector<string> hostUSBread(bool flush)
         /* Put everything back into the stream */
         test_ss.clear();
         for(vector<string>::iterator it = result.begin(); it != result.end(); it++) {
-            test_ss << *it;
+            test_ss << *it << '\n'; // Adding back the new line delimiter
         }
     }
 
