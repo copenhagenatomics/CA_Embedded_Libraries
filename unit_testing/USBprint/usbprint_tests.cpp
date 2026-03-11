@@ -69,48 +69,48 @@ class UsbPrintTest: public ::testing::Test
 ***************************************************************************************************/
 
 TEST_F(UsbPrintTest, test_init) {
-    EXPECT_EQ(-1, USBnprintf("Hello world!"));
+    EXPECT_EQ(-1, USBnprintf("Hello world!\r\n"));
     usb_cdc_fops.Init();
-    EXPECT_NE(-1, USBnprintf("Hello world!"));
-    EXPECT_READ_USB(Contains("Hello world!"));
+    EXPECT_NE(-1, USBnprintf("Hello world!\r\n"));
+    EXPECT_READ_USB(Contains("Hello world!\r"));
 }
 
 TEST_F(UsbPrintTest, test_usbformatting) {
     usb_cdc_fops.Init();
 
     EXPECT_EQ(txAvailable(), 1024);
-    EXPECT_EQ(7, USBnprintf("Testing"));
+    EXPECT_EQ(9, USBnprintf("Testing\r\n"));
     
     /* For a handful of used format specifiers, check them */
-    EXPECT_EQ(10, USBnprintf("Testing %u", 11));
-    EXPECT_READ_USB(Contains("Testing 11"));
+    EXPECT_EQ(12, USBnprintf("Testing %u\r\n", 11));
+    EXPECT_READ_USB(Contains("Testing 11\r"));
 
-    EXPECT_EQ(12, USBnprintf("Testing %lu", 1122));
-    EXPECT_READ_USB(Contains("Testing 1122"));
+    EXPECT_EQ(14, USBnprintf("Testing %lu\r\n", 1122));
+    EXPECT_READ_USB(Contains("Testing 1122\r"));
 
-    EXPECT_EQ(11, USBnprintf("Testing %d", -12));
-    EXPECT_READ_USB(Contains("Testing -12"));
+    EXPECT_EQ(13, USBnprintf("Testing %d\r\n", -12));
+    EXPECT_READ_USB(Contains("Testing -12\r"));
 
-    EXPECT_EQ(12, USBnprintf("Testing %x", 0x1234));
-    EXPECT_READ_USB(Contains("Testing 1234"));
+    EXPECT_EQ(14, USBnprintf("Testing %x\r\n", 0x1234));
+    EXPECT_READ_USB(Contains("Testing 1234\r"));
 
-    EXPECT_EQ(8, USBnprintf("%8x", 0x1234));
-    EXPECT_READ_USB(Contains("    1234"));
+    EXPECT_EQ(10, USBnprintf("%8x\r\n", 0x1234));
+    EXPECT_READ_USB(Contains("    1234\r"));
 
-    EXPECT_EQ(6, USBnprintf("%06x", 0x1234));
-    EXPECT_READ_USB(Contains("001234"));
+    EXPECT_EQ(8, USBnprintf("%06x\r\n", 0x1234));
+    EXPECT_READ_USB(Contains("001234\r"));
 
-    EXPECT_EQ(10, USBnprintf("%f", 392.65));
-    EXPECT_READ_USB(Contains("392.650000"));
+    EXPECT_EQ(12, USBnprintf("%f\r\n", 392.65));
+    EXPECT_READ_USB(Contains("392.650000\r"));
 
-    EXPECT_EQ(8, USBnprintf("%.4f", 392.65));
-    EXPECT_READ_USB(Contains("392.6500"));
+    EXPECT_EQ(10, USBnprintf("%.4f\r\n", 392.65));
+    EXPECT_READ_USB(Contains("392.6500\r"));
     
-    EXPECT_EQ(9, USBnprintf("%09.4f", 987.654));
-    EXPECT_READ_USB(Contains("0987.6540"));
+    EXPECT_EQ(11, USBnprintf("%09.4f\r\n", 987.654));
+    EXPECT_READ_USB(Contains("0987.6540\r"));
 
-    EXPECT_EQ(16, USBnprintf("Testing: %s", "Success"));
-    EXPECT_READ_USB(Contains("Testing: Success"));
+    EXPECT_EQ(18, USBnprintf("Testing: %s\r\n", "Success"));
+    EXPECT_READ_USB(Contains("Testing: Success\r"));
 
     EXPECT_EQ(txAvailable(), 1024);
 }
@@ -134,11 +134,10 @@ TEST_F(UsbPrintTest, test_delayedSend) {
     ((USBD_CDC_HandleTypeDef*)hUsbDeviceFS.pClassData)->TxState = 1;
 
     EXPECT_EQ(txAvailable(), 1024);
-    USBnprintf("test_delayed_send");
-    /* Note additional 2 bytes are from CRLF USBnprintf adds */
-    EXPECT_EQ(txAvailable(), 1024 - 17 - 2);
-    USBnprintf("second message");
-    EXPECT_EQ(txAvailable(), 1024 - 17 - 14 - 2 * 2);
+    USBnprintf("test_delayed_send\r\n");
+    EXPECT_EQ(txAvailable(), 1024 - 19);
+    USBnprintf("second message\r\n");
+    EXPECT_EQ(txAvailable(), 1024 - 19 - 16);
 
     /* Free up the USB */
     ((USBD_CDC_HandleTypeDef*)hUsbDeviceFS.pClassData)->TxState = 0;
@@ -148,7 +147,7 @@ TEST_F(UsbPrintTest, test_delayedSend) {
     usb_cdc_fops.TransmitCplt(buf, &len, 0);
 
     EXPECT_EQ(txAvailable(), 1024);
-    EXPECT_READ_USB(IsSupersetOf({"test_delayed_send\r", "second message"}));
+    EXPECT_READ_USB(IsSupersetOf({"test_delayed_send\r", "second message\r"}));
 }
 
 TEST_F(UsbPrintTest, test_usb_connection) {

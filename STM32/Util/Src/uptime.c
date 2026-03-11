@@ -39,20 +39,20 @@ static int loadUptime();
 ***************************************************************************************************/
 
 static CRC_HandleTypeDef* hcrc = NULL;
-static int no_of_channels      = 0;  // Number of channels to track
+static int noOfChannels        = 0;  // Number of channels to track
 
 /* Last software version.  */
-static char* last_sw_version    = {0};
+static char* lastSwVersion      = {0};
 static CounterChannel* channels = NULL;  // Array of channels
 
-static const char* uptime_channel_desc[NUM_DEFAULT_CHANNELS] = {
+static const char* uptimeChannelDesc[NUM_DEFAULT_CHANNELS] = {
     "Total board uptime minutes",
     "Minutes since rework",
     "Minutes since last software update",
     "Software failures",
 };
 
-static const char** custom_channel_desc = NULL;  // Custom channel descriptions, if any
+static const char** customChannelDesc = NULL;  // Custom channel descriptions, if any
 
 /***************************************************************************************************
 ** PRIVATE FUNCTIONS
@@ -61,12 +61,12 @@ static const char** custom_channel_desc = NULL;  // Custom channel descriptions,
 /*!
 ** @brief Load uptime counters from FLASH
 **
-** Note: last_sw_version is stored contiguously with channels, so they can all be read together
+** Note: lastSwVersion is stored contiguously with channels, so they can all be read together
 */
 static int loadUptime() {
     // Read in stored uptime after power cycling
-    uint32_t channelsSize = no_of_channels * sizeof(CounterChannel) + SW_VERSION_MAX_LENGTH;
-    return readFromFlashCRC(hcrc, (uint32_t)FLASH_ADDR_UPTIME, (uint8_t*)last_sw_version,
+    uint32_t channelsSize = noOfChannels * sizeof(CounterChannel) + SW_VERSION_MAX_LENGTH;
+    return readFromFlashCRC(hcrc, (uint32_t)FLASH_ADDR_UPTIME, (uint8_t*)lastSwVersion,
                             channelsSize);
 }
 
@@ -77,19 +77,18 @@ static int loadUptime() {
 /*!
 ** @brief Save uptime counters to FLASH
 **
-** Note: last_sw_version is stored contiguously with channels, so they can all be stored together
+** Note: lastSwVersion is stored contiguously with channels, so they can all be stored together
 */
 void uptime_store() {
-    uint32_t channelsSize = no_of_channels * sizeof(CounterChannel) + SW_VERSION_MAX_LENGTH;
-    (void)writeToFlashCRC(hcrc, (uint32_t)FLASH_ADDR_UPTIME, (uint8_t*)last_sw_version,
-                          channelsSize);
+    uint32_t channelsSize = noOfChannels * sizeof(CounterChannel) + SW_VERSION_MAX_LENGTH;
+    (void)writeToFlashCRC(hcrc, (uint32_t)FLASH_ADDR_UPTIME, (uint8_t*)lastSwVersion, channelsSize);
 }
 
 /*!
 ** @brief Increment the count of a channel
 */
 void uptime_incChannel(int ch) {
-    if (channels && (ch >= 0) && (ch < no_of_channels)) {
+    if (channels && (ch >= 0) && (ch < noOfChannels)) {
         channels[ch].count++;
     }
 }
@@ -98,7 +97,7 @@ void uptime_incChannel(int ch) {
 ** @brief Set the count of a channel to a particular value (used for transferring legacy data)
 */
 void uptime_setChannel(int ch, uint32_t count) {
-    if (channels && (ch >= 0) && (ch < no_of_channels)) {
+    if (channels && (ch >= 0) && (ch < noOfChannels)) {
         channels[ch].count = count;
     }
 }
@@ -114,7 +113,7 @@ void uptime_setChannel(int ch, uint32_t count) {
 uint32_t uptime_incChannelMinutes(int ch, uint32_t lastUpdate) {
     uint32_t now = 0;
 
-    if (channels && (ch >= 0) && (ch < no_of_channels)) {
+    if (channels && (ch >= 0) && (ch < noOfChannels)) {
         now = HAL_GetTick();
         if (tdiff_u32(now, lastUpdate) >= UPDATE_INTERVAL_SESSION) {
             lastUpdate = now;
@@ -159,8 +158,8 @@ void uptime_update() {
 */
 void uptime_resetChannel(int ch) {
     /* channel 0 is the total operating minutes for a board and may not be reset */
-    if ((ch > 0) && (ch < no_of_channels) && channels) {
-        channels[ch].reset_count++;
+    if ((ch > 0) && (ch < noOfChannels) && channels) {
+        channels[ch].resetCount++;
         channels[ch].count = 0;
     }
 }
@@ -170,23 +169,23 @@ void uptime_resetChannel(int ch) {
 */
 void uptime_print() {
     if (channels) {
-        USBnprintf("Name, channel, reset, count");
+        USBnprintf("Name, channel, reset, count\r\n");
 
-        for (int i = 0; i < no_of_channels; i++) {
+        for (int i = 0; i < noOfChannels; i++) {
             /* Add a string descriptor of each channel, if one was provided at initialisation */
             const char* desc = NULL;
             if (i < NUM_DEFAULT_CHANNELS) {
-                desc = uptime_channel_desc[i];
+                desc = uptimeChannelDesc[i];
             }
-            else if (custom_channel_desc) {
-                desc = custom_channel_desc[i - NUM_DEFAULT_CHANNELS];
+            else if (customChannelDesc) {
+                desc = customChannelDesc[i - NUM_DEFAULT_CHANNELS];
             }
             else {
                 desc = "Custom channel";
             }
 
-            USBnprintf("%s, %" PRIu32 ", %" PRIu32 ", %" PRIu32, desc, channels[i].channel,
-                       channels[i].reset_count, channels[i].count);
+            USBnprintf("%s, %" PRIu32 ", %" PRIu32 ", %" PRIu32 "\r\n", desc, channels[i].channel,
+                       channels[i].resetCount, channels[i].count);
         }
     }
 }
@@ -197,21 +196,21 @@ void uptime_print() {
 void uptime_inputHandler(const char* input, void (*serialPrint)(void)) {
     if (strncmp(input, "uptime", 6) == 0) {
         char action = '\0';
-        int ch     = -1;
-        int args   = sscanf(input, "uptime %c %d", &action, &ch);
+        int ch      = -1;
+        int args    = sscanf(input, "uptime %c %d", &action, &ch);
 
         if (args < 1) {
-            USBnprintf("Start of uptime");
-            if(serialPrint) {
+            USBnprintf("Start of uptime\r\n");
+            if (serialPrint) {
                 serialPrint();
             }
             uptime_print();
-            USBnprintf("End of uptime");
+            USBnprintf("End of uptime\r\n");
         }
         else if (args == 2 && action == 'r') {
-            if (ch > 0 && ch < no_of_channels) {
+            if (ch > 0 && ch < noOfChannels) {
                 uptime_resetChannel(ch);
-                USBnprintf("Reset channel %d", ch);
+                USBnprintf("Reset channel %d\r\n", ch);
             }
         }
         else if (args == 1 && action == 's') {
@@ -230,56 +229,56 @@ void uptime_inputHandler(const char* input, void (*serialPrint)(void)) {
 **  @brief Initialises the uptime counters and reads in the stored values from FLASH.
 **
 ** @param _hcrc Pointer to the CRC handle.
-** @param _no_of_channels The number of channels to track.
-** @param channel_desc Array of channel descriptions, if any.
-** @param boot_msg The boot message to check for software failures.
-** @param sw_version The current software version (to check for updates)
+** @param _noOfChannels The number of channels to track.
+** @param channelDesc Array of channel descriptions, if any.
+** @param bootMsg The boot message to check for software failures.
+** @param swVersion The current software version (to check for updates)
 **
 ** @return 0 on success, <0 on failure (e.g. -1 for too many channels, -2 for malloc failure).
 */
-int uptime_init(CRC_HandleTypeDef* _hcrc, int _no_of_channels, const char** channel_desc,
-                const char* boot_msg, const char* sw_version) {
-    hcrc                = _hcrc;
-    custom_channel_desc = channel_desc;
+int uptime_init(CRC_HandleTypeDef* _hcrc, int _noOfChannels, const char** channelDesc,
+                const char* bootMsg, const char* swVersion) {
+    hcrc              = _hcrc;
+    customChannelDesc = channelDesc;
 
     /* Validate no. of channels is allowed */
-    no_of_channels = _no_of_channels + NUM_DEFAULT_CHANNELS;
-    if (no_of_channels > MAX_COUNTER_CHANNELS) {
+    noOfChannels = _noOfChannels + NUM_DEFAULT_CHANNELS;
+    if (noOfChannels > MAX_COUNTER_CHANNELS) {
         return -1;
     }
 
     /* Note: SW_VERSION_MAX_LENGTH must be an integer multiple of uint32 (e.g. 4) */
-    size_t channelsSize = no_of_channels * sizeof(CounterChannel) + SW_VERSION_MAX_LENGTH;
-    last_sw_version     = (char*)aligned_alloc(4U, channelsSize);
-    if (last_sw_version == NULL) {
+    size_t channelsSize = noOfChannels * sizeof(CounterChannel) + SW_VERSION_MAX_LENGTH;
+    lastSwVersion       = (char*)aligned_alloc(4U, channelsSize);
+    if (lastSwVersion == NULL) {
         return -2;
     }
 
     /* First 16-bytes reserved for last SW version */
-    channels = (CounterChannel*)(last_sw_version + SW_VERSION_MAX_LENGTH);
+    channels = (CounterChannel*)(lastSwVersion + SW_VERSION_MAX_LENGTH);
 
     /* First time programming / CRC corruption */
     if (loadUptime() != 0) {
-        for (int i = 0; i < no_of_channels; i++) {
-            channels[i].channel     = i;
-            channels[i].reset_count = 0;
-            channels[i].count       = 0;
+        for (int i = 0; i < noOfChannels; i++) {
+            channels[i].channel    = i;
+            channels[i].resetCount = 0;
+            channels[i].count      = 0;
         }
 
-        strncpy(last_sw_version, sw_version, SW_VERSION_MAX_LENGTH - 1);
+        strncpy(lastSwVersion, swVersion, SW_VERSION_MAX_LENGTH - 1);
         uptime_store();
     }
 
     /* If the Watchdog has been triggered, this counts as a software failure */
-    if (strstr(boot_msg, "Watch dog") != NULL) {
+    if (strstr(bootMsg, "Watch dog") != NULL) {
         uptime_incChannel(SW_FAILURES);
     }
 
     /* If the SW has been updated, reset the channel automatically */
-    if (strcmp(sw_version, last_sw_version) != 0) {
+    if (strcmp(swVersion, lastSwVersion) != 0) {
         uptime_resetChannel(MINS_SINCE_SW_UPDATE);
 
-        strncpy(last_sw_version, sw_version, SW_VERSION_MAX_LENGTH - 1);
+        strncpy(lastSwVersion, swVersion, SW_VERSION_MAX_LENGTH - 1);
         uptime_store();
     }
 
