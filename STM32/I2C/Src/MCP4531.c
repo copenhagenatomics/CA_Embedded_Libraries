@@ -109,7 +109,7 @@ int mcp4531_setWiperPos(mcp4531_handle_t* handle, uint16_t wiper_position) {
         HAL_I2C_Master_Transmit(handle->hi2c, handle->i2c_addr << 1, data, 2, 2);
     
     handle->error = status != HAL_OK;
-    return handle->error ? 0 : -2;
+    return handle->error ? -2 : 0;
 }
 
 /*!
