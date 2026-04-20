@@ -56,7 +56,7 @@ void iir2_band_pass_init(iir2_t *filt, float ts, float fc, float bw) {
 }
 
 /*!
- * @brief Initializes second order iir bandstop filter (normalized by a0)
+ * @brief Initializes second order iir bandstop filter (notch filter) (normalized by a0)
  * @note https://webaudio.github.io/Audio-EQ-Cookbook/audio-eq-cookbook.html
  * @param filt Filter structure
  * @param ts Sampling time
