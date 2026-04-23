@@ -275,7 +275,7 @@ int tci_loop(tci_t *dev, float relHumidity, float temperature, float pressure) {
 
         default:
             // Should never happen
-
+            dev->error = true;
             break;
     }
 
