@@ -18,8 +18,10 @@
 ***************************************************************************************************/
 
 typedef enum _tci_state {
-    H2_MEAS = 0,  // Waiting for H2 measurement to be ready
-    TEMP_MEAS,    // Waiting for temperature measurement to be ready
+    WAIT_BEFORE_H2 = 0,  // Waiting before triggering H2 measurement
+    H2_MEAS,             // Waiting for H2 measurement to be ready
+    WAIT_BEFORE_TEMP,    // Waiting before triggering temperature measurement
+    TEMP_MEAS,           // Waiting for temperature measurement to be ready
     NO_OF_TCI_STATES
 } tci_state_t;
 
