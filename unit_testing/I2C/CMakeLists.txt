@@ -31,7 +31,15 @@ FetchContent_MakeAvailable(googletest)
 
 set(SRC ../../STM32)
 set(LIB ../../STM32)
-set(INC_LIB ${LIB}/I2C/Inc ${LIB}/I2C/Src ${LIB}/Util/Inc)
+
+set(INC_LIB
+${LIB}/Crc/Inc
+${LIB}/Crc/Src
+${LIB}/I2C/Inc
+${LIB}/I2C/Src 
+${LIB}/Util/Inc
+${LIB}/Util/Src)
+
 set(UT_FAKES ../fakes)
 set(UT_STUBS ../stubs)
 set(DRIVERS ../../STM32/FirmwarePackages/STM32F401CCUx/Drivers/STM32F4xx_HAL_Driver/Inc)
@@ -46,20 +54,39 @@ enable_testing()
 
 include(GoogleTest)
 
-# LTC2512-24 tests
-add_executable(lps28dfw_tests lps28dfw_tests.cpp
-                              ${UT_FAKES}/fake_stm32xxxx_hal.cpp
-                              ${UT_FAKES}/fake_StmGpio.cpp)
+# LPS28DFW tests
+add_executable(lps28dfw_tests
+${UT_FAKES}/fake_stm32xxxx_hal.cpp
+${UT_FAKES}/fake_StmGpio.cpp
+lps28dfw_tests.cpp)
+
 target_include_directories(lps28dfw_tests PRIVATE
-                              ${UT_FAKES}
-                              ${UT_STUBS}
-                              ${INC_LIB}
-                              ${DRIVERS}
-                              ${CMSIS}
-                              ${CMSIS_DRIVER}
-                              ${LIB}/Util/Src
-                              Inc)
+${CMSIS}
+${DRIVERS}
+${INC_LIB}
+${UT_FAKES}
+${UT_STUBS}
+Inc)
+
 target_link_libraries(lps28dfw_tests GTest::gtest_main gmock_main)
 target_compile_definitions(lps28dfw_tests PUBLIC __LIBRARY_TEST)
 target_compile_options(lps28dfw_tests PRIVATE -Wall)
 gtest_discover_tests(lps28dfw_tests)
+
+# TCI tests
+add_executable(tci_tests
+${UT_FAKES}/fake_stm32xxxx_hal.cpp
+tci_tests.cpp)
+
+target_include_directories(tci_tests PRIVATE
+${CMSIS}
+${DRIVERS}
+${INC_LIB}
+${UT_FAKES}
+${UT_STUBS}
+Inc)
+
+target_link_libraries(tci_tests GTest::gtest_main gmock_main)
+target_compile_definitions(tci_tests PUBLIC __LIBRARY_TEST)
+target_compile_options(tci_tests PRIVATE -Wall)
+gtest_discover_tests(tci_tests)

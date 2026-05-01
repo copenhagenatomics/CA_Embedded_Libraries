@@ -11,10 +11,12 @@
 ** PRIVATE OBJECTS
 ***************************************************************************************************/
 
-uint8_t crc4_init = 0x00U;
-uint8_t crc4_poly = 0x00U;
-uint8_t crc8_init = 0x00U;
-uint8_t crc8_poly = 0x00U;
+uint8_t crc4_init   = 0x00U;
+uint8_t crc4_poly   = 0x00U;
+uint8_t crc8_init   = 0x00U;
+uint8_t crc8_poly   = 0x00U;
+uint16_t crc16_init = 0x0000U;
+uint16_t crc16_poly = 0x0000U;
 
 /***************************************************************************************************
 ** PUBLIC FUNCTION DEFINITIONS
@@ -37,21 +39,30 @@ void initCrc8(uint8_t init, uint8_t poly) {
 }
 
 /*!
+** @brief Initialises the CRC16 init and polynomial variabls
+*/
+void initCrc16(uint16_t init, uint16_t poly) {
+    crc16_init = init;
+    crc16_poly = poly;
+}
+
+/*!
 ** @brief Calculates CRC8
 **
 ** Taken from: https://stackoverflow.com/questions/51752284/how-to-calculate-crc8-in-c
 */
-uint8_t crc8Calculate(uint8_t *data, size_t len)
-{
+uint8_t crc8Calculate(uint8_t *data, size_t len) {
     uint8_t crc = crc8_init;
 
     for (unsigned i = 0; i < len; i++) {
         crc ^= data[i];
         for (int j = 0; j < 8; j++) {
-            if ((crc & 0x80) != 0)
+            if ((crc & 0x80) != 0) {
                 crc = (uint8_t)((crc << 1) ^ crc8_poly);
-            else
+            }
+            else {
                 crc <<= 1;
+            }
         }
     }
     return crc;
@@ -60,24 +71,45 @@ uint8_t crc8Calculate(uint8_t *data, size_t len)
 /*!
 ** @brief Calculates CRC4
 */
-uint8_t crc4Calculate(uint8_t *data, size_t len)
-{
+uint8_t crc4Calculate(uint8_t *data, size_t len) {
     /* CRC polynomial starts in the lowest 4 bits */
     uint8_t crc  = crc4_init & 0xF;
     uint8_t poly = crc4_poly & 0xF;
 
     for (unsigned i = 0; i < len; i++) {
-        for(int j = 1; j >= 0; j--) {
+        for (int j = 1; j >= 0; j--) {
             crc ^= (data[i] >> 4U * j) & 0xFU;
 
             for (int k = 0; k < 4; k++) {
-                if ((crc & 0x8) != 0)
+                if ((crc & 0x8) != 0) {
                     crc = (uint8_t)((crc << 1) ^ poly);
-                else
+                }
+                else {
                     crc <<= 1;
+                }
             }
         }
     }
 
     return crc & 0xFU;
+}
+
+/*!
+** @brief Calculates CRC16
+*/
+uint16_t crc16Calculate(uint8_t *data, size_t len) {
+    uint16_t crc = crc16_init;
+
+    for (unsigned i = 0; i < len; i++) {
+        crc ^= ((uint16_t)data[i] << 8U);
+
+        for (int j = 0; j < 8; j++) {
+            if ((crc & 0x8000U) != 0U)
+                crc = (uint16_t)((crc << 1U) ^ crc16_poly);
+            else
+                crc <<= 1U;
+        }
+    }
+
+    return crc;
 }
