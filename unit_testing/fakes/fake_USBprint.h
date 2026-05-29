@@ -43,5 +43,6 @@ void itoa(int n, char* s, int radix);
 
 vector<string> getChannelsFromLine(string& channel_line);
 double getChannelNAsDouble(string& channel_line, int n);
+uint32_t getLineStatus(string& channel_line);
 
 #endif /* FAKE_USBPRINT_H_ */
