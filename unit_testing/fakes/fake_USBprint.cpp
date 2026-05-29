@@ -229,3 +229,10 @@ vector<string> getChannelsFromLine(string& channel_line) {
 double getChannelNAsDouble(string& channel_line, int n) {
     return stod(getChannelsFromLine(channel_line)[n]);
 }
+
+/*!
+** @brief Returns the final element from a string cast as a uint32_t (used for status flags)
+*/
+uint32_t getLineStatus(string& channel_line) {
+    return stoul(getChannelsFromLine(channel_line).back(), nullptr, 16);
+}
