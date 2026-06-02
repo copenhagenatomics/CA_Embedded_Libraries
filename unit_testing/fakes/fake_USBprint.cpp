@@ -236,3 +236,14 @@ double getChannelNAsDouble(string& channel_line, int n) {
 uint32_t getLineStatus(string& channel_line) {
     return stoul(getChannelsFromLine(channel_line).back(), nullptr, 16);
 }
+
+/*!
+** @brief Flushes USB buffer and returns the status flags from the most recent data line
+*/
+uint32_t flushAndGetUSBStatus() {
+    vector<string> lines = hostUSBread(true);
+    string dataLine;
+    for (auto& l : lines)
+        if (l.find(',') != string::npos) dataLine = l;
+    return getLineStatus(dataLine);
+}
