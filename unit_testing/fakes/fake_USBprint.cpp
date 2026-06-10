@@ -118,6 +118,7 @@ int usbRx(uint8_t* buf)
 {
     if(rx_len != 0) {
         *buf = RX_buffer[rx_off++];
+        rx_off %= TX_RX_BUFFER_LENGTH;
         rx_len--;
 
         return 0;
@@ -139,6 +140,7 @@ uint32_t isUsbError() {
 */
 void hostUSBprintf(const char * format, ...)
 {
+    char temp_buf[TX_RX_BUFFER_LENGTH] = {0};
     va_list argptr;
     va_start(argptr, format);
 
@@ -147,7 +149,13 @@ void hostUSBprintf(const char * format, ...)
     }
 
     size_t temp = rx_off + rx_len;
-    size_t len = vsnprintf(&RX_buffer[temp], TX_RX_BUFFER_LENGTH - temp, format, argptr);
+    size_t len = vsnprintf(temp_buf, TX_RX_BUFFER_LENGTH, format, argptr);
+    
+    /* Note: len does not include terminating null character */
+    for(int i = 0; i < (int)(len + 1); i++) {
+        RX_buffer[temp] = temp_buf[i];
+        temp = (temp + 1) % TX_RX_BUFFER_LENGTH;
+    }
 
     test_in.write((const char *)&RX_buffer[temp], len);
     test_in.flush();
@@ -235,4 +243,15 @@ double getChannelNAsDouble(string& channel_line, int n) {
 */
 uint32_t getLineStatus(string& channel_line) {
     return stoul(getChannelsFromLine(channel_line).back(), nullptr, 16);
+}
+
+/*!
+** @brief Flushes USB buffer and returns the status flags from the most recent data line
+*/
+uint32_t flushAndGetUSBStatus() {
+    vector<string> lines = hostUSBread(true);
+    string dataLine;
+    for (auto& l : lines)
+        if (l.find(',') != string::npos) dataLine = l;
+    return getLineStatus(dataLine);
 }
