@@ -180,6 +180,8 @@ static const char* productType(uint8_t id) {
             return "AnalogOutput";
         case AnalogInputCal:
             return "AnalogInputCal";
+        case OxygenIntegrated:
+            return "OxygenIntegrated";
     }
     return "NA";
 }
