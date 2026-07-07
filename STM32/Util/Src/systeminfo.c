@@ -340,6 +340,25 @@ const char* statusDefInfo(bool printStart) {
 }
 
 /*!
+ * @brief   Generic info about board output
+ * @param   printStart Select beginning or end of print
+ * @return  Info about board output definition in null terminated string
+ */
+const char* outputDefInfo(bool printStart) {
+    int len = 0;
+
+    if (printStart) {
+        CA_SNPRINTF(buf, len, "Start of board output definition:\r\n");
+    }
+    else {
+        CA_SNPRINTF(buf, len, "Status,hex\r\n"); // Status code always at the end
+        CA_SNPRINTF(buf, len, "End of board output definition.\r\n");
+    }
+
+    return buf;
+}
+
+/*!
  * @brief   Gets Boardinfo. If input values are NULL these are ignored
  * @param   bdt Boardtype used in the SW running
  * @param   sbdt SubBoardtype used in the SW running, if 0xFF value is ignore in compare
@@ -436,7 +455,9 @@ void bsSetFieldRange(uint32_t field, uint32_t range) {
  * @brief   Sets a board status field, and the error bit
  * @param   field A 1 bit shifted to the field index to be set. Can be OR'd together
  */
-void bsSetError(uint32_t field) { BS.boardStatus |= (BS_ERROR_Msk | field); }
+void bsSetError(uint32_t field) {
+    BS.boardStatus |= (BS_ERROR_Msk | field);
+}
 
 /*!
  * @brief   Clears the error bit, if none of the bits in "field" are set
@@ -452,13 +473,17 @@ void bsClearError(uint32_t field) {
  * @brief   Sets a board status field
  * @param   field A 1 bit shifted to the field index to be set. Can be OR'd together
  */
-void bsSetField(uint32_t field) { BS.boardStatus |= field; }
+void bsSetField(uint32_t field) {
+    BS.boardStatus |= field;
+}
 
 /*!
  * @brief   Clears a board status field
  * @param   field A 1 bit shifted to the field index to be cleared
  */
-void bsClearField(uint32_t field) { BS.boardStatus &= ~field; }
+void bsClearField(uint32_t field) {
+    BS.boardStatus &= ~field;
+}
 
 /*!
  * @brief   Updates a field using a bool to determine whether set or clear
@@ -495,50 +520,66 @@ void bsUpdateError(uint32_t field, bool set, uint32_t errorBits) {
  * @brief   Gets the board status registry
  * @return  uint32_t containing the board status
  */
-uint32_t bsGetStatus() { return BS.boardStatus; }
+uint32_t bsGetStatus() {
+    return BS.boardStatus;
+}
 
 /*!
  * @brief   Gets a board status field
  * @param   field A 1 bit shifted to the field index
  * @return  uint32_t containing the board status field
  */
-uint32_t bsGetField(uint32_t field) { return BS.boardStatus & field; }
+uint32_t bsGetField(uint32_t field) {
+    return BS.boardStatus & field;
+}
 
 /*!
  * @brief   Sets temperature
  * @param   temp Temperature in degC
  */
-void setBoardTemp(float temp) { BS.temp = temp; }
+void setBoardTemp(float temp) {
+    BS.temp = temp;
+}
 
 /*!
  * @brief   Sets voltage
  * @param   voltage Voltage in V
  */
-void setBoardVoltage(float voltage) { BS.voltage = voltage; }
+void setBoardVoltage(float voltage) {
+    BS.voltage = voltage;
+}
 
 /*!
  * @brief   Sets current
  * @param   current Current in A
  */
-void setBoardCurrent(float current) { BS.current = current; }
+void setBoardCurrent(float current) {
+    BS.current = current;
+}
 
 /*!
  * @brief   Sets USB error
  * @param   err USB error
  */
-void setBoardUsbError(uint32_t err) { BS.usb = err; }
+void setBoardUsbError(uint32_t err) {
+    BS.usb = err;
+}
 
 /*!
  * @brief   Sets the board type, the firmware is expecting to be used with
  * @param   type Board type
  */
-void setFirmwareBoardType(BoardType type) { BS.boardType = type; }
+void setFirmwareBoardType(BoardType type) {
+    BS.boardType = type;
+}
 
 /*!
  * @brief   Sets the board version, the firmware is expecting to be used with
  * @param   version Board version
  */
-void setFirmwareBoardVersion(pcbVersion version) { BS.pcbVer = version; }
+void setFirmwareBoardVersion(pcbVersion version) {
+    BS.pcbVer = version;
+}
 
 /*!
  * @brief   Sets the board type and version the firmware was compiled for
