@@ -16,8 +16,10 @@
 ** DEFINES
 ***************************************************************************************************/
 
-extern uint32_t _FlashAddrUptime;  // Variable defined in ld linker script.
-#define FLASH_ADDR_UPTIME ((uintptr_t)&_FlashAddrUptime)
+#ifndef FLASH_ADDR_UPTIME
+    extern uint32_t _FlashAddrUptime;  // Variable defined in ld linker script.
+    #define FLASH_ADDR_UPTIME ((uintptr_t)&_FlashAddrUptime)
+#endif
 
 typedef struct CounterChannel {
     uint32_t channel;      // Channel number

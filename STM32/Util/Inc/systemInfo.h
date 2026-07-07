@@ -105,6 +105,7 @@ typedef struct {
 const char* systemInfo();
 const char* statusInfo(bool printStart);
 const char* statusDefInfo(bool printStart);
+const char* outputDefInfo(bool printStart);
 int getBoardInfo(BoardType* bdt, SubBoardType* sbdt);
 int getPcbVersion(pcbVersion* ver);
 
