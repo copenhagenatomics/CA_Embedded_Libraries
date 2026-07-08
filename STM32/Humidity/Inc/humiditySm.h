@@ -1,6 +1,8 @@
 /*!
  *  @file humiditySm.h
- *
+ *  @author Luke W
+ *  @date   02/07/2026
+ * 
  *  @brief C-style class for SHT45 humidity sensor state machine.
  *
  *  Handles measurement, I2C bus recovery, IIR filtering, periodic heater
@@ -62,8 +64,8 @@ typedef enum {
 } humidity_sm_state_t;
 
 typedef enum {
-    HUMIDITY_SM_NORMAL,
-    HUMIDITY_SM_HIGH,
+    HUMIDITY_LEVEL_NORMAL,
+    HUMIDITY_LEVEL_HIGH,
 } humidity_level_t;
 
 typedef struct {
@@ -83,7 +85,7 @@ typedef struct {
     float mvgTemp;
 
     /* Filter/error bookkeeping */
-    int reset_avg_filter;
+    bool reset_avg_filter;
     int error_count;
 
     /* State machine */
@@ -91,7 +93,7 @@ typedef struct {
     humidity_heating_state_t heatingState;
 
     /* Burn-in mode */
-    int inBurnin;
+    bool inBurnin;
     uint32_t burninStartTime;
 
     /* I2C recovery GPIO (SCL to toggle, SDA to read) */
@@ -102,7 +104,6 @@ typedef struct {
 
     /* Board-status masks (project-specific) */
     uint32_t errorMsk;
-    uint32_t noErrorMsk;
 } humidity_sm_t;
 
 /***************************************************************************************************

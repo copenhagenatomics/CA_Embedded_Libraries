@@ -1,6 +1,8 @@
 /*!
  *  @file humiditySm.c
- *
+ *  @author Luke W
+ *  @date   02/07/2026
+ * 
  *  @brief C-style class for SHT45 humidity sensor state machine.
  *         See humiditySm.h for usage.
  */
@@ -44,7 +46,7 @@ static humidity_sm_state_t   startHeating(humidity_sm_t* sm, uint8_t heatingProg
 static void setMeasurementError(humidity_sm_t* sm) {
     if (++sm->error_count >= MAX_ERROR_COUNT) {
         sm->error_count      = MAX_ERROR_COUNT; /* Clamp to prevent overflow */
-        sm->reset_avg_filter = 1;
+        sm->reset_avg_filter = true;
         sm->mvgTemp          = 10000.0f;
         sm->mvgRH            = -1.0f;
         sm->mvgAH            = -1.0f;
@@ -125,8 +127,8 @@ static humidity_sm_state_t startConversion(humidity_sm_t* sm) {
 static humidity_sm_state_t getConversion(humidity_sm_t* sm) {
     sht4x_get_measurement(&sm->sensor);
     if (sm->sensor.hi2c->ErrorCode) {
-        /* The datasheet specifies that the maximum time for a high repition conversion is max 8.3 ms. 
-        ** If the sensor has not yet fully converted the sample it will respond with a NACK.
+        /* The datasheet specifies that the maximum time for a high repetition conversion is max 
+        ** 8.3 ms. If the sensor has not yet fully converted the sample it will respond with a NACK. 
         ** As soon as a new measurement is ready the NACK flag will go low. 
         ** On any other errors reset the I2C peripheral and soft reset SHT45. */
         if (sm->sensor.hi2c->ErrorCode == HAL_I2C_ERROR_AF) {
@@ -152,14 +154,14 @@ static humidity_sm_state_t updateHumidity(humidity_sm_t* sm) {
 
     if ((sm->sensor.data.temperature - sm->heatingState.tempBeforeHeating >= 0.1f) &&
         ((HAL_GetTick() - sm->heatingState.lastHeating) <= HUMIDITY_SM_HEATING_SETTLING_TIME) &&
-        sm->heatingState.hum_state == HUMIDITY_SM_HIGH) {
+        sm->heatingState.hum_state == HUMIDITY_LEVEL_HIGH) {
         /* Temperature has not yet settled after heating – update temp only */
         sm->mvgTemp += (sm->sensor.data.temperature - sm->mvgTemp) / M_AVG_COUNT;
     }
     else if (sm->reset_avg_filter) {
         /* After re-establishing connection set the outputs directly and use moving averaging
         ** filter from next iteration. */
-        sm->reset_avg_filter = 0;
+        sm->reset_avg_filter = false;
         sm->mvgTemp          = sm->sensor.data.temperature;
         sm->mvgRH            = sm->sensor.data.relative_humidity;
         sm->mvgAH            = sm->sensor.data.absolute_humidity;
@@ -171,9 +173,9 @@ static humidity_sm_state_t updateHumidity(humidity_sm_t* sm) {
     }
 
     sm->heatingState.hum_state =
-        (sm->mvgRH >= HUMIDITY_SM_RH_THRESHOLD_HIGH) ? HUMIDITY_SM_HIGH : HUMIDITY_SM_NORMAL;
+        (sm->mvgRH >= HUMIDITY_SM_RH_THRESHOLD_HIGH) ? HUMIDITY_LEVEL_HIGH : HUMIDITY_LEVEL_NORMAL;
 
-    if (sm->heatingState.hum_state == HUMIDITY_SM_HIGH &&
+    if (sm->heatingState.hum_state == HUMIDITY_LEVEL_HIGH &&
         ((HAL_GetTick() - sm->heatingState.lastHeating >= HUMIDITY_SM_HEATING_INTERVAL) ||
          sm->heatingState.isFirstHeatingCycle)) {
         sm->heatingState.isFirstHeatingCycle = 0;
@@ -194,7 +196,7 @@ static humidity_sm_state_t monitorTempInBurnin(humidity_sm_t* sm) {
     if (sm->reset_avg_filter) {
         /* After re-establishing connection set the outputs directly and use moving averaging
         ** filter from next iteration. */
-        sm->reset_avg_filter = 0;
+        sm->reset_avg_filter = false;
         sm->mvgTemp          = sm->sensor.data.temperature;
         sm->mvgRH            = sm->sensor.data.relative_humidity;
         sm->mvgAH            = sm->sensor.data.absolute_humidity;
@@ -207,7 +209,7 @@ static humidity_sm_state_t monitorTempInBurnin(humidity_sm_t* sm) {
     }
 
     if ((HAL_GetTick() - sm->burninStartTime) >= HUMIDITY_SM_BURN_IN_TIME) {
-        sm->inBurnin = 0;
+        sm->inBurnin = false;
     }
 
     if (sm->mvgTemp >= HUMIDITY_SM_MAX_TEMP_BEFORE_HEATING) {
@@ -263,12 +265,12 @@ void humidity_sm_init(humidity_sm_t* sm, I2C_HandleTypeDef* hi2c, GPIO_TypeDef* 
     sm->mvgRH            = 0.0f;
     sm->mvgAH            = 0.0f;
     sm->mvgTemp          = 0.0f;
-    sm->reset_avg_filter = 1; /* Seed filter directly on first reading */
+    sm->reset_avg_filter = true; /* Seed filter directly on first reading */
     sm->error_count      = 0;
-    sm->inBurnin         = 0;
+    sm->inBurnin         = false;
     sm->burninStartTime  = 0;
 
-    sm->heatingState.hum_state           = HUMIDITY_SM_NORMAL;
+    sm->heatingState.hum_state           = HUMIDITY_LEVEL_NORMAL;
     sm->heatingState.isFirstHeatingCycle = 1;
     sm->heatingState.tempBeforeHeating   = 0.0f;
     sm->heatingState.lastHeating         = 0;
@@ -319,7 +321,7 @@ void humidity_sm_run(humidity_sm_t* sm) {
  *         HUMIDITY_SM_MAX_TEMP_BEFORE_HEATING, or until HUMIDITY_SM_BURN_IN_TIME elapses.
  */
 void humidity_sm_start_burnin(humidity_sm_t* sm) {
-    sm->inBurnin        = 1;
+    sm->inBurnin        = true;
     sm->burninStartTime = HAL_GetTick();
 }
 
@@ -328,7 +330,7 @@ void humidity_sm_start_burnin(humidity_sm_t* sm) {
  *  @param sm  Instance to update.
  */
 void humidity_sm_stop_burnin(humidity_sm_t* sm) {
-    sm->inBurnin = 0;
+    sm->inBurnin = false;
 }
 
 /*!
@@ -337,7 +339,7 @@ void humidity_sm_stop_burnin(humidity_sm_t* sm) {
  *  @return    true while burn-in mode is active.
  */
 bool humidity_sm_in_burnin(const humidity_sm_t* sm) {
-    return sm->inBurnin != 0;
+    return sm->inBurnin != false;
 }
 
 /*!
