@@ -1,8 +1,8 @@
 /*!
-** @brief Fake I2C-level interface to the Sensirion SHT45 for unit testing
-**
+** @brief  Fake I2C-level interface to the Sensirion SHT45 for unit testing
 ** @author Timothé Dodin
 ** @date   07/07/2026
+** @ref    https://sensirion.com/media/documents/33FD6951/67EB9032/HT_DS_Datasheet_SHT4x_5.pdf
 */
 
 #include "fake_sht45.h"
@@ -20,6 +20,17 @@
 #define SHT45_CRC_POLY 0x31U
 
 /***************************************************************************************************
+** PRIVATE FUNCTION DEFINITIONS
+***************************************************************************************************/
+
+static void prepareSht45Word(uint8_t* out, uint16_t word) {
+    out[0] = (word >> 8) & 0xFF;
+    out[1] = word & 0xFF;
+    initCrc8(SHT45_CRC_INIT, SHT45_CRC_POLY);
+    out[2] = crc8Calculate(out, 2);
+}
+
+/***************************************************************************************************
 ** PUBLIC FUNCTION DEFINITIONS
 ***************************************************************************************************/
 
@@ -29,42 +40,37 @@ mockSht45::mockSht45(uint32_t serial, I2C_TypeDef* i2cBus) {
     bus     = i2cBus;
 }
 
-void mockSht45::setTemp(uint16_t rawTemp) {
-    _temp = rawTemp;
+void mockSht45::setTemp(float rawTempDegC) {
+    _temp = (uint16_t)((rawTempDegC + 45.0f) * 65535.0f / 175.0f);
 }
 
-void mockSht45::setHumidity(uint16_t rawHumidity) {
-    _humid = rawHumidity;
+void mockSht45::setHumidity(float rawHumidityPct) {
+    _humid = (uint16_t)((rawHumidityPct + 6.0f) * 65535.0f / 125.0f);
 }
 
 uint8_t mockSht45::lastCommand() const {
     return _mode;
 }
 
+// Sending data to mockSht45
 HAL_StatusTypeDef mockSht45::transmit(uint8_t* buf, uint8_t size) {
     _mode = buf[0];
     return HAL_OK;
 }
 
+// Receiving data from mockSht45
 HAL_StatusTypeDef mockSht45::recv(uint8_t* buf, uint8_t size) {
     if (size >= 6) {
         if (_mode == SHT4X_READ_SERIAL) {
-            buf[0] = (_serial >> 24) & 0xFFU;
-            buf[1] = (_serial >> 16) & 0xFFU;
-            buf[3] = (_serial >> 8) & 0xFFU;
-            buf[4] = (_serial >> 0) & 0xFFU;
+            prepareSht45Word(&buf[0], (_serial >> 16) & 0xFFFFU);
+            prepareSht45Word(&buf[3], _serial & 0xFFFFU);
         }
         else {
-            buf[0] = (_temp >> 8) & 0xFFU;
-            buf[1] = (_temp >> 0) & 0xFFU;
-            buf[3] = (_humid >> 8) & 0xFFU;
-            buf[4] = (_humid >> 0) & 0xFFU;
+            prepareSht45Word(&buf[0], _temp);
+            prepareSht45Word(&buf[3], _humid);
         }
-
-        initCrc8(SHT45_CRC_INIT, SHT45_CRC_POLY);
-        buf[2] = crc8Calculate(buf + 0, 2);
-        buf[5] = crc8Calculate(buf + 3, 2);
     }
 
     return HAL_OK;
 }
+

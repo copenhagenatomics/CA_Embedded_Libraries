@@ -22,8 +22,8 @@ class mockTci : public stm32I2cTestDevice {
    public:
     mockTci(uint32_t id, I2C_TypeDef* i2cBus);
 
-    void setH2(int16_t rawH2);      // raw counts; TCI.c converts H2 = rawH2 * 100 ppm
-    void setTemp(int8_t rawTemp);   // raw counts; TCI.c converts 1:1 to degC
+    void setH2(float rawH2ppm);      // raw counts; TCI.c converts H2 = rawH2 * 100 ppm
+    void setTemp(float rawTempDegC);   // raw counts; TCI.c converts 1:1 to degC
     void setCommsError(bool error);  // make transmit()/recv() fail, simulating a dead sensor
 
     /* Last command ID byte written by the UUT (e.g. 0xA8 trigger concentration, 0xA9 trigger

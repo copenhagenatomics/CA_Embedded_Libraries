@@ -341,6 +341,7 @@ const char* statusDefInfo(bool printStart) {
 
 /*!
  * @brief   Generic info about board output
+ * @note    Format is: channelName,channelUnit
  * @param   printStart Select beginning or end of print
  * @return  Info about board output definition in null terminated string
  */

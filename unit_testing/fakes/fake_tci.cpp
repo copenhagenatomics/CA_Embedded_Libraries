@@ -1,8 +1,8 @@
 /*!
 ** @brief Fake I2C-level interface to the TCI H2 sensor for unit testing
-**
 ** @author Timothé Dodin
 ** @date   07/07/2026
+** @ref    https://www.infineon.com/assets/row/public/documents/24/49/infineon-tci-datasheet-en.pdf
 */
 
 #include "fake_tci.h"
@@ -45,12 +45,12 @@ mockTci::mockTci(uint32_t id, I2C_TypeDef* i2cBus) {
     bus  = i2cBus;
 }
 
-void mockTci::setH2(int16_t rawH2) {
-    _rawH2 = rawH2;
+void mockTci::setH2(float rawH2ppm) {
+    _rawH2 = (int16_t)rawH2ppm / 100;
 }
 
-void mockTci::setTemp(int8_t rawTemp) {
-    _rawTemp = rawTemp;
+void mockTci::setTemp(float rawTempDegC) {
+    _rawTemp = (int8_t)rawTempDegC;
 }
 
 void mockTci::setCommsError(bool error) {
@@ -61,6 +61,7 @@ uint8_t mockTci::lastCommand() const {
     return _lastCmd;
 }
 
+// Sending data to mockTci
 HAL_StatusTypeDef mockTci::transmit(uint8_t* buf, uint8_t size) {
     if (_commsError) {
         return HAL_ERROR;
@@ -69,6 +70,7 @@ HAL_StatusTypeDef mockTci::transmit(uint8_t* buf, uint8_t size) {
     return HAL_OK;
 }
 
+// Receiving data from mockTci
 HAL_StatusTypeDef mockTci::recv(uint8_t* buf, uint8_t size) {
     if (_commsError) {
         return HAL_ERROR;

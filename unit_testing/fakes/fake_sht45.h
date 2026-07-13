@@ -21,8 +21,8 @@ class mockSht45 : public stm32I2cTestDevice {
    public:
     mockSht45(uint32_t serial, I2C_TypeDef* i2cBus);
 
-    void setTemp(uint16_t rawTemp);
-    void setHumidity(uint16_t rawHumidity);
+    void setTemp(float rawTempDegC);
+    void setHumidity(float rawHumidityPct);
 
     /* Last command byte written by the UUT (e.g. SHT4X_MEASURE_HIGHREP, SHT4X_HEATER_110mW_1s,
     ** SHT4X_HEATER_200mW_100ms, SHT4X_READ_SERIAL). Lets a test confirm which command was

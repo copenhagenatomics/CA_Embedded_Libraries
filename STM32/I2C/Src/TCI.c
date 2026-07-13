@@ -3,6 +3,7 @@
  * @brief   Driver file for TCI H2 sensor
  * @date    22/04/2026
  * @author  Timothé Dodin
+ * @ref     https://www.infineon.com/assets/row/public/documents/24/49/infineon-tci-datasheet-en.pdf
  */
 
 #include <math.h>
@@ -105,19 +106,19 @@ static int receiveMessage(tci_t* dev, uint8_t* message, uint16_t len) {
  */
 static int triggerConcentrationMeas(tci_t* dev, float relHumidity, float temperature,
                                     float pressure) {
-    static const uint8_t TRIG_CONC_MEAS_COMMAND_ID = 0xA8;
     /*
     Field contamination check enabled
     Fully compensated concentration is provided
     */
     static const uint8_t TRIG_CONC_MEAS_COMMAND_CONFIG = 0b00100000;
-    static const float BAR_TO_KPA                      = 100.0;
-    static const uint8_t MIN_REL_HUM_BYTE              = 0;
-    static const uint8_t MAX_REL_HUM_BYTE              = 100;
-    static const int8_t MIN_TEMP_BYTE                  = -40;
-    static const int8_t MAX_TEMP_BYTE                  = 105;
-    static const uint8_t MIN_PRES_BYTE                 = 50;
-    static const uint8_t MAX_PRES_BYTE                 = 130;
+    static const uint8_t TRIG_CONC_MEAS_COMMAND_ID     = 0xA8;   // Command ID
+    static const float BAR_TO_KPA                      = 100.0;  // Requires kPa
+    static const uint8_t MIN_REL_HUM_BYTE              = 0;      // Min hum. compensation
+    static const uint8_t MAX_REL_HUM_BYTE              = 100;    // Max hum. compensation
+    static const int8_t MIN_TEMP_BYTE                  = -40;    // Min temp. compensation
+    static const int8_t MAX_TEMP_BYTE                  = 105;    // Max temp. compensation
+    static const uint8_t MIN_PRES_BYTE                 = 50;     // Min pressure compensation
+    static const uint8_t MAX_PRES_BYTE                 = 130;    // Max pressure compensation
 
     uint8_t command[5];
     command[0] = TRIG_CONC_MEAS_COMMAND_ID;
