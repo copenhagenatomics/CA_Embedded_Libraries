@@ -133,12 +133,12 @@ static void otp_write(CAProtocolCtx* ctx, const char* input) {
                        &OTPVersion, &BoardType, &SubBoardType, &PCBversion[1], &PCBversion[0],
                        &date) == 6) {
                 if (BoardType < 0xFF && PCBversion[1] <= 0xFF && PCBversion[0] <= 0xFF) {
-                    info.v2.otpVersion = OTP_VERSION_2;
-                    info.v2.boardType = BoardType & 0xFF;
-                    info.v2.subBoardType = SubBoardType & 0xFF;
+                    info.v2.otpVersion       = OTP_VERSION_2;
+                    info.v2.boardType        = BoardType & 0xFF;
+                    info.v2.subBoardType     = SubBoardType & 0xFF;
                     info.v2.pcbVersion.major = PCBversion[1] & 0xFF;
                     info.v2.pcbVersion.minor = PCBversion[0] & 0xFF;
-                    info.v2.productionDate = date;
+                    info.v2.productionDate   = date;
                     ctx->otpWrite(&info);
                     return;
                 }
@@ -155,7 +155,7 @@ static void otp_write(CAProtocolCtx* ctx, const char* input) {
 
 static int CAgetMsg(CAProtocolCtx* ctx) {
     CAProtocolData* protocolData = ctx->data;
-    int msgLen = 0;
+    int msgLen                   = 0;
 
     while (msgLen == 0) {
         uint8_t rxByte;
@@ -215,6 +215,14 @@ void inputCAProtocol(CAProtocolCtx* ctx) {
             ctx->printHeader();
             parseError = 0;
         }
+    }
+    else if (strncmp(input, "OutputDef", 9) == 0) {
+        CAPrintOutputDef(true);
+        if (ctx->printOutputDef) {
+            ctx->printOutputDef();  // Print board specific part of statusdefinition message
+        }
+        CAPrintOutputDef(false);  // Print end of status definition message
+        parseError = 0;
     }
     else if (strncmp(input, "StatusDef", 9) == 0) {
         CAPrintStatusDef(true);  // Print start of status definition message
@@ -283,7 +291,7 @@ void inputCAProtocol(CAProtocolCtx* ctx) {
 void initCAProtocol(CAProtocolCtx* ctx, ReaderFn fn) {
     ctx->data = (CAProtocolData*)malloc(sizeof(CAProtocolData));
     memset(ctx->data->buf, 0, sizeof(ctx->data->buf));
-    ctx->data->len = 0;
+    ctx->data->len      = 0;
     ctx->data->rxReader = fn;
 }
 

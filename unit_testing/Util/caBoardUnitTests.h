@@ -80,6 +80,20 @@ class CaBoardUnitTest: public ::testing::Test
             }
         }
 
+        /*!
+        ** @brief Ticks the simulation, one tick at a time, until a predicate is satisfied
+        ** @param pred     Callable returning true once the awaited condition holds
+        ** @param maxTicks Upper bound on the number of ticks to simulate
+        ** @return Whether pred() is true after at most maxTicks ticks
+        */
+        template <typename Pred>
+        bool waitUntil(Pred pred, int maxTicks) {
+            for (int i = 0; i < maxTicks && !pred(); i++) {
+                simTicks(1);
+            }
+            return pred();
+        }
+
         /*******************************************************************************************
         ** MEMBERS
         *******************************************************************************************/
