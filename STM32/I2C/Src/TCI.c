@@ -3,6 +3,7 @@
  * @brief   Driver file for TCI H2 sensor
  * @date    22/04/2026
  * @author  Timothé Dodin
+ * @ref     https://www.infineon.com/assets/row/public/documents/24/49/infineon-tci-datasheet-en.pdf
  */
 
 #include <math.h>
@@ -29,15 +30,15 @@
 ** PRIVATE FUNCTION DECLARATIONS
 ***************************************************************************************************/
 
-static int sendMessage(tci_t *dev, uint8_t *message, uint16_t len);
-static int receiveMessage(tci_t *dev, uint8_t *message, uint16_t len);
-static int triggerConcentrationMeas(tci_t *dev, float relHumidity, float temperature,
+static int sendMessage(tci_t* dev, uint8_t* message, uint16_t len);
+static int receiveMessage(tci_t* dev, uint8_t* message, uint16_t len);
+static int triggerConcentrationMeas(tci_t* dev, float relHumidity, float temperature,
                                     float pressure);
-static int receiveConcentrationMeas(tci_t *dev);
-static int triggerTemperatureMeas(tci_t *dev);
-static int receiveTemperatureMeas(tci_t *dev);
-static int triggerReadID(tci_t *dev);
-static int receiveID(tci_t *dev);
+static int receiveConcentrationMeas(tci_t* dev);
+static int triggerTemperatureMeas(tci_t* dev);
+static int receiveTemperatureMeas(tci_t* dev);
+static int triggerReadID(tci_t* dev);
+static int receiveID(tci_t* dev);
 
 /***************************************************************************************************
 ** PRIVATE FUNCTION DEFINITIONS
@@ -50,7 +51,7 @@ static int receiveID(tci_t *dev);
  * @param  len Number of bytes
  * @return 0 if OK, else < 0
  */
-static int sendMessage(tci_t *dev, uint8_t *message, uint16_t len) {
+static int sendMessage(tci_t* dev, uint8_t* message, uint16_t len) {
     if (len + 2 > MAX_I2C_MESSAGE_LENGTH) {
         return -1;
     }
@@ -76,7 +77,7 @@ static int sendMessage(tci_t *dev, uint8_t *message, uint16_t len) {
  * @param  len Number of bytes
  * @return 0 if OK, else < 0
  */
-static int receiveMessage(tci_t *dev, uint8_t *message, uint16_t len) {
+static int receiveMessage(tci_t* dev, uint8_t* message, uint16_t len) {
     if (len + 2 > MAX_I2C_MESSAGE_LENGTH) {
         return -1;
     }
@@ -103,30 +104,28 @@ static int receiveMessage(tci_t *dev, uint8_t *message, uint16_t len) {
  * @param  pressure Pressure in bar
  * @return 0 if OK, else < 0
  */
-static int triggerConcentrationMeas(tci_t *dev, float relHumidity, float temperature,
+static int triggerConcentrationMeas(tci_t* dev, float relHumidity, float temperature,
                                     float pressure) {
-    static const uint8_t TRIG_CONC_MEAS_COMMAND_ID = 0xA8;
     /*
-    0.25% relative humidity provided
     Field contamination check enabled
     Fully compensated concentration is provided
     */
-    static const uint8_t TRIG_CONC_MEAS_COMMAND_CONFIG = 0b01100000;
-    static const float HUMIDITY_RES                    = 0.25;  // [%]
-    static const float BAR_TO_KPA                      = 100.0;
-    static const uint8_t MIN_REL_HUM_BYTE              = 0;
-    static const uint8_t MAX_REL_HUM_BYTE              = 255;
-    static const int8_t MIN_TEMP_BYTE                  = -40;
-    static const int8_t MAX_TEMP_BYTE                  = 105;
-    static const uint8_t MIN_PRES_BYTE                 = 50;
-    static const uint8_t MAX_PRES_BYTE                 = 130;
+    static const uint8_t TRIG_CONC_MEAS_COMMAND_CONFIG = 0b00100000;
+    static const uint8_t TRIG_CONC_MEAS_COMMAND_ID     = 0xA8;   // Command ID
+    static const float BAR_TO_KPA                      = 100.0;  // Requires kPa
+    static const uint8_t MIN_REL_HUM_BYTE              = 0;      // Min hum. compensation
+    static const uint8_t MAX_REL_HUM_BYTE              = 100;    // Max hum. compensation
+    static const int8_t MIN_TEMP_BYTE                  = -40;    // Min temp. compensation
+    static const int8_t MAX_TEMP_BYTE                  = 105;    // Max temp. compensation
+    static const uint8_t MIN_PRES_BYTE                 = 50;     // Min pressure compensation
+    static const uint8_t MAX_PRES_BYTE                 = 130;    // Max pressure compensation
 
     uint8_t command[5];
     command[0] = TRIG_CONC_MEAS_COMMAND_ID;
     command[1] = TRIG_CONC_MEAS_COMMAND_CONFIG;
 
     // Float to integer
-    int32_t relHumidityInt = (int32_t)roundf(relHumidity / HUMIDITY_RES);
+    int32_t relHumidityInt = (int32_t)roundf(relHumidity);
     int32_t temperatureInt = (int32_t)roundf(temperature);
     int32_t pressureInt    = (int32_t)roundf(pressure * BAR_TO_KPA);
 
@@ -154,8 +153,8 @@ static int triggerConcentrationMeas(tci_t *dev, float relHumidity, float tempera
  * @param  dev H2 device
  * @return 0 if OK, else < 0
  */
-static int receiveConcentrationMeas(tci_t *dev) {
-    static const float H2_RES = 0.01;  // [%]
+static int receiveConcentrationMeas(tci_t* dev) {
+    static const float H2_RES = 100.0;  // [ppm] - 0.01 %
 
     uint8_t message[3] = {0};
     if (receiveMessage(dev, message, 3) != 0) {
@@ -178,9 +177,9 @@ static int receiveConcentrationMeas(tci_t *dev) {
  * @param  dev H2 device
  * @return 0 if OK, else < 0
  */
-static int triggerTemperatureMeas(tci_t *dev) {
+static int triggerTemperatureMeas(tci_t* dev) {
     static const uint8_t TRIG_TEMP_MEAS_COMMAND_ID = 0xA9;
-    return sendMessage(dev, (uint8_t *)&TRIG_TEMP_MEAS_COMMAND_ID, 1);
+    return sendMessage(dev, (uint8_t*)&TRIG_TEMP_MEAS_COMMAND_ID, 1);
 }
 
 /*!
@@ -189,7 +188,7 @@ static int triggerTemperatureMeas(tci_t *dev) {
  * @param  dev H2 device
  * @return 0 if OK, else < 0
  */
-static int receiveTemperatureMeas(tci_t *dev) {
+static int receiveTemperatureMeas(tci_t* dev) {
     uint8_t message[2] = {0};
     if (receiveMessage(dev, message, 2) != 0) {
         return -1;
@@ -210,9 +209,9 @@ static int receiveTemperatureMeas(tci_t *dev) {
  * @param  dev H2 device
  * @return 0 if OK, else < 0
  */
-static int triggerReadID(tci_t *dev) {
+static int triggerReadID(tci_t* dev) {
     static const uint8_t READ_ID_COMMAND_ID = 0xC2;
-    return sendMessage(dev, (uint8_t *)&READ_ID_COMMAND_ID, 1);
+    return sendMessage(dev, (uint8_t*)&READ_ID_COMMAND_ID, 1);
 }
 
 /*!
@@ -221,7 +220,7 @@ static int triggerReadID(tci_t *dev) {
  * @param  dev H2 device
  * @return 0 if OK, else < 0
  */
-static int receiveID(tci_t *dev) {
+static int receiveID(tci_t* dev) {
     uint8_t message[10] = {0};
     if (receiveMessage(dev, message, 10) != 0) {
         return -1;
@@ -248,7 +247,7 @@ static int receiveID(tci_t *dev) {
  * @param  hi2c I2C handler
  * @return 0 if OK, else < 0
  */
-int tci_init(tci_t *dev, I2C_HandleTypeDef *hi2c) {
+int tci_init(tci_t* dev, I2C_HandleTypeDef* hi2c) {
     dev->hi2c             = hi2c;
     dev->data.temperature = WRONG_TEMP;
     dev->data.H2          = WRONG_H2;
@@ -281,9 +280,9 @@ int tci_init(tci_t *dev, I2C_HandleTypeDef *hi2c) {
  * @param  pressure Pressure in bar
  * @return 0 if OK, else < 0
  */
-int tci_loop(tci_t *dev, float relHumidity, float temperature, float pressure) {
+int tci_loop(tci_t* dev, float relHumidity, float temperature, float pressure) {
     static const uint32_t TIMEOUT = 550;  // [ms] - Time out between measurements
-    static const uint32_t STATE_TIMES[NO_OF_TCI_STATES] = {60, 60, 60, 60};  // [ms] - 10 Hz cycle
+    static const uint32_t STATE_TIMES[NO_OF_TCI_STATES] = {5, 60, 5, 30};  // [ms] - 10 Hz cycle
 
     uint32_t now = HAL_GetTick();
 

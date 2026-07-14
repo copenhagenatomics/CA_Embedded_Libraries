@@ -15,8 +15,7 @@
 ** STRUCTURES
 ***************************************************************************************************/
 
-typedef struct
-{
+typedef struct {
     int port;
     double alpha;
     double beta;
@@ -24,24 +23,32 @@ typedef struct
 } CACalibration;
 
 typedef int (*ReaderFn)(uint8_t* rxBuf);
-typedef struct
-{
+
+typedef struct {
     // Called if message is not found. Overwrite to get info about invalid input
     void (*undefined)(const char* inputString);
 
-    // system info request using "Serial". These should be overwritten
+    // System info request using "Serial". These should be overwritten
     void (*printHeader)();
-    // system info request using "Status". These should be overwritten with additional 
+
+    // Status request using "Status". These should be overwritten with additional
     // board specific status codes.
     void (*printStatus)();
-    // system info request using "StatusDef". These should be overwritten with additional 
+
+    // Status definition request using "StatusDef". These should be overwritten with additional
     // board specific status codes.
     void (*printStatusDef)();
+
+    // Output info request using "OutputDef". These should be overwritten with additional channel
+    // info.
+    void (*printOutputDef)();
+
+    // Bootloader request using "DFU".
     void (*jumpToBootLoader)();
 
     // Calibration request.
     void (*calibration)(int noOfCalibrations, const CACalibration* calibrations);
-    void (*calibrationRW)(bool write);     // Read or write calibration values to flash
+    void (*calibrationRW)(bool write);  // Read or write calibration values to flash
 
     // Data logger request on port (range [1:N]), Zero means stop.
     void (*logging)(int port);
@@ -49,12 +56,12 @@ typedef struct
     // OTP read/write. Don't enable write of OTP data in application shipped
     // to customer. The OTP write is a production operation only!
     void (*otpRead)();
-    void (*otpWrite)(BoardInfo *boardInfo);
+    void (*otpWrite)(BoardInfo* boardInfo);
 
     /* Print generic uptime information */
     void (*uptime)(const char* inputString);
 
-    struct CAProtocolData *data; // Private data for CAProtocol.
+    struct CAProtocolData* data;  // Private data for CAProtocol.
 } CAProtocolCtx;
 
 /***************************************************************************************************

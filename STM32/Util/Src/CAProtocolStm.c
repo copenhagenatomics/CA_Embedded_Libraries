@@ -57,6 +57,12 @@ void CAPrintStatusDef(bool printStart)
     writeUSB(buf, strlen(buf));
 }
 
+void CAPrintOutputDef(bool printStart)
+{
+    const char* buf = outputDefInfo(printStart);
+    writeUSB(buf, strlen(buf));
+}
+
 void CAotpRead()
 {
     BoardInfo info;
