@@ -445,17 +445,15 @@ void WIZCHIP_WRITE_BUF(ethernet_t *heth, uint32_t AddrSel, uint8_t *pBuf, uint16
  */
 uint16_t getSn_TX_FSR(ethernet_t *heth, uint8_t sn) {
     uint32_t timeStamp = HAL_GetTick();
-    uint16_t val       = 1;
-    uint16_t val1      = 0;
+    uint16_t val       = 0;
+    uint16_t val1      = 1;
 
     while (val != val1) {
+        val = WIZCHIP_READ(heth, Sn_TX_FSR(sn));
+        val = (val << 8) + WIZCHIP_READ(heth, WIZCHIP_OFFSET_INC(Sn_TX_FSR(sn), 1));
+
         val1 = WIZCHIP_READ(heth, Sn_TX_FSR(sn));
         val1 = (val1 << 8) + WIZCHIP_READ(heth, WIZCHIP_OFFSET_INC(Sn_TX_FSR(sn), 1));
-
-        if (val1 != 0) {
-            val = WIZCHIP_READ(heth, Sn_TX_FSR(sn));
-            val = (val << 8) + WIZCHIP_READ(heth, WIZCHIP_OFFSET_INC(Sn_TX_FSR(sn), 1));
-        }
 
         if (tdiff_u32(HAL_GetTick(), timeStamp) > TIME_OUT_MS) {
             return 0;
@@ -474,17 +472,15 @@ uint16_t getSn_TX_FSR(ethernet_t *heth, uint8_t sn) {
  */
 uint16_t getSn_RX_RSR(ethernet_t *heth, uint8_t sn) {
     uint32_t timeStamp = HAL_GetTick();
-    uint16_t val       = 1;
-    uint16_t val1      = 0;
+    uint16_t val       = 0;
+    uint16_t val1      = 1;
 
     while (val != val1) {
+        val = WIZCHIP_READ(heth, Sn_RX_RSR(sn));
+        val = (val << 8) + WIZCHIP_READ(heth, WIZCHIP_OFFSET_INC(Sn_RX_RSR(sn), 1));
+
         val1 = WIZCHIP_READ(heth, Sn_RX_RSR(sn));
         val1 = (val1 << 8) + WIZCHIP_READ(heth, WIZCHIP_OFFSET_INC(Sn_RX_RSR(sn), 1));
-
-        if (val1 != 0) {
-            val = WIZCHIP_READ(heth, Sn_RX_RSR(sn));
-            val = (val << 8) + WIZCHIP_READ(heth, WIZCHIP_OFFSET_INC(Sn_RX_RSR(sn), 1));
-        }
 
         if (tdiff_u32(HAL_GetTick(), timeStamp) > TIME_OUT_MS) {
             return 0;
