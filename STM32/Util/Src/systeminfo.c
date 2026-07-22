@@ -449,7 +449,9 @@ void bsSetFieldRange(uint32_t field, uint32_t range) {
     // Reset bits before setting the new value of the range for the same
     // reason as described in the bsSetErrorRange function.
     BS.boardStatus &= ~range;
-    BS.boardStatus |= field;
+    // Mask field to range so bits outside the declared range can never leak into unrelated
+    // status bits (e.g. a caller passing a state value wider than its range mask).
+    BS.boardStatus |= (field & range);
 }
 
 /*!

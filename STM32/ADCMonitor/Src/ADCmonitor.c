@@ -38,7 +38,7 @@ static struct {
     uint32_t   noOfChannels; // No of channels for each sample
     uint32_t   noOfSamples;  // No of Samples in each channel per interrupt, half buffer.
 
-    activeBuffer_t activeBuffer;
+    volatile activeBuffer_t activeBuffer;
 } ADCMonitorData;
 
 /***************************************************************************************************
