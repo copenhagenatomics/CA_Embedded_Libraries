@@ -21,8 +21,10 @@ extern "C" {
 
 void initCrc4(uint8_t init, uint8_t poly);
 void initCrc8(uint8_t init, uint8_t poly);
+void initCrc16(uint16_t init, uint16_t poly);
 uint8_t crc8Calculate(uint8_t *data, size_t len);
 uint8_t crc4Calculate(uint8_t *data, size_t len);
+uint16_t crc16Calculate(uint8_t *data, size_t len);
 
 #ifdef __cplusplus
 }

@@ -45,6 +45,9 @@ extern "C" {
 #define BS_FLASH_ONGOING_Pos 24U
 #define BS_FLASH_ONGOING_Msk (1UL << BS_FLASH_ONGOING_Pos)
 
+#define BS_100_HZ_OUTPUT_Pos 23U
+#define BS_100_HZ_OUTPUT_Msk (1UL << BS_100_HZ_OUTPUT_Pos)
+
 /* Used for defining which bits are errors, and which are statuses */
 #define BS_SYSTEM_ERRORS_Msk                                                                      \
     (BS_OVER_TEMPERATURE_Msk | BS_UNDER_VOLTAGE_Msk | BS_OVER_VOLTAGE_Msk | BS_OVER_CURRENT_Msk | \
@@ -78,7 +81,16 @@ typedef enum {
     VFD                = 19,
     Tachometer         = 20,
     ACTenChannel       = 21,
-    PhaseMonitor       = 22
+    PhaseMonitor       = 22,
+    SaltLeakCal        = 23,
+    PressureCal        = 24,
+    ERUHC              = 25,
+    FanController      = 26,
+    AnalogInput        = 27,
+    GasSampler         = 28,
+    AnalogOutput       = 29,
+    AnalogInputCal     = 30,
+    OxygenIntegrated   = 31
 } BoardType;
 typedef uint8_t SubBoardType;  // SubBoardType needed for some boards.
 
@@ -94,6 +106,7 @@ typedef struct {
 const char* systemInfo();
 const char* statusInfo(bool printStart);
 const char* statusDefInfo(bool printStart);
+const char* outputDefInfo(bool printStart);
 int getBoardInfo(BoardType* bdt, SubBoardType* sbdt);
 int getPcbVersion(pcbVersion* ver);
 
@@ -104,7 +117,7 @@ void bsClearError(uint32_t field);
 void bsSetField(uint32_t field);
 void bsClearField(uint32_t field);
 void bsUpdateField(uint32_t field, bool set);
-void bsUpdateError(uint32_t field, bool set, uint32_t error_bits);
+void bsUpdateError(uint32_t field, bool set, uint32_t errorBits);
 uint32_t bsGetStatus();
 uint32_t bsGetField(uint32_t field);
 
@@ -115,7 +128,7 @@ void setBoardUsbError(uint32_t err);
 void setFirmwareBoardType(BoardType type);
 void setFirmwareBoardVersion(pcbVersion version);
 
-int boardSetup(BoardType type, pcbVersion breaking_version, uint32_t boardErrorsMsk);
+int boardSetup(BoardType type, pcbVersion breakingVersion, uint32_t boardErrorsMsk);
 
 #ifdef __cplusplus
 }

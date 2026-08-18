@@ -12,6 +12,13 @@
 ** PUBLIC FUNCTION DEFINITIONS
 ***************************************************************************************************/
 
+uint16_t getChannelAddress(uint16_t message) {
+    return 0;
+}
+uint16_t getConversionResult(uint16_t message) {
+    return 0;
+}
+
 bool checkAndCleanBuffer(ADS7953Device_t *dev, int16_t *pData) {
     return true;
 }
@@ -36,7 +43,7 @@ void extADCSetOffset(ADS7953Device_t *dev, int16_t *pData, uint16_t channel, int
     return;
 }
 
-int ADS7953Init(ADS7953Device_t *dev, SPI_HandleTypeDef *hspi, TIM_HandleTypeDef *htim, ADS7953DMAs_t DMAs, int16_t *buff, uint32_t length, uint8_t noOfChannels) {
+int ADS7953Init(ADS7953Device_t *dev, SPI_HandleTypeDef *hspi, TIM_HandleTypeDef *htim, ADS7953DMAs_t DMAs, int16_t *buff, uint32_t length, uint8_t noOfChannels, extADCCallBack callback) {
     return 0;
 }
 

@@ -30,7 +30,7 @@ static int getArgs(char *input, char delim, char **argv, int max_len);
 ***************************************************************************************************/
 
 /* Buffer for preventing modifications to original message. 2x MAX_CMD_CHARS to allow for sensible 
-** number of additional spaces, trailiing newline, etc...*/
+** number of additional spaces, trailing newline, etc...*/
 char buf[2 * MAX_CMD_CHARS] = {0}; 
 
 /***************************************************************************************************
@@ -43,7 +43,7 @@ char buf[2 * MAX_CMD_CHARS] = {0};
 ** @param[in]  input   Input string
 ** @param[in]  delim   Delimiter used to separate arguments
 ** @param[out] argv    Pointer to a list of arguments
-** @param[in]  max_len Maximum number of arguments that can be stored in args
+** @param[in]  max_len Maximum number of arguments that can be stored in argv
 */
 static int getArgs(char *input, char delim, char **argv, int max_len) {
     int len           = strlen(input);
@@ -101,8 +101,8 @@ void ACDCInputHandler(ACDCProtocolCtx *ctx, const char *input) {
         /* Valid commands are:
            all on - turn all ports on indefinitely
            all off - turn all ports off
-           pX on - turn off port number X
-           pX off - turn on port number X indefinitely 'always on'
+           pX off - turn off port number X
+           pX on - turn on port number X indefinitely 'always on'
            pX on YY - turn on port number X for YY seconds
            pX on ZZZ% - turn on port number X on ZZ percent of the time using PWM 'always on'
            pX on YY ZZZ% - turn on port number X for YY seconds ZZ percent of the time using PWM */

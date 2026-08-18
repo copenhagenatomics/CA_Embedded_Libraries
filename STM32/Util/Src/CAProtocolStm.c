@@ -27,13 +27,13 @@ void HALundefined(const char *input)
 {
     if(strcmp(input, "\0"))
     {
-        USBnprintf("MISREAD: %s", input);
+        USBnprintf("MISREAD: %s\r\n", input);
     }
 }
 
 void HALJumpToBootloader()
 {
-    USBnprintf("Entering bootloader mode");
+    USBnprintf("Entering bootloader mode\r\n");
     __HAL_RCC_WWDG_CLK_DISABLE();
     HAL_Delay(200);
     JumpToBootloader(); // function never returns.
@@ -41,7 +41,8 @@ void HALJumpToBootloader()
 
 void CAPrintHeader()
 {
-    USBnprintf(systemInfo());
+    const char* buf = systemInfo();
+    writeUSB(buf, strlen(buf));
 }
 
 void CAPrintStatus(bool printStart)
@@ -56,12 +57,18 @@ void CAPrintStatusDef(bool printStart)
     writeUSB(buf, strlen(buf));
 }
 
+void CAPrintOutputDef(bool printStart)
+{
+    const char* buf = outputDefInfo(printStart);
+    writeUSB(buf, strlen(buf));
+}
+
 void CAotpRead()
 {
     BoardInfo info;
     if (HAL_otpRead(&info))
     {
-        USBnprintf("OTP: No production available");
+        USBnprintf("OTP: No production available\r\n");
     }
     else
     {
@@ -85,7 +92,7 @@ void CAotpRead()
                      , info.v2.productionDate);
             break;
         default:
-            USBnprintf("Not supported version %d of OTP data. Update firmware in board.", info.otpVersion);
+            USBnprintf("Not supported version %d of OTP data. Update firmware in board.\r\n", info.otpVersion);
             break;
         }
     }
@@ -123,25 +130,25 @@ const char* CAonBoot()
 
     if (__HAL_RCC_GET_FLAG(RCC_FLAG_WWDGRST))
     {
-        sprintf(msg, "reconnected Reset Reason: Hardware Watch dog");
+        sprintf(msg, "reconnected Reset Reason: Hardware Watch dog\r\n");
     }
     else if (__HAL_RCC_GET_FLAG(RCC_FLAG_IWDGRST))
 	{
-		sprintf(msg, "reconnected Reset Reason: Internal Watch dog");
+		sprintf(msg, "reconnected Reset Reason: Internal Watch dog\r\n");
 	}
     else if (__HAL_RCC_GET_FLAG(RCC_FLAG_SFTRST))
     {
-        sprintf(msg, "reconnected Reset Reason: Software Reset");
+        sprintf(msg, "reconnected Reset Reason: Software Reset\r\n");
     }
     else if (__HAL_RCC_GET_FLAG(RCC_FLAG_PORRST))
     {
-        sprintf(msg, "reconnected Reset Reason: Power On");
+        sprintf(msg, "reconnected Reset Reason: Power On\r\n");
     }
     else
     {
         // System has none of watchdog, SW reset or porrst bit set. At least
         // one reason should be set => this should never happen, inspect!!
-        sprintf(msg, "reconnected Reset Reason: Unknown(%" PRIx32 ")", RCC->CSR);
+        sprintf(msg, "reconnected Reset Reason: Unknown(%" PRIx32 ")\r\n", RCC->CSR);
     }
 
     // Reset the boot flags.

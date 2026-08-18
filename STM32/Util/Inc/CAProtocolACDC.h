@@ -11,6 +11,10 @@
 
 #include "CAProtocolStm.h"
 
+#ifdef __cplusplus
+    extern "C" {
+#endif
+
 /***************************************************************************************************
 ** STRUCTURES
 ***************************************************************************************************/
@@ -27,5 +31,9 @@ typedef struct {
 ***************************************************************************************************/
 
 void ACDCInputHandler(ACDCProtocolCtx* ctx, const char* input);
+
+#ifdef __cplusplus
+    }
+#endif
 
 #endif /* INC_CAPROTOCOLACDC_H_ */

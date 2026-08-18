@@ -9,6 +9,7 @@
 #include <stdio.h>
 
 #include "HAL_otp.h"
+#include "USBprint.h"
 #include "systemInfo.h"
 
 #ifndef UNIT_TESTING
@@ -66,7 +67,7 @@ static struct BS {
     float current;
     uint32_t usb;
     BoardType boardType;
-    pcbVersion pcb_version;
+    pcbVersion pcbVer;
 } BS = {0};
 
 // Print buffer for systemInfo, statusInfo and statusDefInfo
@@ -95,20 +96,20 @@ static const char* mcuType() {
 
     switch (idCode) {
         case 0x423:
-            len += snprintf(&mcu[len], sizeof(mcu) - len, "STM32F401xB/C");
+            CA_SNPRINTF(mcu, len, "STM32F401xB/C");
             break;
         case 0x433:
-            len += snprintf(&mcu[len], sizeof(mcu) - len, "STM32F401xD/E");
+            CA_SNPRINTF(mcu, len, "STM32F401xD/E");
             break;
         case 0x450:
-            len += snprintf(&mcu[len], sizeof(mcu) - len, "STM32H753IIT6");
+            CA_SNPRINTF(mcu, len, "STM32H753IIT6");
             break;
         default:
-            len += snprintf(&mcu[len], sizeof(mcu) - len, "Unknown 0x%3X", idCode);
+            CA_SNPRINTF(mcu, len, "Unknown 0x%3X", idCode);
             break;
     }
 
-    len += snprintf(&mcu[len], sizeof(mcu) - len, " Rev %x", revCode);
+    CA_SNPRINTF(mcu, len, " Rev %x", revCode);
 
     return mcu;
 }
@@ -163,6 +164,24 @@ static const char* productType(uint8_t id) {
             return "ACTenChannel";
         case PhaseMonitor:
             return "PhaseMonitor";
+        case SaltLeakCal:
+            return "SaltLeakCal";
+        case PressureCal:
+            return "PressureCal";
+        case ERUHC:
+            return "ERUHC";
+        case FanController:
+            return "FanController";
+        case AnalogInput:
+            return "AnalogInput";
+        case GasSampler:
+            return "GasSampler";
+        case AnalogOutput:
+            return "AnalogOutput";
+        case AnalogInputCal:
+            return "AnalogInputCal";
+        case OxygenIntegrated:
+            return "OxygenIntegrated";
     }
     return "NA";
 }
@@ -183,40 +202,40 @@ const char* systemInfo() {
     }
 
     int len = 0;
-    len     = snprintf(&buf[len], sizeof(buf) - len, "Serial Number: %lX%lX%lX\r\n", ID1, ID2, ID3);
+
+    CA_SNPRINTF(buf, len, "Serial Number: %lX%lX%lX\r\n", ID1, ID2, ID3);
+
     switch (info.otpVersion) {
         case OTP_VERSION_1:
-            len += snprintf(&buf[len], sizeof(buf) - len, "Product Type: %s\r\n",
-                            productType(info.v1.boardType));
+            CA_SNPRINTF(buf, len, "Product Type: %s\r\n", productType(info.v1.boardType));
             break;
         case OTP_VERSION_2:
-            len += snprintf(&buf[len], sizeof(buf) - len, "Product Type: %s\r\n",
-                            productType(info.v2.boardType));
-            len += snprintf(&buf[len], sizeof(buf) - len, "Sub Product Type: %u\r\n",
-                            info.v2.subBoardType);
+            CA_SNPRINTF(buf, len, "Product Type: %s\r\n", productType(info.v2.boardType));
+            CA_SNPRINTF(buf, len, "Sub Product Type: %u\r\n", info.v2.subBoardType);
             break;
         default:
-            len += snprintf(&buf[len], sizeof(buf) - len, "Product Type: NA\r\n");
+            CA_SNPRINTF(buf, len, "Product Type: NA\r\n");
             break;
     }
-    len += snprintf(&buf[len], sizeof(buf) - len, "MCU Family: %s\r\n", mcuType());
-    len += snprintf(&buf[len], sizeof(buf) - len, "Software Version: %s\r\n", GIT_VERSION);
-    len += snprintf(&buf[len], sizeof(buf) - len, "Compile Date: %s\r\n", GIT_DATE);
-    len += snprintf(&buf[len], sizeof(buf) - len, "Git SHA: %s\r\n", GIT_SHA);
+
+    CA_SNPRINTF(buf, len, "MCU Family: %s\r\n", mcuType());
+    CA_SNPRINTF(buf, len, "Software Version: %s\r\n", GIT_VERSION);
+    CA_SNPRINTF(buf, len, "Compile Date: %s\r\n", GIT_DATE);
+    CA_SNPRINTF(buf, len, "Git SHA: %s\r\n", GIT_SHA);
+
     switch (info.otpVersion) {
         case OTP_VERSION_1:
-            len += snprintf(&buf[len], sizeof(buf) - len, "PCB Version: %d.%d",
-                            info.v1.pcbVersion.major, info.v1.pcbVersion.minor);
+            CA_SNPRINTF(buf, len, "PCB Version: %d.%d\r\n", info.v1.pcbVersion.major,
+                        info.v1.pcbVersion.minor);
             break;
         case OTP_VERSION_2:
-            len += snprintf(&buf[len], sizeof(buf) - len, "PCB Version: %d.%d",
-                            info.v2.pcbVersion.major, info.v2.pcbVersion.minor);
+            CA_SNPRINTF(buf, len, "PCB Version: %d.%d\r\n", info.v2.pcbVersion.major,
+                        info.v2.pcbVersion.minor);
             break;
         default:
-            len += snprintf(&buf[len], sizeof(buf) - len, "PCB Version: NA");
+            CA_SNPRINTF(buf, len, "PCB Version: NA\r\n");
             break;
     }
-    len += snprintf(&buf[len], sizeof(buf) - len, "\r\n");
 
     return buf;
 }
@@ -231,61 +250,61 @@ const char* statusInfo(bool printStart) {
 
     // Print end of message and return
     if (!printStart) {
-        len += snprintf(&buf[len], sizeof(buf) - len, "\r\nEnd of board status. \r\n");
+        CA_SNPRINTF(buf, len, "End of board status.\r\n");
         return buf;
     }
 
-    len += snprintf(&buf[len], sizeof(buf) - len, "\r\nStart of board status:\r\n");
-    if (!(BS.boardStatus & BS_ERROR_Msk)) {
-        len += snprintf(&buf[len], sizeof(buf) - len, "The board is operating normally.\r\n");
+    CA_SNPRINTF(buf, len, "Start of board status:\r\n");
+
+    if (!bsGetField(BS_ERROR_Msk)) {
+        CA_SNPRINTF(buf, len, "The board is operating normally.\r\n");
         return buf;
     }
 
-    if (BS.boardStatus & BS_OVER_TEMPERATURE_Msk) {
-        len += snprintf(&buf[len], sizeof(buf) - len,
-                        "Over temperature. The board temperature is %.2fC.\r\n", BS.temp);
+    if (bsGetField(BS_OVER_TEMPERATURE_Msk)) {
+        CA_SNPRINTF(buf, len, "Over temperature. The board temperature is %.2fC.\r\n", BS.temp);
     }
 
-    if (BS.boardStatus & BS_UNDER_VOLTAGE_Msk) {
-        len += snprintf(&buf[len], sizeof(buf) - len,
-                        "Under voltage. The board operates at too low voltage of %.2fV. Check "
-                        "power supply.\r\n",
-                        BS.voltage);
+    if (bsGetField(BS_UNDER_VOLTAGE_Msk)) {
+        CA_SNPRINTF(buf, len,
+                    "Under voltage. The board operates at too low voltage of %.2fV. Check "
+                    "power supply.\r\n",
+                    BS.voltage);
     }
 
-    if (BS.boardStatus & BS_OVER_VOLTAGE_Msk) {
-        len += snprintf(&buf[len], sizeof(buf) - len,
-                        "Over voltage. The board operates at too high voltage of %.2fV. Check "
-                        "power supply.\r\n",
-                        BS.voltage);
+    if (bsGetField(BS_OVER_VOLTAGE_Msk)) {
+        CA_SNPRINTF(buf, len,
+                    "Over voltage. The board operates at too high voltage of %.2fV. Check "
+                    "power supply.\r\n",
+                    BS.voltage);
     }
 
-    if (BS.boardStatus & BS_OVER_CURRENT_Msk) {
-        len += snprintf(&buf[len], sizeof(buf) - len,
-                        "Over current. One of the ports has reached a current out of its "
-                        "measurement range at %.2fA.\r\n",
-                        BS.current);
+    if (bsGetField(BS_OVER_CURRENT_Msk)) {
+        CA_SNPRINTF(buf, len,
+                    "Over current. One of the ports has reached a current out of its "
+                    "measurement range at %.2fA.\r\n",
+                    BS.current);
     }
 
-    if (BS.boardStatus & BS_VERSION_ERROR_Msk) {
+    if (bsGetField(BS_VERSION_ERROR_Msk)) {
         BoardType bt  = (BoardType)0;
         pcbVersion pv = {0};
         (void)getBoardInfo(&bt, NULL);
         (void)getPcbVersion(&pv);
-        len += snprintf(&buf[len], sizeof(buf) - len,
-                        "Error: Incorrect Version.\r\n"
-                        "   Board is: %d.\r\n"
-                        "   Board should be: %d.\r\n"
-                        "   PCB Version is: %d.%d.\r\n"
-                        "   PCB Version should be > %d.%d.\r\n",
-                        (int)bt, (int)BS.boardType, pv.major, pv.minor, BS.pcb_version.major,
-                        BS.pcb_version.minor);
+
+        CA_SNPRINTF(buf, len,
+                    "Error: Incorrect Version.\r\n"
+                    "   Board is: %d.\r\n"
+                    "   Board should be: %d.\r\n"
+                    "   PCB Version is: %d.%d.\r\n"
+                    "   PCB Version should be >= %d.%d.\r\n",
+                    (int)bt, (int)BS.boardType, pv.major, pv.minor, BS.pcbVer.major,
+                    BS.pcbVer.minor);
     }
 
     if (BS.usb) {
-        len += snprintf(&buf[len], sizeof(buf) - len,
-                        "USB. USB communication error 0x%08" PRIx32 " occurred most recently.\r\n",
-                        BS.usb);
+        CA_SNPRINTF(buf, len, "USB communication error 0x%08" PRIx32 " occurred most recently.\r\n",
+                    BS.usb);
         BS.usb = 0U;
     }
 
@@ -302,30 +321,42 @@ const char* statusDefInfo(bool printStart) {
 
     // Print end of message and return
     if (!printStart) {
-        len += snprintf(&buf[len], sizeof(buf) - len, "\r\nEnd of board status definition.\r\n");
+        CA_SNPRINTF(buf, len, "End of board status definition.\r\n");
         return buf;
     }
 
-    len += snprintf(&buf[len], sizeof(buf) - len, "\r\nStart of board status definition:\r\n");
+    CA_SNPRINTF(buf, len, "Start of board status definition:\r\n");
+    CA_SNPRINTF(buf, len, "0x%08" PRIx32 ",System errors\r\n", (uint32_t)BS.boardErrorsMsk);
+    CA_SNPRINTF(buf, len, "0x%08" PRIx32 ",Error\r\n", (uint32_t)BS_ERROR_Msk);
+    CA_SNPRINTF(buf, len, "0x%08" PRIx32 ",Over temperature\r\n",
+                (uint32_t)BS_OVER_TEMPERATURE_Msk);
+    CA_SNPRINTF(buf, len, "0x%08" PRIx32 ",Under voltage\r\n", (uint32_t)BS_UNDER_VOLTAGE_Msk);
+    CA_SNPRINTF(buf, len, "0x%08" PRIx32 ",Over voltage\r\n", (uint32_t)BS_OVER_VOLTAGE_Msk);
+    CA_SNPRINTF(buf, len, "0x%08" PRIx32 ",Over current\r\n", (uint32_t)BS_OVER_CURRENT_Msk);
+    CA_SNPRINTF(buf, len, "0x%08" PRIx32 ",Version error\r\n", (uint32_t)BS_VERSION_ERROR_Msk);
+    CA_SNPRINTF(buf, len, "0x%08" PRIx32 ",USB error\r\n", (uint32_t)BS_USB_ERROR_Msk);
+    CA_SNPRINTF(buf, len, "0x%08" PRIx32 ",Flash ongoing\r\n", (uint32_t)BS_FLASH_ONGOING_Msk);
+    CA_SNPRINTF(buf, len, "0x%08" PRIx32 ",100Hz Output\r\n", (uint32_t)BS_100_HZ_OUTPUT_Msk);
 
-    len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",System errors\r\n",
-                    (uint32_t)BS.boardErrorsMsk);
-    len +=
-        snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",Error\r\n", (uint32_t)BS_ERROR_Msk);
-    len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",Over temperature\r\n",
-                    (uint32_t)BS_OVER_TEMPERATURE_Msk);
-    len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",Under voltage\r\n",
-                    (uint32_t)BS_UNDER_VOLTAGE_Msk);
-    len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",Over voltage\r\n",
-                    (uint32_t)BS_OVER_VOLTAGE_Msk);
-    len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",Over current\r\n",
-                    (uint32_t)BS_OVER_CURRENT_Msk);
-    len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",Version error\r\n",
-                    (uint32_t)BS_VERSION_ERROR_Msk);
-    len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",USB error\r\n",
-                    (uint32_t)BS_USB_ERROR_Msk);
-    len += snprintf(&buf[len], sizeof(buf) - len, "0x%08" PRIx32 ",Flash ongoing\r\n",
-                    (uint32_t)BS_FLASH_ONGOING_Msk);
+    return buf;
+}
+
+/*!
+ * @brief   Generic info about board output
+ * @note    Format is: channelName,channelUnit
+ * @param   printStart Select beginning or end of print
+ * @return  Info about board output definition in null terminated string
+ */
+const char* outputDefInfo(bool printStart) {
+    int len = 0;
+
+    if (printStart) {
+        CA_SNPRINTF(buf, len, "Start of board output definition:\r\n");
+    }
+    else {
+        CA_SNPRINTF(buf, len, "Status,hex\r\n"); // Status code always at the end
+        CA_SNPRINTF(buf, len, "End of board output definition.\r\n");
+    }
 
     return buf;
 }
@@ -362,7 +393,7 @@ int getBoardInfo(BoardType* bdt, SubBoardType* sbdt) {
         return 0;
     }
 
-    return -1;  // New OTP version. i.e. this SW is to old.
+    return -1;  // New OTP version. i.e. this SW is too old.
 }
 
 /*!
@@ -420,14 +451,18 @@ void bsSetFieldRange(uint32_t field, uint32_t range) {
     // Reset bits before setting the new value of the range for the same
     // reason as described in the bsSetErrorRange function.
     BS.boardStatus &= ~range;
-    BS.boardStatus |= field;
+    // Mask field to range so bits outside the declared range can never leak into unrelated
+    // status bits (e.g. a caller passing a state value wider than its range mask).
+    BS.boardStatus |= (field & range);
 }
 
 /*!
  * @brief   Sets a board status field, and the error bit
  * @param   field A 1 bit shifted to the field index to be set. Can be OR'd together
  */
-void bsSetError(uint32_t field) { BS.boardStatus |= (BS_ERROR_Msk | field); }
+void bsSetError(uint32_t field) {
+    BS.boardStatus |= (BS_ERROR_Msk | field);
+}
 
 /*!
  * @brief   Clears the error bit, if none of the bits in "field" are set
@@ -443,13 +478,17 @@ void bsClearError(uint32_t field) {
  * @brief   Sets a board status field
  * @param   field A 1 bit shifted to the field index to be set. Can be OR'd together
  */
-void bsSetField(uint32_t field) { BS.boardStatus |= field; }
+void bsSetField(uint32_t field) {
+    BS.boardStatus |= field;
+}
 
 /*!
  * @brief   Clears a board status field
  * @param   field A 1 bit shifted to the field index to be cleared
  */
-void bsClearField(uint32_t field) { BS.boardStatus &= ~field; }
+void bsClearField(uint32_t field) {
+    BS.boardStatus &= ~field;
+}
 
 /*!
  * @brief   Updates a field using a bool to determine whether set or clear
@@ -469,16 +508,16 @@ void bsUpdateField(uint32_t field, bool set) {
  * @brief   Updates an error field using a bool to determine whether set or clear
  * @param   field Field to set/clear
  * @param   set Whether to Set or Clear the field
- * @param   error_bits A collection of all error bits. Used to determine if the master error bit
+ * @param   errorBits A collection of all error bits. Used to determine if the master error bit
  * should be set or not
  */
-void bsUpdateError(uint32_t field, bool set, uint32_t error_bits) {
+void bsUpdateError(uint32_t field, bool set, uint32_t errorBits) {
     if (set) {
         bsSetError(field);
     }
     else {
         bsClearField(field);
-        bsClearError(error_bits);
+        bsClearError(errorBits);
     }
 }
 
@@ -486,63 +525,79 @@ void bsUpdateError(uint32_t field, bool set, uint32_t error_bits) {
  * @brief   Gets the board status registry
  * @return  uint32_t containing the board status
  */
-uint32_t bsGetStatus() { return BS.boardStatus; }
+uint32_t bsGetStatus() {
+    return BS.boardStatus;
+}
 
 /*!
  * @brief   Gets a board status field
  * @param   field A 1 bit shifted to the field index
  * @return  uint32_t containing the board status field
  */
-uint32_t bsGetField(uint32_t field) { return BS.boardStatus & field; }
+uint32_t bsGetField(uint32_t field) {
+    return BS.boardStatus & field;
+}
 
 /*!
  * @brief   Sets temperature
  * @param   temp Temperature in degC
  */
-void setBoardTemp(float temp) { BS.temp = temp; }
+void setBoardTemp(float temp) {
+    BS.temp = temp;
+}
 
 /*!
  * @brief   Sets voltage
  * @param   voltage Voltage in V
  */
-void setBoardVoltage(float voltage) { BS.voltage = voltage; }
+void setBoardVoltage(float voltage) {
+    BS.voltage = voltage;
+}
 
 /*!
  * @brief   Sets current
  * @param   current Current in A
  */
-void setBoardCurrent(float current) { BS.current = current; }
+void setBoardCurrent(float current) {
+    BS.current = current;
+}
 
 /*!
  * @brief   Sets USB error
  * @param   err USB error
  */
-void setBoardUsbError(uint32_t err) { BS.usb = err; }
+void setBoardUsbError(uint32_t err) {
+    BS.usb = err;
+}
 
 /*!
  * @brief   Sets the board type, the firmware is expecting to be used with
  * @param   type Board type
  */
-void setFirmwareBoardType(BoardType type) { BS.boardType = type; }
+void setFirmwareBoardType(BoardType type) {
+    BS.boardType = type;
+}
 
 /*!
  * @brief   Sets the board version, the firmware is expecting to be used with
  * @param   version Board version
  */
-void setFirmwareBoardVersion(pcbVersion version) { BS.pcb_version = version; }
+void setFirmwareBoardVersion(pcbVersion version) {
+    BS.pcbVer = version;
+}
 
 /*!
  * @brief   Sets the board type and version the firmware was compiled for
  * @note    If the board type/version does not match the value programmed in the OTP, this function
  * sets the board status version error flag
  * @param   type Type of board, e.g. AC, DC, Current ...
- * @param   breaking_version Oldest version of PCB this firmware can run on
+ * @param   breakingVersion Oldest version of PCB this firmware can run on
  * @param   boardErrorsMsk Board error mask (with board specific bits)
  * @return  0 if OK, -1 if version error
  */
-int boardSetup(BoardType type, pcbVersion breaking_version, uint32_t boardErrorsMsk) {
+int boardSetup(BoardType type, pcbVersion breakingVersion, uint32_t boardErrorsMsk) {
     setFirmwareBoardType(type);
-    setFirmwareBoardVersion(breaking_version);
+    setFirmwareBoardVersion(breakingVersion);
 
     BoardType board;
     if (getBoardInfo(&board, NULL) || board != type) {
@@ -550,10 +605,10 @@ int boardSetup(BoardType type, pcbVersion breaking_version, uint32_t boardErrors
     }
 
     pcbVersion ver;
-    if (getPcbVersion(&ver) || ver.major < breaking_version.major) {
+    if (getPcbVersion(&ver) || ver.major < breakingVersion.major) {
         bsSetError(BS_VERSION_ERROR_Msk);
     }
-    else if (ver.major == breaking_version.major && ver.minor < breaking_version.minor) {
+    else if (ver.major == breakingVersion.major && ver.minor < breakingVersion.minor) {
         bsSetError(BS_VERSION_ERROR_Msk);
     }
 

@@ -31,10 +31,12 @@ FetchContent_MakeAvailable(googletest)
 
 set(SRC ../../STM32)
 set(LIB ../../STM32)
-set(INC_LIB ${LIB}/Util/Inc ${LIB}/Util/Src 
-            ${LIB}/FLASH_readwrite/Inc ${LIB}/FLASH_readwrite/Src)
+set(INC_LIB ${LIB}/Util/Inc ${LIB}/Util/Src ${LIB}/Crc/Inc ${LIB}/jumpToBootloader/Inc 
+            ${LIB}/FLASH_readwrite/Inc ${LIB}/USBprint/Inc Inc)
 set(UT_FAKES ../fakes)
 set(UT_STUBS ../stubs)
+set(DRIVERS ../../STM32/FirmwarePackages/STM32F401CCUx/Drivers/STM32F4xx_HAL_Driver/Inc)
+set(CMSIS   ../../STM32/FirmwarePackages/STM32F401CCUx/Drivers/CMSIS/Device/ST/STM32F4xx/Include)
 
 
 ####################################################################################################
@@ -60,3 +62,19 @@ target_link_libraries(systeminfo_test GTest::gtest_main gmock_main)
 target_compile_definitions(systeminfo_test PUBLIC UNIT_TESTING)
 target_compile_options(systeminfo_test PRIVATE -Wall)
 gtest_discover_tests(systeminfo_test)
+
+# Systeminfo tests
+add_executable(uptime_test uptime_tests.cpp 
+               ${UT_FAKES}/fake_FLASH_readwrite.cpp 
+               ${UT_FAKES}/fake_stm32xxxx_hal.cpp
+               ${UT_FAKES}/fake_USBprint.cpp
+               ${UT_FAKES}/fake_HAL_otp.cpp
+               ${LIB}/Util/Src/time32.c
+               ${LIB}/Util/Src/systeminfo.c
+               ${LIB}/Crc/Src/crc.c
+               ${UT_STUBS}/stub_jumpToBootloader.cpp)
+target_include_directories(uptime_test PRIVATE ${UT_FAKES} ${UT_STUBS} ${INC_LIB} ${DRIVERS} ${CMSIS})
+target_link_libraries(uptime_test GTest::gtest_main gmock_main)
+target_compile_definitions(uptime_test PUBLIC UNIT_TESTING)
+target_compile_options(uptime_test PRIVATE -Wall)
+gtest_discover_tests(uptime_test)

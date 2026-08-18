@@ -35,6 +35,31 @@ static char     RX_buffer[TX_RX_BUFFER_LENGTH] = {0};
 static size_t   rx_len = 0, rx_off = 0;
 static bool     connected = false;
 
+/***************************************************************************************************
+** PRIVATE FUNCTION DECLARATIONS
+***************************************************************************************************/
+
+string trim(const string& str);
+
+/***************************************************************************************************
+** PRIVATE FUNCTION DEFINITIONS
+***************************************************************************************************/
+
+/*!
+** @brief Trims whitespace from start and end of a string
+*/
+string trim(const string& str) {
+    size_t first = str.find_first_not_of(" \t\n\r\f\v");
+    if (first == string::npos)
+        return ""; // string is all whitespace
+    size_t last = str.find_last_not_of(" \t\n\r\f\v");
+    return str.substr(first, last - first + 1);
+}
+
+/***************************************************************************************************
+** PUBLIC FUNCTION DECLARATIONS
+***************************************************************************************************/
+
 /* TODO: Make this Log transmissions to a "log_stdout" file, and "receive" transmissions from a 
 ** "stdin" file. Writing to a the output log file is pretty easy, but input in a way that mimics 
 ** the USB link for the CDC will be harder. Perhaps make a new thread that continually checks an 
@@ -47,7 +72,7 @@ int USBnprintf(const char * format, ... )
     va_start(argptr, format);
 
     char buf[TX_RX_BUFFER_LENGTH] = {0};
-    size_t len = snprintf(buf, 3, "\r\n");
+    size_t len = 0;
     len += vsnprintf(&buf[len], TX_RX_BUFFER_LENGTH - 2, format, argptr);
 
     len = writeUSB(buf, len);
@@ -93,6 +118,7 @@ int usbRx(uint8_t* buf)
 {
     if(rx_len != 0) {
         *buf = RX_buffer[rx_off++];
+        rx_off %= TX_RX_BUFFER_LENGTH;
         rx_len--;
 
         return 0;
@@ -114,6 +140,7 @@ uint32_t isUsbError() {
 */
 void hostUSBprintf(const char * format, ...)
 {
+    char temp_buf[TX_RX_BUFFER_LENGTH] = {0};
     va_list argptr;
     va_start(argptr, format);
 
@@ -122,7 +149,13 @@ void hostUSBprintf(const char * format, ...)
     }
 
     size_t temp = rx_off + rx_len;
-    size_t len = vsnprintf(&RX_buffer[temp], TX_RX_BUFFER_LENGTH - temp, format, argptr);
+    size_t len = vsnprintf(temp_buf, TX_RX_BUFFER_LENGTH, format, argptr);
+    
+    /* Note: len does not include terminating null character */
+    for(int i = 0; i < (int)(len + 1); i++) {
+        RX_buffer[temp] = temp_buf[i];
+        temp = (temp + 1) % TX_RX_BUFFER_LENGTH;
+    }
 
     test_in.write((const char *)&RX_buffer[temp], len);
     test_in.flush();
@@ -143,19 +176,19 @@ void usbFlush()
 /*!
 ** @brief Acts as the read function for the host (to allow checking what the device sent)
 */
-vector<string>* hostUSBread(bool flush)
+vector<string> hostUSBread(bool flush)
 {
-    vector<string>* result = new vector<string>;
+    vector<string> result;
     string str;
     while(getline(test_ss, str)) {
-        result->push_back(str);
+        result.push_back(str);
     }
 
     if(!flush) {
         /* Put everything back into the stream */
         test_ss.clear();
-        for(vector<string>::iterator it = result->begin(); it != result->end(); it++) {
-            test_ss << *it;
+        for(vector<string>::iterator it = result.begin(); it != result.end(); it++) {
+            test_ss << *it << '\n'; // Adding back the new line delimiter
         }
     }
 
@@ -181,4 +214,44 @@ void hostUSBDisconnect()
 void itoa(int n, char* s, int radix)
 {
     
+}
+
+/*!
+** @brief Breaks down a "line" from the board into channels
+*/
+vector<string> getChannelsFromLine(string& channel_line) {
+    vector<string> channels;
+
+    stringstream ss(channel_line);
+    string item;
+    while(getline(ss, item, ',')) {
+        channels.push_back(trim(item));
+    }
+
+    return channels;
+}
+
+/*!
+** @brief Gives the Nth output channel as a double
+*/
+double getChannelNAsDouble(string& channel_line, int n) {
+    return stod(getChannelsFromLine(channel_line)[n]);
+}
+
+/*!
+** @brief Returns the final element from a string cast as a uint32_t (used for status flags)
+*/
+uint32_t getLineStatus(string& channel_line) {
+    return stoul(getChannelsFromLine(channel_line).back(), nullptr, 16);
+}
+
+/*!
+** @brief Flushes USB buffer and returns the status flags from the most recent data line
+*/
+uint32_t flushAndGetUSBStatus() {
+    vector<string> lines = hostUSBread(true);
+    string dataLine;
+    for (auto& l : lines)
+        if (l.find(',') != string::npos) dataLine = l;
+    return getLineStatus(dataLine);
 }

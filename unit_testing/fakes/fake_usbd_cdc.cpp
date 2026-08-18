@@ -84,7 +84,7 @@ vector<string>* host_USBD_CDC_Receive(bool flush) {
         /* Put everything back into the stream */
         test_ss.clear();
         for(vector<string>::iterator it = result->begin(); it != result->end(); it++) {
-            test_ss << *it;
+            test_ss << *it << '\n'; // Adding back the new line delimiter
         }
     }
 
