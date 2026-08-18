@@ -89,7 +89,8 @@ typedef enum {
     AnalogInput        = 27,
     GasSampler         = 28,
     AnalogOutput       = 29,
-    AnalogInputCal     = 30
+    AnalogInputCal     = 30,
+    OxygenIntegrated   = 31
 } BoardType;
 typedef uint8_t SubBoardType;  // SubBoardType needed for some boards.
 
