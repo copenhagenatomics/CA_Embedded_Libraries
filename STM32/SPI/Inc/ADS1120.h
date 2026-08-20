@@ -45,7 +45,7 @@ typedef struct ADS1120Device {
     // Data acquired from device and state information.
     ADS1120Data data;
 
-    ADC1120_SensorType sensor_type;;
+    ADC1120_SensorType sensor_type;
 } ADS1120Device;
 
 /* Description: Configure a single ADS1120 device. Configuration is fixed
