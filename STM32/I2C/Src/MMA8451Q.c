@@ -1,8 +1,14 @@
 /*!
  * @file    MMA8451Q.c
- * @brief   Driver file for MMA8451Q accelerometer
  * @date    03/09/2026
  * @author  Luke Walker
+ *
+ * @brief  This file contains the implementation of the driver for the MMA8451Q accelerometer, which
+ *         is a 3-axis, 14-bit digital accelerometer. The driver provides functions to initialize 
+ *         the device (in the highest precision and lowest data rate mode) and read acceleration 
+ *         data from the sensor.
+ * 
+ *         Datasheet: https://cdn-shop.adafruit.com/datasheets/MMA8451Q-1.pdf
  */
 
 #include <stdint.h>
