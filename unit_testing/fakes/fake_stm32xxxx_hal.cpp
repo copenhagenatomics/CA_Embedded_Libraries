@@ -1,6 +1,8 @@
 #include <chrono>
 #include <vector>
+#include <cassert>
 #include "fake_stm32xxxx_hal.h"
+#include <cstring>
 
 using namespace std::chrono;
 
@@ -256,6 +258,32 @@ HAL_StatusTypeDef HAL_I2C_Master_Receive(I2C_HandleTypeDef *hi2c, uint16_t DevAd
     }
 
     return HAL_ERROR;
+}
+
+HAL_StatusTypeDef HAL_I2C_Mem_Write(I2C_HandleTypeDef *hi2c, uint16_t DevAddress, uint16_t MemAddress, uint16_t MemAddSize, uint8_t *pData, uint16_t Size, uint32_t Timeout) {
+    /* For now, we only support 8-bit memory addresses */
+    assert(MemAddSize == I2C_MEMADD_SIZE_8BIT);
+    
+    uint8_t buffer[Size + 1] = {0};
+    buffer[0] = (uint8_t)MemAddress;
+    memcpy(&buffer[1], pData, Size);
+    return HAL_I2C_Master_Transmit(hi2c, DevAddress, buffer, Size + 1, Timeout);
+}
+
+HAL_StatusTypeDef HAL_I2C_Mem_Read(I2C_HandleTypeDef *hi2c, uint16_t DevAddress, uint16_t MemAddress, uint16_t MemAddSize, uint8_t *pData, uint16_t Size, uint32_t Timeout) {
+    /* For now, we only support 8-bit memory addresses */
+    assert(MemAddSize == I2C_MEMADD_SIZE_8BIT);
+    
+    uint8_t memaddr_8bit = (uint8_t)MemAddress;
+    HAL_StatusTypeDef status = HAL_I2C_Master_Transmit(hi2c, DevAddress, &memaddr_8bit, 1, Timeout);
+
+    if(status != HAL_OK) {
+        return status;
+    }
+
+    status = HAL_I2C_Master_Receive(hi2c, DevAddress, pData, Size, Timeout);
+
+    return status;
 }
 
 #endif
