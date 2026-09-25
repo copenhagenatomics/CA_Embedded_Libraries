@@ -264,10 +264,10 @@ HAL_StatusTypeDef HAL_I2C_Mem_Write(I2C_HandleTypeDef *hi2c, uint16_t DevAddress
     /* For now, we only support 8-bit memory addresses */
     assert(MemAddSize == I2C_MEMADD_SIZE_8BIT);
     
-    uint8_t buffer[Size + 1] = {0};
+    std::vector<uint8_t> buffer(Size + 1, 0);
     buffer[0] = (uint8_t)MemAddress;
-    memcpy(&buffer[1], pData, Size);
-    return HAL_I2C_Master_Transmit(hi2c, DevAddress, buffer, Size + 1, Timeout);
+    memcpy(buffer.data() + 1, pData, Size);
+    return HAL_I2C_Master_Transmit(hi2c, DevAddress, buffer.data(), Size + 1, Timeout);
 }
 
 HAL_StatusTypeDef HAL_I2C_Mem_Read(I2C_HandleTypeDef *hi2c, uint16_t DevAddress, uint16_t MemAddress, uint16_t MemAddSize, uint8_t *pData, uint16_t Size, uint32_t Timeout) {
