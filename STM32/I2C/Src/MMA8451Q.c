@@ -12,6 +12,7 @@
  */
 
 #include <stdint.h>
+#include <stdbool.h>
 
 #include "MMA8451Q.h"
 #include "stm32f4xx_hal.h"
@@ -153,10 +154,12 @@ static int get_new_measurement(mma8451q_t* dev) {
  * @param  dev Accelerometer device
  * @param  hi2c I2C handler
  * @param  address I2C address
- * @return 0 if OK, else < 0. -10 if WHO_AM_I could not be read/matched. Otherwise the return code
- *         of config_registers() is propagated as-is (-1: standby write, -2: XYZ_DATA_CFG write,
- *         -3: CTRL_REG2 write, -4: final CTRL_REG1/activate write) so the caller can tell exactly
- *         which configuration step failed.
+ * @return 0 if OK, else < 0. 
+ *         -10 if WHO_AM_I could not be read
+ *         -11 if WHO_AM_I does not match expected value    
+ *         Otherwise the return code of config_registers() is propagated as-is (-1: standby write, 
+ *         -2: XYZ_DATA_CFG write, -3: CTRL_REG2 write, -4: final CTRL_REG1/activate write) so the
+ *         caller can tell exactly which configuration step failed.
  */
 int mma8451q_init(mma8451q_t* dev, I2C_HandleTypeDef* hi2c, uint8_t address) {
     dev->hi2c    = hi2c;
@@ -184,14 +187,15 @@ int mma8451q_init(mma8451q_t* dev, I2C_HandleTypeDef* hi2c, uint8_t address) {
         return cfgResult;
     }
 
-    dev->error = false;
     return 0;
 }
 
 /*!
- * @brief  Reads the latest X, Y and Z acceleration from the sensor
+ * @brief  Reads the latest X, Y and Z acceleration from the sensor. 
  * @param  dev Accelerometer device
  * @return 0 if OK, else < 0
+ * 
+ * Call at a higher frequency than the ODR of the device to prevent missing samples.
  */
 int mma8451q_loop(mma8451q_t* dev) {
     if (get_new_measurement(dev) != 0) {

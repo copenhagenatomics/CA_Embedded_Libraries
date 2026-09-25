@@ -40,6 +40,7 @@ class mockMMA8451Q : public stm32I2cTestDevice {
         // A 2-byte transmit is a register write. Optionally fail one specific write (1-indexed) to
         // simulate a specific step of config_registers() failing on the bus.
         if (size == 2) {
+            regs[lastReg] = buf[1];
             writeCount++;
             if (writeCount == failOnWrite) {
                 return HAL_ERROR;
@@ -89,6 +90,7 @@ TEST_F(MMA8451QTests, testInitSuccess) {
     dev.error = true;
     EXPECT_EQ(mma8451q_init(&dev, &hi2c, MMA8451Q_I2C_ADDR_0), 0);
     EXPECT_EQ(dev.error, false);
+    EXPECT_EQ(mockI2C.regs[CTRL_REG1], CTRL_REG1_DR_1_56HZ | CTRL_REG1_LNOISE | CTRL_REG1_ACTIVE);  // Active mode
 }
 
 TEST_F(MMA8451QTests, testInitWrongWhoAmI) {
