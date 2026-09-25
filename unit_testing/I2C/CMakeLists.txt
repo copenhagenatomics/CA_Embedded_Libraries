@@ -73,6 +73,24 @@ target_compile_definitions(lps28dfw_tests PUBLIC __LIBRARY_TEST)
 target_compile_options(lps28dfw_tests PRIVATE -Wall)
 gtest_discover_tests(lps28dfw_tests)
 
+# MMA8451Q tests
+add_executable(mma8451q_tests 
+  ${UT_FAKES}/fake_stm32xxxx_hal.cpp 
+  mma8451q_tests.cpp)
+
+target_include_directories(mma8451q_tests PRIVATE
+  ${CMSIS}
+  ${DRIVERS}
+  ${INC_LIB}
+  ${UT_FAKES}
+  ${UT_STUBS}
+  Inc)
+
+target_link_libraries(mma8451q_tests GTest::gtest_main gmock_main)
+target_compile_definitions(mma8451q_tests PUBLIC __LIBRARY_TEST)
+target_compile_options(mma8451q_tests PRIVATE -Wall)
+gtest_discover_tests(mma8451q_tests)
+
 # TCI tests
 add_executable(tci_tests
 ${UT_FAKES}/fake_stm32xxxx_hal.cpp
