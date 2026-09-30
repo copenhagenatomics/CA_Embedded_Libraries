@@ -24,18 +24,38 @@
 ** PUBLIC FUNCTION DEFINITIONS
 ***************************************************************************************************/
 
-/* Everything below, other than the real hardware setup in ADS7953Init()/ADS7953Reset(),
+/* 
+ * Everything below, other than the real hardware setup in ADS7953Init()/ADS7953Reset(),
  * is pure computation on the message/buffer/device struct with no dependency on real hardware, so
- * it uses the same implementation as ADS7953.c */
+ * it uses the same implementation as ADS7953.c
+ */
 
+/*!
+ * @brief   Extraction of channel address from SPI message
+ * @param   message SPI message received
+ * @return  ADC channel address
+ */
 uint16_t getChannelAddress(uint16_t message) {
     return ((message & 0xF000U) >> 12);
 }
 
+/*!
+ * @brief   Extraction of ADC value from SPI message
+ * @param   message SPI message received
+ * @return  12-bits ADC value
+ */
 uint16_t getConversionResult(uint16_t message) {
     return (message & 0x0FFFU);
 }
 
+/*!
+ * @brief   Verification of ADC buffer health
+ * @note    Checks that no shift in measurement happened and removes the channel info (last 4 bits)
+ * @note    Must be called before using the buffer
+ * @param   dev Pointer to the ADC structure
+ * @param   pData Pointer to the ADC buffer
+ * @return  1 if the buffer is OK
+ */
 bool checkAndCleanBuffer(ADS7953Device_t *dev, int16_t *pData) {
     if (pData == NULL || dev == NULL) {
         return false;
@@ -54,6 +74,13 @@ bool checkAndCleanBuffer(ADS7953Device_t *dev, int16_t *pData) {
     return true;
 }
 
+/*!
+ * @brief   Calculation of maximum
+ * @param   dev Pointer to the ADC structure
+ * @param   pData Pointer to the ADC buffer
+ * @param   channel ADC channel
+ * @return  Maximum of buffer for given channel
+ */
 int16_t extADCMax(ADS7953Device_t *dev, int16_t *pData, uint16_t channel) {
     if (pData == NULL || dev == NULL || channel >= dev->noOfChannels) {
         return 0;
@@ -69,6 +96,13 @@ int16_t extADCMax(ADS7953Device_t *dev, int16_t *pData, uint16_t channel) {
     return max;
 }
 
+/*!
+ * @brief   Calculation of minimum
+ * @param   dev Pointer to the ADC structure
+ * @param   pData Pointer to the ADC buffer
+ * @param   channel ADC channel
+ * @return  Minimum of buffer for given channel
+ */
 int16_t extADCMin(ADS7953Device_t *dev, int16_t *pData, uint16_t channel) {
     if (pData == NULL || dev == NULL || channel >= dev->noOfChannels) {
         return 0;
@@ -84,6 +118,13 @@ int16_t extADCMin(ADS7953Device_t *dev, int16_t *pData, uint16_t channel) {
     return min;
 }
 
+/*!
+ * @brief   Calculation of average
+ * @param   dev Pointer to the ADC structure
+ * @param   pData Pointer to the ADC buffer
+ * @param   channel ADC channel
+ * @return  Mean of buffer for given channel
+ */
 double extADCMean(ADS7953Device_t *dev, int16_t *pData, uint16_t channel) {
     if (pData == NULL || dev == NULL || channel >= dev->noOfChannels) {
         return 0;
@@ -96,6 +137,13 @@ double extADCMean(ADS7953Device_t *dev, int16_t *pData, uint16_t channel) {
     return (((double)sum) / ((double)dev->noOfSamples));
 }
 
+/*!
+ * @brief   Calculation of RMS
+ * @param   dev Pointer to the ADC structure
+ * @param   pData Pointer to the ADC buffer
+ * @param   channel ADC channel
+ * @return  RMS of buffer for given channel
+ */
 double extADCRms(ADS7953Device_t *dev, int16_t *pData, uint16_t channel) {
     if (pData == NULL || dev == NULL || channel >= dev->noOfChannels) {
         return 0;
@@ -109,6 +157,13 @@ double extADCRms(ADS7953Device_t *dev, int16_t *pData, uint16_t channel) {
     return sqrt(sum / ((double)dev->noOfSamples));
 }
 
+/*!
+ * @brief   Application of offset
+ * @param   dev Pointer to the ADC structure
+ * @param   pData Pointer to the ADC buffer
+ * @param   channel ADC channel
+ * @param   offset Offset
+ */
 void extADCSetOffset(ADS7953Device_t *dev, int16_t *pData, uint16_t channel, int16_t offset) {
     if (pData == NULL || dev == NULL || channel >= dev->noOfChannels) {
         return;
@@ -119,7 +174,18 @@ void extADCSetOffset(ADS7953Device_t *dev, int16_t *pData, uint16_t channel, int
     }
 }
 
-/* Populates the device struct the same way the real ADS7953Init() does */
+/*!
+ * @brief   Configuration of an ADS7953 device
+ * @note    Populates the device struct the same way the real ADS7953Init() does
+ * @param   dev Pointer to the ADC structure
+ * @param   hspi Pointer to the SPI handler
+ * @param   htim Pointer to the timer used for DMA
+ * @param   DMAs List of DMA pointers
+ * @param   buff Pointer to the ADC buffer
+ * @param   length Buffer length
+ * @param   noOfChannels Number of inputs used
+ * @return  0 on success, else negative value
+ */
 int ADS7953Init(ADS7953Device_t *dev, SPI_HandleTypeDef *hspi, TIM_HandleTypeDef *htim,
                 ADS7953DMAs_t DMAs, int16_t *buff, uint32_t length, uint8_t noOfChannels,
                 extADCCallBack callback) {
@@ -145,6 +211,11 @@ int ADS7953Init(ADS7953Device_t *dev, SPI_HandleTypeDef *hspi, TIM_HandleTypeDef
     return ADS7943_OK;
 }
 
+/*!
+ * @brief   Resets the ADC
+ * @note    ADS7953Init must be called before this function
+ * @param   dev Pointer to the ADC structure
+ */
 int ADS7953Reset(ADS7953Device_t *dev) {
     // Resets initial buffer state, same as the real driver
     // The timer/DMA/SPI register access that surrounds it on real hardware is skipped
@@ -154,6 +225,13 @@ int ADS7953Reset(ADS7953Device_t *dev) {
     return ADS7943_OK;
 }
 
+/*!
+ * @brief   Loop to update the ADC buffer
+ * @note    Called in Loop function
+ * @note    ADS7953Init must be called before this function
+ * @param   dev Pointer to the ADC structure
+ * @param   callback Callback function to use the ADC values
+ */
 void ADS7953Loop(ADS7953Device_t *dev, extADCCallBack callback) {
     // If the buffer is half-full or full
     if (dev->activeBuffer != dev->lastBuffer) {
