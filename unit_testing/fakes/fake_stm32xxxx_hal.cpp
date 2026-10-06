@@ -1,5 +1,7 @@
 #include <chrono>
 #include <vector>
+#include <algorithm>
+
 #include "fake_stm32xxxx_hal.h"
 
 using namespace std::chrono;
@@ -230,6 +232,16 @@ void fakeHAL_I2C_addDevice(stm32I2cTestDevice* new_device) {
     }
 
     devices->push_back(new_device);
+}
+
+/*!
+** @brief Removes a device from the list of simulated I2C devices
+** @param new_device Pointer to the device to remove
+*/
+void fakeHAL_I2C_removeDevice(stm32I2cTestDevice* new_device) {
+    if (devices) {
+        devices->erase(std::remove(devices->begin(), devices->end(), new_device), devices->end());
+    }
 }
 
 HAL_StatusTypeDef HAL_I2C_Master_Transmit(I2C_HandleTypeDef *hi2c, uint16_t DevAddress, uint8_t *pData, uint16_t Size, uint32_t Timeout)

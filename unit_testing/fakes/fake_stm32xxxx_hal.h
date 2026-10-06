@@ -65,6 +65,7 @@ class stm32I2cTestDevice {
     public:
         I2C_TypeDef*    bus;
         uint16_t        addr;
+        virtual ~stm32I2cTestDevice() = default;
         virtual HAL_StatusTypeDef transmit(uint8_t* buf, uint8_t size) = 0;
         virtual HAL_StatusTypeDef recv(uint8_t* buf, uint8_t size) = 0;
 };
@@ -89,6 +90,7 @@ uint32_t HAL_GetTick(void);
 void HAL_Delay(uint32_t Delay);
 
 void fakeHAL_I2C_addDevice(stm32I2cTestDevice* new_device);
+void fakeHAL_I2C_removeDevice(stm32I2cTestDevice* new_device);
 
 #ifdef __cplusplus
 }
