@@ -108,7 +108,7 @@ int main(void)
   MX_TIM2_Init();
   MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 2 */
-  templateInit(&htim2, &hadc1, &hcrc);
+  templateInit(&htim2, &hadc1, &hcrc, bootMsg);
   /* USER CODE END 2 */
 
   /* Infinite loop */

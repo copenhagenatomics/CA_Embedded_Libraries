@@ -20,6 +20,7 @@
 #include "stm32f4xx_hal.h"
 #include "systemInfo.h"
 #include "template.h"
+#include "template_uptime.h"
 #include "uptime.h"
 
 /***************************************************************************************************
@@ -212,19 +213,26 @@ static void adcCallback(int16_t* pData, int noOfChannels, int noOfSamples) {
  * @param hadc ADC handler
  * @param hcrc CRC handler
  */
-void templateInit(TIM_HandleTypeDef* adcTim, ADC_HandleTypeDef* hadc, CRC_HandleTypeDef* hcrc) {
+void templateInit(TIM_HandleTypeDef* adcTim, ADC_HandleTypeDef* hadc, CRC_HandleTypeDef* hcrc,
+                  const char* bootMsg) {
+    // Enables communcation
     initCAProtocol(&caProto, usbRx);
 
+    // Starts the internal ADC
     HAL_TIM_Base_Start(adcTim);
     ADCMonitorInit(hadc, ADCBuffer, sizeof(ADCBuffer) / sizeof(ADCBuffer[0]));
 
-    if (boardSetup(AC_Board, (pcbVersion){BREAKING_MAJOR, BREAKING_MINOR}, TEMPLATE_ERRORS_Msk) !=
+    // Board type and PCB version check
+    if (boardSetup(Template, (pcbVersion){BREAKING_MAJOR, BREAKING_MINOR}, TEMPLATE_ERRORS_Msk) !=
         0) {
         return;
     }
 
     // Calibration
     calibrationInit(hcrc, &cal, sizeof(cal));
+
+    // Uptime
+    (void)initUptime(hcrc, bootMsg);
 
     // BOARD SPECIFIC INIT CODE
 }
@@ -234,12 +242,19 @@ void templateInit(TIM_HandleTypeDef* adcTim, ADC_HandleTypeDef* hadc, CRC_Handle
  * @param bootMsg Boot message
  */
 void templateLoop(const char* bootMsg) {
-    CAhandleUserInputs(&caProto, bootMsg);  // Always allow DFU upload
+    // Always allow DFU upload
+    CAhandleUserInputs(&caProto, bootMsg);
+
+    // Handles internal ADC
     ADCMonitorLoop(adcCallback);
 
+    // Version check
     if (bsGetField(BS_VERSION_ERROR_Msk)) {
         return;
     }
+
+    // Handles uptime
+    (void)loopUptime();
 
     // BOARD SPECIFIC MAIN LOOP CODE
 }

@@ -21,7 +21,8 @@
 ** PUBLIC FUNCTION DECLARATIONS
 ***************************************************************************************************/
 
-void templateInit(TIM_HandleTypeDef* adcTim, ADC_HandleTypeDef* hadc, CRC_HandleTypeDef* hcrc);
+void templateInit(TIM_HandleTypeDef* adcTim, ADC_HandleTypeDef* hadc, CRC_HandleTypeDef* hcrc,
+                  const char* bootMsg);
 void templateLoop(const char* bootMsg);
 
 #endif /* INC_TEMPLATE_H_ */

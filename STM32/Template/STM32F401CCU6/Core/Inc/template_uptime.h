@@ -5,8 +5,8 @@
  * @author  AUTHOR
  */
 
-#ifndef INC_OXYGEN_INTEGRATED_UPTIME_H_
-#define INC_OXYGEN_INTEGRATED_UPTIME_H_
+#ifndef INC_TEMPLATE_UPTIME_H_
+#define INC_TEMPLATE_UPTIME_H_
 
 #include "stm32f4xx_hal.h"
 
@@ -14,7 +14,7 @@
 ** PUBLIC FUNCTION DECLARATIONS
 ***************************************************************************************************/
 
-void initOxygenIntegratedUptime(CRC_HandleTypeDef* _hcrc, const char* boot_msg);
-void loopOxygenIntegratedUptime(ZrO2Device_t* ZrO2s);
+void initUptime(CRC_HandleTypeDef* _hcrc, const char* boot_msg);
+void loopUptime();
 
-#endif /* INC_OXYGEN_INTEGRATED_UPTIME_H_ */
+#endif /* INC_TEMPLATE_UPTIME_H_ */
