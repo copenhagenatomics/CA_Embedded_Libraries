@@ -10,7 +10,7 @@
 
 #include <stdint.h>
 
-#include "stm32f4xx_hal.h" // Adjust this include to your MCU
+#include "stm32f4xx_hal.h"
 
 /***************************************************************************************************
 ** DEFINES
@@ -24,4 +24,4 @@
 
 HAL_StatusTypeDef mpu6000_readWhoAmI(I2C_HandleTypeDef* hi2c, uint8_t* whoAmI);
 
-#endif // MPU6000_H_
+#endif  // MPU6000_H_

@@ -29,6 +29,6 @@
 ** @return HAL status of the I2C transaction
 */
 HAL_StatusTypeDef mpu6000_readWhoAmI(I2C_HandleTypeDef* hi2c, uint8_t* whoAmI) {
-    return HAL_I2C_Mem_Read(hi2c, MPU6000_I2C_ADDR << 1, MPU6000_REG_WHO_AM_I,
-                            I2C_MEMADD_SIZE_8BIT, whoAmI, 1, 2);
+    return HAL_I2C_Mem_Read(hi2c, MPU6000_I2C_ADDR << 1, MPU6000_REG_WHO_AM_I, I2C_MEMADD_SIZE_8BIT,
+                            whoAmI, 1, 2);
 }
