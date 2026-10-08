@@ -72,10 +72,10 @@ C_SOURCES =  \
 ../../CA_Embedded_Libraries/STM32/FirmwarePackages/STM32F401CCUx/FW_1.28.3/Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_core.c \
 ../../CA_Embedded_Libraries/STM32/FirmwarePackages/STM32F401CCUx/FW_1.28.3/Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_ctlreq.c \
 ../../CA_Embedded_Libraries/STM32/FirmwarePackages/STM32F401CCUx/FW_1.28.3/Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_ioreq.c \
-../../CA_Embedded_Libraries/STM32/FirmwarePackages/STM32F401CCUx/USB_DEVICE/App/usb_device.c \
-../../CA_Embedded_Libraries/STM32/FirmwarePackages/STM32F401CCUx/USB_DEVICE/App/usbd_cdc_if.c \
-../../CA_Embedded_Libraries/STM32/FirmwarePackages/STM32F401CCUx/USB_DEVICE/App/usbd_desc.c \
-../../CA_Embedded_Libraries/STM32/FirmwarePackages/STM32F401CCUx/USB_DEVICE/Target/usbd_conf.c \
+../../CA_Embedded_Libraries/STM32/FirmwarePackages/STM32F401CCUx/FW_1.28.3/USB_DEVICE/App/usb_device.c \
+../../CA_Embedded_Libraries/STM32/FirmwarePackages/STM32F401CCUx/FW_1.28.3/USB_DEVICE/App/usbd_cdc_if.c \
+../../CA_Embedded_Libraries/STM32/FirmwarePackages/STM32F401CCUx/FW_1.28.3/USB_DEVICE/App/usbd_desc.c \
+../../CA_Embedded_Libraries/STM32/FirmwarePackages/STM32F401CCUx/FW_1.28.3/USB_DEVICE/Target/usbd_conf.c \
 ../../CA_Embedded_Libraries/STM32/FLASH_readwrite/Src/FLASH_readwrite.c \
 ../../CA_Embedded_Libraries/STM32/FLASH_readwrite/Src/HAL_otp.c \
 ../../CA_Embedded_Libraries/STM32/jumpToBootloader/Src/jumpToBootloader.c \
@@ -165,8 +165,8 @@ C_INCLUDES =  \
 -I../../CA_Embedded_Libraries/STM32/FirmwarePackages/STM32F401CCUx/FW_1.28.3/Drivers/STM32F4xx_HAL_Driver/Inc/Legacy \
 -I../../CA_Embedded_Libraries/STM32/FirmwarePackages/STM32F401CCUx/FW_1.28.3/Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Inc \
 -I../../CA_Embedded_Libraries/STM32/FirmwarePackages/STM32F401CCUx/FW_1.28.3/Middlewares/ST/STM32_USB_Device_Library/Core/Inc \
--I../../CA_Embedded_Libraries/STM32/FirmwarePackages/STM32F401CCUx/USB_DEVICE/App \
--I../../CA_Embedded_Libraries/STM32/FirmwarePackages/STM32F401CCUx/USB_DEVICE/Target \
+-I../../CA_Embedded_Libraries/STM32/FirmwarePackages/STM32F401CCUx/FW_1.28.3/USB_DEVICE/App \
+-I../../CA_Embedded_Libraries/STM32/FirmwarePackages/STM32F401CCUx/FW_1.28.3/USB_DEVICE/Target \
 -I../../CA_Embedded_Libraries/STM32/FLASH_readwrite/Inc \
 -I../../CA_Embedded_Libraries/STM32/jumpToBootloader/Inc \
 -I../../CA_Embedded_Libraries/STM32/USBprint/Inc \

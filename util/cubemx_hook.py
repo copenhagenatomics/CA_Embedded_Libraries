@@ -26,9 +26,9 @@ LIB = "CA_Embedded_Libraries"
 SRC_EXT = ".c"
 
 # USB_DEVICE is generated fresh by CubeMX on every run, so its local copy is dropped in favour
-# of the shared, already-customised library copy (see _use_lib_usb_device).
+# of the shared, already-customised library copy kept in each firmware package folder (see
+# _use_lib_usb_device).
 USB_DEVICE = "USB_DEVICE"
-USB_DEVICE_LIB_SUBDIR = "/STM32/FirmwarePackages/STM32F401CCUx/USB_DEVICE"
 USB_DEVICE_SOURCES = ["App/usb_device.c", "App/usbd_cdc_if.c",
                       "App/usbd_desc.c", "Target/usbd_conf.c"]
 USB_DEVICE_INC_DIRS = ["App", "Target"]
@@ -92,21 +92,56 @@ def _fix_ioc_firmware_package_path(proj):
         if new_text != text:
             open(ioc, "w", newline="", encoding="utf-8").write(new_text)
 
+def _get_ioc_firmware_package_subdir(proj):
+    """
+    Return the firmware package folder the project uses, relative to the library root (e.g.
+    STM32/FirmwarePackages/STM32F401CCUx/FW_1.28.3), read from the .ioc's
+    ProjectManager.CustomerFirmwarePackage line. None if it isn't a library package
+    """
+    for name in os.listdir(proj):
+        if not name.endswith(".ioc"):
+            continue
+        text = open(os.path.join(proj, name), encoding="utf-8").read()
+        m = re.search(r"(?m)^ProjectManager\.CustomerFirmwarePackage=(.*)$", text)
+        if m:
+            path = re.sub(r"\\+", "/", m.group(1).strip()).rstrip("/")
+            m = re.search(r"(?:^|/)" + re.escape(LIB) + r"/(.+)$", path)
+            if m:
+                return m.group(1)
+    return None
+
 def _use_lib_usb_device(text, proj, rel_lib):
     """
     Drop the local USB_DEVICE/ entries CubeMX just wrote, point the Makefile at the shared
-    library copy instead, and delete the local folder CubeMX regenerated this run
+    library copy of the firmware package in use instead, and delete the local folder CubeMX
+    regenerated this run
     """
     usb_dir = os.path.join(proj, USB_DEVICE)
-    usb_lib_dir = rel_lib + USB_DEVICE_LIB_SUBDIR
     if not os.path.isdir(usb_dir):
         return text  # nothing generated this run (e.g. USB_DEVICE not enabled)
-    text = _filter_block(text, "C_SOURCES", lambda e: e.startswith(USB_DEVICE + "/"))
-    text = _filter_block(text, "C_INCLUDES", lambda e: e.startswith("-I" + USB_DEVICE + "/"))
-    text = _ensure_entries(text, "C_SOURCES", [usb_lib_dir + "/" +
-                                               f for f in USB_DEVICE_SOURCES])
-    text = _ensure_entries(text, "C_INCLUDES", ["-I" + usb_lib_dir + "/" +
-                                                d for d in USB_DEVICE_INC_DIRS])
+    fw_subdir = _get_ioc_firmware_package_subdir(proj)
+    if fw_subdir is None:
+        print("cubemx_hook: no " + LIB + " firmware package in .ioc, keeping local " +
+              USB_DEVICE, file=sys.stderr)
+        return text
+    usb_lib_dir = rel_lib + "/" + fw_subdir + "/" + USB_DEVICE
+    if not os.path.isdir(os.path.join(proj, usb_lib_dir)):
+        print("cubemx_hook: no library copy at " + usb_lib_dir + ", keeping local " +
+              USB_DEVICE, file=sys.stderr)
+        return text
+    lib_sources = [usb_lib_dir + "/" + f for f in USB_DEVICE_SOURCES]
+    lib_includes = ["-I" + usb_lib_dir + "/" + d for d in USB_DEVICE_INC_DIRS]
+
+    # Also drop library USB_DEVICE entries left over from another firmware version
+    def stale_lib(e, wanted):
+        return (e.startswith((rel_lib, "-I" + rel_lib)) and "/" + USB_DEVICE + "/" in e and
+                e not in wanted)
+    text = _filter_block(text, "C_SOURCES", lambda e: e.startswith(USB_DEVICE + "/") or
+                         stale_lib(e, lib_sources))
+    text = _filter_block(text, "C_INCLUDES", lambda e: e.startswith("-I" + USB_DEVICE + "/") or
+                         stale_lib(e, lib_includes))
+    text = _ensure_entries(text, "C_SOURCES", lib_sources)
+    text = _ensure_entries(text, "C_INCLUDES", lib_includes)
     shutil.rmtree(usb_dir)
     return text
 
