@@ -5,8 +5,8 @@
 cmake_minimum_required(VERSION 3.14)
 project(unit_testing)
 
-# GoogleTest requires at least C++14
-set(CMAKE_CXX_STANDARD 14)
+# GoogleTest requires at least C++17
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Set timestamp policy to avoid warning (default value)
@@ -15,10 +15,11 @@ if(POLICY CMP0135)
 	set(CMAKE_POLICY_DEFAULT_CMP0135 NEW)
 endif()
 
+# Include GoogleTest v1.18.0
 include(FetchContent)
 FetchContent_Declare(
-  googletest
-  URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
+    googletest
+    URL https://github.com/google/googletest/archive/063de7e9578f82b369302001269680b4b1553359.zip
 )
 
 # For Windows: Prevent overriding the parent project's compiler/linker settings
@@ -31,10 +32,20 @@ FetchContent_MakeAvailable(googletest)
 
 set(SRC ../../STM32)
 set(LIB ../../STM32)
-set(INC_LIB ${LIB}/ADCMonitor/Inc ${LIB}/circularBuffer/Inc ${LIB}/Filtering/Inc 
-            ${LIB}/FLASH_readwrite/Inc ${LIB}/I2C/Inc ${LIB}/jumpToBootloader/Inc 
-            ${LIB}/Regulation/Inc ${LIB}/SPI/Inc ${LIB}/TransformationFunctions/Inc 
-            ${LIB}/USBprint/Inc ${LIB}/Util/Inc)
+
+set(INC_LIB
+    ${LIB}/ADCMonitor/Inc
+    ${LIB}/circularBuffer/Inc
+    ${LIB}/Filtering/Inc 
+    ${LIB}/FLASH_readwrite/Inc
+    ${LIB}/I2C/Inc
+    ${LIB}/jumpToBootloader/Inc 
+    ${LIB}/Regulation/Inc
+    ${LIB}/SPI/Inc
+    ${LIB}/TransformationFunctions/Inc 
+    ${LIB}/USBprint/Inc
+    ${LIB}/Util/Inc)
+
 set(UT_FAKES ../fakes)
 set(UT_STUBS ../stubs)
 
@@ -47,29 +58,59 @@ enable_testing()
 include(GoogleTest)
 
 # Array math tests
-add_executable(arraymath_test arraymath_tests.cpp ${SRC}/Filtering/Src/array-math.c)
-target_include_directories(arraymath_test PRIVATE ${UT_FAKES} ${UT_STUBS} ${INC_LIB})
+add_executable(arraymath_test
+    arraymath_tests.cpp
+    ${SRC}/Filtering/Src/array-math.c)
+
+target_include_directories(arraymath_test PRIVATE
+    ${UT_FAKES}
+    ${UT_STUBS}
+    ${INC_LIB})
+
 target_link_libraries(arraymath_test GTest::gtest_main gmock_main)
 target_compile_options(arraymath_test PRIVATE -Wall)
 gtest_discover_tests(arraymath_test)
 
 # Lowpass filter tests
-add_executable(lpfilter_test lowpassfilter_tests.cpp ${SRC}/Filtering/Src/lowpassFilter.c ${SRC}/Filtering/Src/array-math.c)
-target_include_directories(lpfilter_test PRIVATE ${UT_FAKES} ${UT_STUBS} ${INC_LIB})
+add_executable(lpfilter_test
+    lowpassfilter_tests.cpp
+    ${SRC}/Filtering/Src/lowpassFilter.c
+    ${SRC}/Filtering/Src/array-math.c)
+
+target_include_directories(lpfilter_test PRIVATE
+    ${UT_FAKES}
+    ${UT_STUBS}
+    ${INC_LIB})
+
 target_link_libraries(lpfilter_test GTest::gtest_main gmock_main)
 target_compile_options(lpfilter_test PRIVATE -Wall)
 gtest_discover_tests(lpfilter_test)
 
 # Notch filter tests
-add_executable(notchfilter_test notchfilter_tests.cpp ${SRC}/Filtering/Src/notchFilter.c ${SRC}/Filtering/Src/array-math.c)
-target_include_directories(notchfilter_test PRIVATE ${UT_FAKES} ${UT_STUBS} ${INC_LIB})
+add_executable(notchfilter_test notchfilter_tests.cpp
+    ${SRC}/Filtering/Src/notchFilter.c
+    ${SRC}/Filtering/Src/array-math.c)
+
+target_include_directories(notchfilter_test PRIVATE
+    ${UT_FAKES}
+    ${UT_STUBS}
+    ${INC_LIB})
+
 target_link_libraries(notchfilter_test GTest::gtest_main gmock_main)
 target_compile_options(notchfilter_test PRIVATE -Wall)
 gtest_discover_tests(notchfilter_test)
 
 # IIR filters tests
-add_executable(iir_filters_tests iir_filters_tests.cpp)
-target_include_directories(iir_filters_tests PRIVATE ${UT_FAKES} ${UT_STUBS} ${INC_LIB} ${SRC}/Filtering/Src ${SRC}/Filtering/Inc)
+add_executable(iir_filters_tests
+  iir_filters_tests.cpp)
+
+target_include_directories(iir_filters_tests PRIVATE
+    ${UT_FAKES}
+    ${UT_STUBS}
+    ${INC_LIB}
+    ${SRC}/Filtering/Src
+    ${SRC}/Filtering/Inc)
+
 target_link_libraries(iir_filters_tests GTest::gtest_main gmock_main)
 target_compile_options(iir_filters_tests PRIVATE -Wall)
 gtest_discover_tests(iir_filters_tests)
