@@ -22,11 +22,6 @@ extern uint32_t _FlashAddrCal;  // Starting address of calibration values in FLA
 ** DEFINES
 ***************************************************************************************************/
 
-#define MIN_TEMP       1.0f    // [degC]
-#define MAX_TEMP       100.0f  // [degC]
-#define MIN_DUTY_CYCLE 0.0f    // [-]
-#define MAX_DUTY_CYCLE 1.0f    // [-]
-
 typedef struct _calDef {
     float min;         // Minimum value
     float max;         // Maximum value
@@ -46,6 +41,7 @@ static void setDefaultCal(FlashCalibration_t* cal);
 
 CRC_HandleTypeDef* hcrc_ = NULL;
 
+// EXAMPLES
 static const calDef_t CAL1_DEF = {1e-9, 1.0e9, 1};
 static const calDef_t CAL2_DEF = {1e-9, 1.0e9, 1};
 
@@ -74,7 +70,7 @@ static bool setCal(const calDef_t* calDef, float* calPointer, float newValue) {
  */
 static void setDefaultCal(FlashCalibration_t* cal) {
     cal->cal1 = CAL1_DEF.defaultVal;
-    cal->cal2 = CAL1_DEF.defaultVal;
+    cal->cal2 = CAL2_DEF.defaultVal;
 }
 
 /***************************************************************************************************
@@ -82,7 +78,7 @@ static void setDefaultCal(FlashCalibration_t* cal) {
 ***************************************************************************************************/
 
 /*!
- * @brief PhaseMonitor calibration function
+ * @brief Calibration function
  * @param noOfCalibrations Number of calibrations
  * @param calibrations Pointer to the CA calibration structure
  * @param cal Pointer to the board calibration structure
@@ -120,7 +116,7 @@ void calibration(int noOfCalibrations, const CACalibration* calibrations, FlashC
 }
 
 /*!
- * @brief PhaseMonitor calibration initialization function
+ * @brief Calibration initialization function
  * @param hcrc Pointer to the CRC handler
  * @param cal Pointer to the board calibration structure
  * @param size Size of the calibration

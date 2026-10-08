@@ -62,9 +62,9 @@ def addPcbVersionIntoFile(pcbVersion):
 
 def checkPCBVersionFile(file_path) -> bool:
     try:
-        h = subprocess.run(f"./util/pcbversion.py {file_path} latest both", shell=True, encoding='UTF-8', capture_output=True)
+        h = subprocess.run(f"./CA_Embedded_Libraries/util/pcbversion.py {file_path} latest both", shell=True, encoding='UTF-8', capture_output=True)
         latest_line = h.stdout.strip()
-        h = subprocess.run(f"./util/pcbversion.py {file_path} breaking both", shell=True, encoding='UTF-8', capture_output=True)
+        h = subprocess.run(f"./CA_Embedded_Libraries/util/pcbversion.py {file_path} breaking both", shell=True, encoding='UTF-8', capture_output=True)
         breaking_line = h.stdout.strip()
 
         if isValidVersionFormat(latest_line) and isValidVersionFormat(breaking_line):

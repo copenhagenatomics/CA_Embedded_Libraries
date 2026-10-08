@@ -215,12 +215,15 @@ static void adcCallback(int16_t* pData, int noOfChannels, int noOfSamples) {
  */
 void templateInit(TIM_HandleTypeDef* adcTim, ADC_HandleTypeDef* hadc, CRC_HandleTypeDef* hcrc,
                   const char* bootMsg) {
-    // Enables communcation
+    // Enables communication
     initCAProtocol(&caProto, usbRx);
 
     // Starts the internal ADC
     HAL_TIM_Base_Start(adcTim);
     ADCMonitorInit(hadc, ADCBuffer, sizeof(ADCBuffer) / sizeof(ADCBuffer[0]));
+
+    // Uptime
+    (void)initUptime(hcrc, bootMsg);
 
     // Board type and PCB version check
     if (boardSetup(Template, (pcbVersion){BREAKING_MAJOR, BREAKING_MINOR}, TEMPLATE_ERRORS_Msk) !=
@@ -230,9 +233,6 @@ void templateInit(TIM_HandleTypeDef* adcTim, ADC_HandleTypeDef* hadc, CRC_Handle
 
     // Calibration
     calibrationInit(hcrc, &cal, sizeof(cal));
-
-    // Uptime
-    (void)initUptime(hcrc, bootMsg);
 
     // BOARD SPECIFIC INIT CODE
 }
@@ -248,13 +248,13 @@ void templateLoop(const char* bootMsg) {
     // Handles internal ADC
     ADCMonitorLoop(adcCallback);
 
+    // Handles uptime
+    (void)loopUptime();
+
     // Version check
     if (bsGetField(BS_VERSION_ERROR_Msk)) {
         return;
     }
-
-    // Handles uptime
-    (void)loopUptime();
 
     // BOARD SPECIFIC MAIN LOOP CODE
 }
