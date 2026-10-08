@@ -1,5 +1,5 @@
 /*!
-** @file    fake_stm32f4xx_hal.h
+** @file    fake_stm32xxxx_hal.h
 ** @author  Luke W
 ** @date    12/10/2023
 **/
