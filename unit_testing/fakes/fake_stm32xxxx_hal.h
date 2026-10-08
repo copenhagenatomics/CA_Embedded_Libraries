@@ -1,20 +1,27 @@
 /*!
-** @file    fake_stm32h7xx_hal.h
+** @file    fake_stm32f4xx_hal.h
 ** @author  Luke W
-** @date    07/10/2026
+** @date    12/10/2023
 **/
 
 /* Prevent inclusion of real HALs, as well as re-inclusion of this one */
-#ifndef __FAKE_STM32H7xx_HAL_H
-#define __FAKE_STM32H7xx_HAL_H
+#ifndef __FAKE_STM32F4xx_HAL_H
+#define __FAKE_STM32F4xx_HAL_H
+#define __STM32F4xx_HAL_H
 
 #include <stdint.h>
 
-/* Using the fake "device file" means that the normal headers can be included, dramatically 
-** reducing the amount of duplication this file requires */
-#include "fake_stm32h753xx.h"
-#define STM32H7xx_HAL_ADC_H
-#include "stm32h7xx_hal_conf.h"
+/* Using the fake "device file" means that the normal headers can be included, dramatically reducing
+** the amount of duplication this file requires */
+#if defined(STM32F401xC)
+    #include "fake_stm32f401xc.h"
+    #define __STM32F4xx_ADC_H
+    #include "stm32f4xx_hal_conf.h"
+#elif defined(STM32H753xx)
+    #include "fake_stm32h753xx.h"
+    #define STM32H7xx_HAL_ADC_H
+    #include "stm32h7xx_hal_conf.h"
+#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -91,4 +98,4 @@ void fakeHAL_I2C_addDevice(stm32I2cTestDevice* new_device);
 }
 #endif
 
-#endif /* __STM32xxxx_HAL_H */
+#endif /* __FAKE_STM32F4xx_HAL_H */
