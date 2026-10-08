@@ -1,23 +1,20 @@
 /*!
-** @file    fake_stm32xxxx_hal.h
+** @file    fake_stm32h7xx_hal.h
 ** @author  Luke W
-** @date    12/10/2023
+** @date    07/10/2026
 **/
 
 /* Prevent inclusion of real HALs, as well as re-inclusion of this one */
-#ifndef __STM32xxxx_HAL_H
-#define __STM32xxxx_HAL_H
-#define __STM32F4xx_HAL_H
-#define STM32H7xx_HAL_H
+#ifndef __FAKE_STM32H7xx_HAL_H
+#define __FAKE_STM32H7xx_HAL_H
 
 #include <stdint.h>
 
 /* Using the fake "device file" means that the normal headers can be included, dramatically 
 ** reducing the amount of duplication this file requires */
-#include "fake_stm32f401xc.h"
-#define STM32F401xC
-#define __STM32F4xx_ADC_H
-#include "stm32f4xx_hal_conf.h"
+#include "fake_stm32h753xx.h"
+#define STM32H7xx_HAL_ADC_H
+#include "stm32h7xx_hal_conf.h"
 
 #ifdef __cplusplus
 extern "C" {

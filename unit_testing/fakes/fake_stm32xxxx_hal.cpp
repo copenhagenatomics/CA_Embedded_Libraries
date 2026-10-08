@@ -1,8 +1,13 @@
 #include <chrono>
 #include <vector>
 #include <cassert>
-#include "fake_stm32xxxx_hal.h"
 #include <cstring>
+
+#if defined(STM32F401xC)
+    #include "fake_stm32f4xx_hal.h"
+#elif defined(STM32H753xx)
+    #include "fake_stm32h7xx_hal.h"
+#endif
 
 using namespace std::chrono;
 
