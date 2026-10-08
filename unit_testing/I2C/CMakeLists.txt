@@ -5,8 +5,8 @@
 cmake_minimum_required(VERSION 3.14)
 project(unit_testing)
 
-# GoogleTest requires at least C++14
-set(CMAKE_CXX_STANDARD 14)
+# GoogleTest requires at least C++17
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Set timestamp policy to avoid warning (default value)
@@ -15,10 +15,11 @@ if(POLICY CMP0135)
 	set(CMAKE_POLICY_DEFAULT_CMP0135 NEW)
 endif()
 
+# Include GoogleTest v1.18.0
 include(FetchContent)
 FetchContent_Declare(
   googletest
-  URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
+  URL https://github.com/google/googletest/archive/063de7e9578f82b369302001269680b4b1553359.zip
 )
 
 # For Windows: Prevent overriding the parent project's compiler/linker settings
@@ -33,18 +34,18 @@ set(SRC ../../STM32)
 set(LIB ../../STM32)
 
 set(INC_LIB
-${LIB}/Crc/Inc
-${LIB}/Crc/Src
-${LIB}/I2C/Inc
-${LIB}/I2C/Src 
-${LIB}/Util/Inc
-${LIB}/Util/Src)
+    ${LIB}/Crc/Inc
+    ${LIB}/Crc/Src
+    ${LIB}/I2C/Inc
+    ${LIB}/I2C/Src 
+    ${LIB}/Util/Inc
+    ${LIB}/Util/Src)
 
 set(UT_FAKES ../fakes)
 set(UT_STUBS ../stubs)
-set(DRIVERS ../../STM32/FirmwarePackages/STM32F401CCUx/Drivers/STM32F4xx_HAL_Driver/Inc)
-set(CMSIS ../../STM32/FirmwarePackages/STM32F401CCUx/Drivers/CMSIS/Device/ST/STM32F4xx/Include)
-set(CMSIS_DRIVER ../../STM32/FirmwarePackages/STM32F401CCUx/Drivers/CMSIS/Include)
+set(DRIVERS ../../STM32/FirmwarePackages/STM32F401CCUx/FW_1.28.3/Drivers/STM32F4xx_HAL_Driver/Inc)
+set(CMSIS ../../STM32/FirmwarePackages/STM32F401CCUx/FW_1.28.3/Drivers/CMSIS/Device/ST/STM32F4xx/Include)
+set(CMSIS_DRIVER ../../STM32/FirmwarePackages/STM32F401CCUx/FW_1.28.3/Drivers/CMSIS/Include)
 
 ####################################################################################################
 ## List of tests to run
@@ -56,17 +57,17 @@ include(GoogleTest)
 
 # LPS28DFW tests
 add_executable(lps28dfw_tests
-${UT_FAKES}/fake_stm32xxxx_hal.cpp
-${UT_FAKES}/fake_StmGpio.cpp
-lps28dfw_tests.cpp)
+    ${UT_FAKES}/fake_stm32xxxx_hal.cpp
+    ${UT_FAKES}/fake_StmGpio.cpp
+    lps28dfw_tests.cpp)
 
 target_include_directories(lps28dfw_tests PRIVATE
-${CMSIS}
-${DRIVERS}
-${INC_LIB}
-${UT_FAKES}
-${UT_STUBS}
-Inc)
+    ${CMSIS}
+    ${DRIVERS}
+    ${INC_LIB}
+    ${UT_FAKES}
+    ${UT_STUBS}
+    Inc)
 
 target_link_libraries(lps28dfw_tests GTest::gtest_main gmock_main)
 target_compile_definitions(lps28dfw_tests PUBLIC __LIBRARY_TEST)
@@ -75,16 +76,16 @@ gtest_discover_tests(lps28dfw_tests)
 
 # TCI tests
 add_executable(tci_tests
-${UT_FAKES}/fake_stm32xxxx_hal.cpp
-tci_tests.cpp)
+    ${UT_FAKES}/fake_stm32xxxx_hal.cpp
+    tci_tests.cpp)
 
 target_include_directories(tci_tests PRIVATE
-${CMSIS}
-${DRIVERS}
-${INC_LIB}
-${UT_FAKES}
-${UT_STUBS}
-Inc)
+    ${CMSIS}
+    ${DRIVERS}
+    ${INC_LIB}
+    ${UT_FAKES}
+    ${UT_STUBS}
+    Inc)
 
 target_link_libraries(tci_tests GTest::gtest_main gmock_main)
 target_compile_definitions(tci_tests PUBLIC __LIBRARY_TEST)
