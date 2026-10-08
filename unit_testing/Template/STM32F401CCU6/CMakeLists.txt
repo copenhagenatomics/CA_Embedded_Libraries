@@ -18,8 +18,8 @@ endif()
 # Include GoogleTest v1.18.0
 include(FetchContent)
 FetchContent_Declare(
-  googletest
-  URL https://github.com/google/googletest/archive/063de7e9578f82b369302001269680b4b1553359.zip
+    googletest
+    URL https://github.com/google/googletest/archive/063de7e9578f82b369302001269680b4b1553359.zip
 )
 
 # For Windows: Prevent overriding the parent project's compiler/linker settings
@@ -34,13 +34,13 @@ set(SRC ../../STM32)
 set(LIB ../../CA_Embedded_Libraries/STM32)
 
 set(INC_LIB
-  ${LIB}/ADCMonitor/Inc
-  ${LIB}/circularBuffer/Inc
-  ${LIB}/Crc/Inc
-  ${LIB}/FLASH_readwrite/Inc
-  ${LIB}/jumpToBootloader/Inc
-  ${LIB}/USBprint/Inc
-  ${LIB}/Util/Inc)
+    ${LIB}/ADCMonitor/Inc
+    ${LIB}/circularBuffer/Inc
+    ${LIB}/Crc/Inc
+    ${LIB}/FLASH_readwrite/Inc
+    ${LIB}/jumpToBootloader/Inc
+    ${LIB}/USBprint/Inc
+    ${LIB}/Util/Inc)
 
 set(UT_LIB ../../CA_Embedded_Libraries/unit_testing)
 set(UT_FAKES ${UT_LIB}/fakes)
@@ -57,29 +57,29 @@ include(GoogleTest)
 
 # Test
 add_executable(Template_tests
-  Template_tests.cpp
-  ${UT_STUBS}/stub_jumpToBootloader.cpp
-  ${UT_LIB}/Util/serialStatus_tests.cpp
-  ${UT_FAKES}/fake_FLASH_readwrite.cpp
-  ${UT_FAKES}/fake_HAL_otp.cpp
-  ${UT_FAKES}/fake_stm32xxxx_hal.cpp
-  ${UT_FAKES}/fake_USBprint.cpp
-  ${LIB}/Util/Src/systeminfo.c)
+    Template_tests.cpp
+    ${UT_STUBS}/stub_jumpToBootloader.cpp
+    ${UT_LIB}/Util/serialStatus_tests.cpp
+    ${UT_FAKES}/fake_FLASH_readwrite.cpp
+    ${UT_FAKES}/fake_HAL_otp.cpp
+    ${UT_FAKES}/fake_stm32xxxx_hal.cpp
+    ${UT_FAKES}/fake_USBprint.cpp
+    ${LIB}/Util/Src/systeminfo.c)
 
 target_include_directories(Template_tests PRIVATE
-  .
-  ${UT_FAKES}
-  ${UT_STUBS}
-  ${INC_LIB}
-  ${UT_LIB}/Util
-  ${SRC}/Template/Core/Src
-  ${SRC}/Template/Core/Inc
-  ${LIB}/ADCMonitor/Src
-  ${LIB}/Crc/Src
-  ${LIB}/Util/Src
-  ${DRIV}/Src
-  ${DRIV}/Inc
-  ${DRIV}/../CMSIS/Device/ST/STM32F4xx/Include)
+    .
+    ${UT_FAKES}
+    ${UT_STUBS}
+    ${INC_LIB}
+    ${UT_LIB}/Util
+    ${SRC}/Template/Core/Src
+    ${SRC}/Template/Core/Inc
+    ${LIB}/ADCMonitor/Src
+    ${LIB}/Crc/Src
+    ${LIB}/Util/Src
+    ${DRIV}/Src
+    ${DRIV}/Inc
+    ${DRIV}/../CMSIS/Device/ST/STM32F4xx/Include)
 
 target_link_libraries(Template_tests GTest::gtest_main gmock_main)
 target_compile_definitions(Template_tests PUBLIC UNIT_TESTING)
