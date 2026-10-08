@@ -1,8 +1,9 @@
 #include <chrono>
 #include <vector>
 #include <cassert>
-#include "fake_stm32xxxx_hal.h"
 #include <cstring>
+
+#include "fake_stm32xxxx_hal.h"
 
 using namespace std::chrono;
 
