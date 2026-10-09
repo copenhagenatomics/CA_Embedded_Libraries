@@ -70,7 +70,7 @@ target_include_directories(lps28dfw_tests PRIVATE
     Inc)
 
 target_link_libraries(lps28dfw_tests GTest::gtest_main gmock_main)
-target_compile_definitions(lps28dfw_tests PUBLIC __LIBRARY_TEST)
+target_compile_definitions(lps28dfw_tests PUBLIC __LIBRARY_TEST STM32F401xC)
 target_compile_options(lps28dfw_tests PRIVATE -Wall)
 gtest_discover_tests(lps28dfw_tests)
 
@@ -88,7 +88,7 @@ target_include_directories(mma8451q_tests PRIVATE
   Inc)
 
 target_link_libraries(mma8451q_tests GTest::gtest_main gmock_main)
-target_compile_definitions(mma8451q_tests PUBLIC __LIBRARY_TEST)
+target_compile_definitions(mma8451q_tests PUBLIC __LIBRARY_TEST STM32F401xC)
 target_compile_options(mma8451q_tests PRIVATE -Wall)
 gtest_discover_tests(mma8451q_tests)
 
@@ -106,6 +106,6 @@ target_include_directories(tci_tests PRIVATE
     Inc)
 
 target_link_libraries(tci_tests GTest::gtest_main gmock_main)
-target_compile_definitions(tci_tests PUBLIC __LIBRARY_TEST)
+target_compile_definitions(tci_tests PUBLIC __LIBRARY_TEST STM32F401xC)
 target_compile_options(tci_tests PRIVATE -Wall)
 gtest_discover_tests(tci_tests)

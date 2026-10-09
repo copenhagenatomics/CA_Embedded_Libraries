@@ -82,6 +82,6 @@ target_include_directories(Template_tests PRIVATE
     ${DRIV}/../CMSIS/Device/ST/STM32F4xx/Include)
 
 target_link_libraries(Template_tests GTest::gtest_main gmock_main)
-target_compile_definitions(Template_tests PUBLIC UNIT_TESTING)
+target_compile_definitions(Template_tests PUBLIC UNIT_TESTING STM32F401xC)
 target_compile_options(Template_tests PRIVATE -Wall)
 gtest_discover_tests(Template_tests)
