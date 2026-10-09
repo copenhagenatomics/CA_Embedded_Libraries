@@ -64,6 +64,6 @@ target_include_directories(adcmonitor_test PRIVATE
     Inc)
 
 target_link_libraries(adcmonitor_test GTest::gtest_main gmock_main)
-target_compile_definitions(adcmonitor_test PUBLIC UNIT_TESTING)
+target_compile_definitions(adcmonitor_test PUBLIC UNIT_TESTING STM32F401xC)
 target_compile_options(adcmonitor_test PRIVATE -Wall)
 gtest_discover_tests(adcmonitor_test)

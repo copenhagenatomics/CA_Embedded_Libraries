@@ -67,7 +67,7 @@ target_include_directories(ADS7953_test PRIVATE
     Inc)
 
 target_link_libraries(ADS7953_test GTest::gtest_main gmock_main)
-target_compile_definitions(ADS7953_test PUBLIC __LIBRARY_TEST)
+target_compile_definitions(ADS7953_test PUBLIC __LIBRARY_TEST STM32F401xC)
 target_compile_options(ADS7953_test PRIVATE -Wall)
 gtest_discover_tests(ADS7953_test)
 
@@ -86,6 +86,6 @@ target_include_directories(ltc2512_test PRIVATE
     Inc)
 
 target_link_libraries(ltc2512_test GTest::gtest_main gmock_main)
-target_compile_definitions(ltc2512_test PUBLIC __LIBRARY_TEST)
+target_compile_definitions(ltc2512_test PUBLIC __LIBRARY_TEST STM32F401xC)
 target_compile_options(ltc2512_test PRIVATE -Wall)
 gtest_discover_tests(ltc2512_test)

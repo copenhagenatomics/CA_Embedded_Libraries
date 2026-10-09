@@ -70,6 +70,6 @@ target_include_directories(usbprint_test PRIVATE
     Inc)
 
 target_link_libraries(usbprint_test GTest::gtest_main gmock_main)
-target_compile_definitions(usbprint_test PUBLIC UNIT_TESTING)
+target_compile_definitions(usbprint_test PUBLIC UNIT_TESTING STM32F401xC)
 target_compile_options(usbprint_test PRIVATE -Wall)
 gtest_discover_tests(usbprint_test)
