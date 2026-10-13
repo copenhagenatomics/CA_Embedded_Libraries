@@ -55,6 +55,19 @@ def _filter_block(text, varname, drop):
 
     return text[:m.start()] + header + new_body + sep + text[m.end():]
 
+def _dedupe_block(text, varname):
+    """
+    Remove repeated entries from a 'VAR = ...' block, keeping the first occurrence
+    """
+    seen = set()
+
+    def drop(e):
+        if e in seen:
+            return True
+        seen.add(e)
+        return False
+    return _filter_block(text, varname, drop)
+
 def _ensure_entries(text, varname, wanted):
     """
     Add any entries from wanted[] that aren't already in the 'VAR = ...' block
@@ -183,12 +196,17 @@ def main():
             return ("" if b == "-I" else b) + "-I" + rel  # include dir: ensure one -I
 
         text = re.sub(r"(?m)(^|[ =]|-I)(?:[A-Za-z]:)?[\\/][^ ]*?[\\/]" +
-                      re.escape(LIB) + r"([^ ]*)", repl, text)
+                      re.escape(LIB) + r"([^ \r\n]*)", repl, text)
 
         # Put each library path on its own continued line
         text = re.sub(r" (-I)?(" + re.escape(rel_lib) + r")",
                       lambda m: " \\\n" + (m.group(1) or "") + m.group(2), text)
         text = _use_lib_usb_device(text, proj, rel_lib)
+
+        # CubeMX re-adds its own firmware package entries next to the ones kept from the pre
+        # step, so the same path can now appear twice
+        for var in ("C_SOURCES", "C_INCLUDES", "ASM_SOURCES"):
+            text = _dedupe_block(text, var)
         _fix_ioc_firmware_package_path(proj)
 
     open(mk, "w", newline="", encoding="utf-8").write(text)
