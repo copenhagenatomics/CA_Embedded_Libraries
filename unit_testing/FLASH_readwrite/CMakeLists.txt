@@ -64,6 +64,6 @@ target_include_directories(flash_test PRIVATE
     Inc)
 
 target_link_libraries(flash_test GTest::gtest_main gmock_main)
-#target_compile_definitions(flash_test PUBLIC __LIBRARY_TEST)
+target_compile_definitions(flash_test PUBLIC STM32F401xC)
 target_compile_options(flash_test PRIVATE -Wall)
 gtest_discover_tests(flash_test)

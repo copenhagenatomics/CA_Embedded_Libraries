@@ -182,6 +182,10 @@ static const char* productType(uint8_t id) {
             return "AnalogInputCal";
         case OxygenIntegrated:
             return "OxygenIntegrated";
+        case DC_BoardCal:
+            return "DC_BoardCal";
+        case AnalogInputDummy:
+            return "AnalogInputDummy";
     }
     return "NA";
 }

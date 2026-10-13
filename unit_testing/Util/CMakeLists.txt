@@ -67,7 +67,7 @@ target_include_directories(caprotocol_test PRIVATE
     ${INC_LIB})
 
 target_link_libraries(caprotocol_test GTest::gtest_main gmock_main)
-target_compile_definitions(caprotocol_test PUBLIC UNIT_TESTING)
+target_compile_definitions(caprotocol_test PUBLIC UNIT_TESTING STM32F401xC)
 target_compile_options(caprotocol_test PRIVATE -Wall)
 gtest_discover_tests(caprotocol_test)
 
@@ -82,7 +82,7 @@ target_include_directories(systeminfo_test PRIVATE
     ${INC_LIB})
 
 target_link_libraries(systeminfo_test GTest::gtest_main gmock_main)
-target_compile_definitions(systeminfo_test PUBLIC UNIT_TESTING)
+target_compile_definitions(systeminfo_test PUBLIC UNIT_TESTING STM32F401xC)
 target_compile_options(systeminfo_test PRIVATE -Wall)
 gtest_discover_tests(systeminfo_test)
 
@@ -106,6 +106,6 @@ target_include_directories(uptime_test PRIVATE
     ${CMSIS})
 
 target_link_libraries(uptime_test GTest::gtest_main gmock_main)
-target_compile_definitions(uptime_test PUBLIC UNIT_TESTING)
+target_compile_definitions(uptime_test PUBLIC UNIT_TESTING STM32F401xC)
 target_compile_options(uptime_test PRIVATE -Wall)
 gtest_discover_tests(uptime_test)

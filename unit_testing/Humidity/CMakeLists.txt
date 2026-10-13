@@ -72,6 +72,6 @@ target_include_directories(humiditySm_tests PRIVATE
     Inc)
 
 target_link_libraries(humiditySm_tests GTest::gtest_main gmock_main)
-target_compile_definitions(humiditySm_tests PUBLIC __LIBRARY_TEST UNIT_TESTING)
+target_compile_definitions(humiditySm_tests PUBLIC __LIBRARY_TEST UNIT_TESTING STM32F401xC)
 target_compile_options(humiditySm_tests PRIVATE -Wall)
 gtest_discover_tests(humiditySm_tests)
