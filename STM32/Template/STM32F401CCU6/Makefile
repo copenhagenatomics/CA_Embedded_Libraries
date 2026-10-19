@@ -150,6 +150,9 @@ C_DEFS =  \
 -DUSE_HAL_DRIVER \
 -DSTM32F401xC
 
+ifeq ($(DEBUG), 0)
+C_DEFS += -DNDEBUG
+endif
 
 # AS includes
 AS_INCLUDES = 
