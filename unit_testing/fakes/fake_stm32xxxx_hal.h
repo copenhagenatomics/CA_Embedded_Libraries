@@ -95,7 +95,7 @@ uint32_t HAL_GetTick(void);
 void HAL_Delay(uint32_t Delay);
 
 void fakeHAL_I2C_addDevice(stm32I2cTestDevice* new_device);
-void fakeHAL_I2C_removeDevice(stm32I2cTestDevice* new_device);
+void fakeHAL_I2C_removeDevice(stm32I2cTestDevice* old_device);
 
 #ifdef __cplusplus
 }

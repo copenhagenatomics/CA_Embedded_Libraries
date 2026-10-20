@@ -238,11 +238,11 @@ void fakeHAL_I2C_addDevice(stm32I2cTestDevice* new_device) {
 
 /*!
 ** @brief Removes a device from the list of simulated I2C devices
-** @param new_device Pointer to the device to remove
+** @param old_device Pointer to the device to remove
 */
-void fakeHAL_I2C_removeDevice(stm32I2cTestDevice* new_device) {
+void fakeHAL_I2C_removeDevice(stm32I2cTestDevice* old_device) {
     if (devices) {
-        devices->erase(std::remove(devices->begin(), devices->end(), new_device), devices->end());
+        devices->erase(std::remove(devices->begin(), devices->end(), old_device), devices->end());
     }
 }
 
