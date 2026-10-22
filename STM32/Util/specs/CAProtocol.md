@@ -1,0 +1,122 @@
+# Specification Document - CAProtocol
+
+Author: Luke Walker
+Date: 20/10/2026
+
+# Introduction
+
+This document contains the specification for the Copenhagen Atomics (CA) general purpose USB protocol.
+
+# Specification
+
+* The interface is a serial port:
+  * Nominal communication parameters are 112500 8N1:
+    * Baud rate: 115200
+    * Data bits: 8
+    * Parity: None
+    * Stop bit: 1
+  * In most cases, the port will be USB Communications Device Class (CDC) - Virtual serial port
+    * Since this port is virtual, communication parameters are for completeness only. 
+* Output:
+  * Upon opening the serial port, the device will print one line with the reason for the last boot
+    * Format: `reconnected Reset Reason: XYZ`
+  * The device will automatically printout a comma separated list of relevant variables at a rate of 10 Hz, followed by a CRLF (\r\n)
+    * It will be possible to request an output rate of 100 Hz, implemented on a per-device basis
+    * Each comma separated variable is referred to as an "output channel". 
+      * e.g. the first variable printed (before the first comma) is channel 0.
+  * The final value of the output string will always be a status code. 
+    * Format: 32-bit 0-padded hex value with the format `0x0123abcd`.
+    * The highest bit (e.g. bit 31) is a general error indicator and will be set when any other error bit is set
+    * See systemInfo for general status bit definitions
+  * Multi-line status/error messages must always start and end with the following messages:
+    * Start: `Start of <message name>:`
+    * End: `End of <message name>.`
+* Input:
+  * Boards will accept ASCII text input. Commands will be delineated by CR, LF, or both.
+  * Required commands are:
+    * DFU: Will reset the device into DFU mode
+    * Serial: will print general board parameters, followed by the CAL string for the device, if applicable. The CAL string will follow the same format as the response to `CAL r`.
+      * Format:
+      ```
+      Serial Number: 2A00393235511039393434
+      Product Type: GasSampler
+      Sub Product Type: 0
+      MCU Family: STM32F401xB/C Rev 1
+      Software Version: 0.4.0
+      Compile Date: 2026-05-28
+      Git SHA: d4a9120cc3949c51a307d2eaacff6ceba54c59a4
+      PCB Version: 1.3
+      Calibration: CAL 3.250, 3.250, 9100, 2800000, 2.800, 2.800, 500000, 10000, 500000, -1.20, 0.98, -1.82, 0.00, 0.00, 0.00
+      ```
+  * Optional commands are:
+    * OutputDef: Will print a text definition of each output channel, followed by a comma, followed by a unit:
+      * Example format:
+      ```
+      Start of board output definition:
+      Temperature Channel 1,degC
+      Temperature Channel 2,degC
+      ...etc...
+      Temperature Channel 10,degC
+      Status,hex
+      End of board output definition.
+      ```
+    * StatusDef: Will print a text definition of each status bit, along with a hex value demonstrating the range of that particular value. The first line will define which bits are error bits.
+      * Format will be a hex value with the status bit(s) set, in the same format as the status code (See Output section), followed by a comma, followed by the text definition:
+      ```
+      Start of board status definition:
+      0x7e000300,System errors
+      0x80000000,Error
+      0x40000000,Over temperature
+      ...etc...
+      0x0000000f,Sequence Step
+      0x00000010,Pump running
+      End of board status definition.
+      ``` 
+      * Note: the example above shows both single bit (Pump running) and multi-bit (Sequence step) status codes.
+    * Status: Will print a verbose summary of the current board status. If there are no errors, the first line will always be `The board is operating normally.`.
+      * Example format (error):
+      ```
+      Start of board status:
+      Under voltage. The board operates at too low voltage of 0.00V. Check power supply.
+      Sequence step is: 0
+      Pump is: Off
+      ...etc...
+      SM4291 Pressure Sensor serial is: 0x012024e6
+      End of board status.
+      ```
+      * Example format (No error):
+      ```
+      Start of board status:
+      The board is operating normally.
+      Port 1 measures voltage [0-5V]
+      ...etc...
+      Port 6 measures voltage [0-5V]
+      End of board status.
+      ```
+    * CAL: Will send (a) calibration string(s) to the device. 
+      * Calibration strings have the format: "p, a, b, t", where:
+        * p is the calibration number (sometimes referred to as the port number)
+        * a is alpha, a dimensionless cailbration value
+        * b is beta, a dimensionless calibration value
+        * t is threshold, an optional dimensionless calibration value
+      * At least one calibration string is mandatory. Multiple may be sent in the same line. Acceptable examples:
+        * `CAL 1,2,3,4`
+        * `CAL 1,2,3,4 2,5,6,7`
+      * A device may reject multiple calibrations on the same line if multiple calibration steps are required for that device. 
+      * Calibration values adjusted with CAL should be applied immediately, but held in volatile memory only
+        * `CAL w` will be used to write the calibration values to non-volatile memory
+        * `CAL r` will be used to readout the currently applied calibration values (e.g. the ones held in volatile memory)
+          * Response format: `Calibration: CAL 1,a,b,t 2,a,b,t ...etc... 9,a,b,t 10,a,b,t`
+        * `CAL m` will be used to readout the calibration values stored in non-volatile memory
+      * The device must respond to a CAL message with a response indicating success or failure:
+        * `CAL x success` (where x could be a p number, w, r, or m)
+        * `CAL x failed` (where x could be a p number, w, r, or m)
+      * LOG: Will change the output string channels between different configurations. Used to implement debugging output channels which are not desired in general purpose usage
+        * Format: `LOG pX` where X is a different output configuration. 0 is always the default general purpose configuration.
+        * For differing LOG configurations, the OutputDef printout must match the currently active configuration
+
+  
+
+
+    
+
