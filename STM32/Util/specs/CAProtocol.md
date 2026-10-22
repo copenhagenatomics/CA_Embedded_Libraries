@@ -31,6 +31,7 @@ This document contains the specification for the Copenhagen Atomics (CA) general
   * Multi-line status/error messages must always start and end with the following messages:
     * Start: `Start of <message name>:`
     * End: `End of <message name>.`
+    * The response to the `Serial` command is excepted from this requirement for historic reasons
 * Input:
   * Boards will accept ASCII text input. Commands will be delineated by CR, LF, or both.
   * Required commands are:
