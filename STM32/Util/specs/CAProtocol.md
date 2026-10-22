@@ -113,8 +113,9 @@ This document contains the specification for the Copenhagen Atomics (CA) general
           * The readout of action flags (see below) should be 0.
         * `CAL m` will be used to readout the calibration values stored in non-volatile memory, with the same format as CAL r
       * The device must respond to a CAL message with a response indicating success or failure:
-        * `CAL x success` (where x could be a p number, w, r, or m)
-        * `CAL x failed` (where x could be a p number, w, r, or m)
+        * `CAL x success` (where x could be a p number or w)
+        * `CAL x failed` (where x could be a p number or w)
+          * Note: readout of the CAL values implicitly passes `CAL r` or `CAL m`
         * In the case of multiple calibrations sent in a single line, a response must be printed for each CAL:
           * Example response when sending CAL 1,0.0 2,NAN 3,0.0:
           ```
@@ -127,9 +128,44 @@ This document contains the specification for the Copenhagen Atomics (CA) general
     * LOG: Will change the output string channels between different configurations. Used to implement debugging output channels which are not desired in general purpose usage
       * Format: `LOG pX` where X is a different output configuration. 0 is always the default general purpose configuration.
       * For differing LOG configurations, the OutputDef printout must match the currently active configuration
-
-  
-
-
-    
+    * uptime: Interact with the uptime subsystem (see Uptime subsystem):
+      * Format: `uptime [s|l|r ch]` where:
+        * No arguments will result in the uptime table being printed out. The printout always starts with the `Serial` header. Example format:
+        ```
+        Start of uptime
+        Serial Number: 3100024650501520313232
+        Product Type: AnalogInput
+        ...etc...
+        PCB Version: 1.0
+        Calibration: CAL 1,1.0000000000,0.0000000000,0 2,1.0000000000,0.0000000000,0 3,1.0000000000,0.0000000000,0 4,1.0000000
+        Name, channel, reset, count
+        Total board uptime minutes, 0, 0, 0
+        Minutes since rework, 1, 0, 0
+        Minutes since last software update, 2, 1, 0
+        Software failures, 3, 0, 0
+        ...etc...
+        Optional per board datapoint N, 12, 0, 0
+        End of uptime
+        ```
+        * `s` as an argument will store the existing uptime table
+        * `l` as an argument will load the uptime table from flash, overwriting the volatile copy
+        * `r ch` as an argument will reset the count for channel ch
+          * As an exception, "Total board operating minutes" - channel 0 - cannot be reset.
+* Uptime subsystem:
+  * CA boards will implement an uptime subsystem that will record the running time both for the board and optionally for attached sensors and actuators.
+  * The uptime subsystem will maintain a table where each row (also called "channel") records the running time or count of a particular datapoint.
+    * Every board will maintain at least the following datapoints:
+      * Total board operating minutes
+      * Minutes since last rework
+      * Minutes since last software update
+      * Number of software failures
+    * For each datapoint, the following information is saved in the table row:
+      * Datapoint id - an integer
+      * Datapoint description - a text string with a readable description of the datapoint
+      * Reset count - an integer, the number of times a particular count has been reset
+      * Count - an integer, the actual count per datapoint.
+    * Every minute, the uptime subsystem will automatically update minute counters held in volatile memory.
+    * Every 24 hours (measured since last boot), the uptime subsystem will save the entire table into non-volatile memory
+      * The table should be stored along with a CRC for data verification.
+    * The uptime subsystem will automatically detect changes in SW version, and reset channel 2 ("Minutes since last software update") automatically after boot when a change is detected
 
