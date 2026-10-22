@@ -10,7 +10,7 @@ This document contains the specification for the Copenhagen Atomics (CA) general
 # Specification
 
 * The interface is a serial port:
-  * Nominal communication parameters are 112500 8N1:
+  * Nominal communication parameters are 115200 8N1:
     * Baud rate: 115200
     * Data bits: 8
     * Parity: None
@@ -47,7 +47,7 @@ This document contains the specification for the Copenhagen Atomics (CA) general
       Compile Date: 2026-05-28
       Git SHA: d4a9120cc3949c51a307d2eaacff6ceba54c59a4
       PCB Version: 1.3
-      Calibration: CAL 3.250, 3.250, 9100, 2800000, 2.800, 2.800, 500000, 10000, 500000, -1.20, 0.98, -1.82, 0.00, 0.00, 0.00
+      Calibration: CAL 1,3.250,3.250,9100 2,2800000,2.800,2.800 3,500000,10000,500000 4,-1.20,0.98,-1.82 5,0.00,0.00,0.00
       ```
   * Optional commands are:
     * OutputDef: Will print a text definition of each output channel, followed by a comma, followed by a unit:
@@ -108,7 +108,7 @@ This document contains the specification for the Copenhagen Atomics (CA) general
         * `CAL w` will be used to write the calibration values to non-volatile memory
         * `CAL r` will be used to readout the currently applied calibration values (e.g. the ones held in volatile memory)
           * Response format: `Calibration: CAL 1,a,b,t 2,a,b,t ...etc... 9,a,b,t 10,a,b,t`
-        * `CAL m` will be used to readout the calibration values stored in non-volatile memory
+        * `CAL m` will be used to readout the calibration values stored in non-volatile memory, with the same format as CAL r
       * The device must respond to a CAL message with a response indicating success or failure:
         * `CAL x success` (where x could be a p number, w, r, or m)
         * `CAL x failed` (where x could be a p number, w, r, or m)
