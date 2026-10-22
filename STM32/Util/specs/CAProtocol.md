@@ -107,7 +107,7 @@ This document contains the specification for the Copenhagen Atomics (CA) general
         * `CAL 1,2,3,4 2,5,6,7`
       * A device may reject multiple calibrations on the same line if multiple calibration steps are required for that device. 
       * Calibration values adjusted with CAL should be applied immediately, but held in volatile memory only
-        * `CAL w` will be used to write the calibration values to non-volatile memory
+        * `CAL w` will be used to write the calibration values to non-volatile memory. The calibration values should be stored along with a CRC for data verification.
         * `CAL r` will be used to readout the currently applied calibration values (e.g. the ones held in volatile memory)
           * Response format: `Calibration: CAL 1,a,b,g 2,a,b,g ...etc... 9,a,b,g 10,a,b,g`
           * The readout of action flags (see below) should be 0.
