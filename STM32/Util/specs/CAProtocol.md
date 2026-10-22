@@ -49,7 +49,6 @@ This document contains the specification for the Copenhagen Atomics (CA) general
       PCB Version: 1.3
       Calibration: CAL 1,3.250,3.250,9100 2,2800000,2.800,2.800 3,500000,10000,500000 4,-1.20,0.98,-1.82 5,0.00,0.00,0.00
       ```
-  * Optional commands are:
     * OutputDef: Will print a text definition of each output channel, followed by a comma, followed by a unit:
       * Example format:
       ```
@@ -94,27 +93,40 @@ This document contains the specification for the Copenhagen Atomics (CA) general
       Port 6 measures voltage [0-5V]
       End of board status.
       ```
+  * Optional commands are:
     * CAL: Will send (a) calibration string(s) to the device. 
-      * Calibration strings have the format: "p, a, b, t", where:
+      * Calibration strings have the format: "p, a, b, g", where:
         * p is the calibration number (sometimes referred to as the port number)
-        * a is alpha, a dimensionless cailbration value
-        * b is beta, a dimensionless calibration value
-        * t is threshold, an optional dimensionless calibration value
+        * a is alpha, a dimensionless calibration value, floating point
+        * b is beta, an optional dimensionless calibration value, floating point
+        * g is gamma, an optional dimensionless calibration value, floating point
       * At least one calibration string is mandatory. Multiple may be sent in the same line. Acceptable examples:
+        * `CAL 1,2`
+        * `CAL 1,2,3`
         * `CAL 1,2,3,4`
         * `CAL 1,2,3,4 2,5,6,7`
       * A device may reject multiple calibrations on the same line if multiple calibration steps are required for that device. 
       * Calibration values adjusted with CAL should be applied immediately, but held in volatile memory only
         * `CAL w` will be used to write the calibration values to non-volatile memory
         * `CAL r` will be used to readout the currently applied calibration values (e.g. the ones held in volatile memory)
-          * Response format: `Calibration: CAL 1,a,b,t 2,a,b,t ...etc... 9,a,b,t 10,a,b,t`
+          * Response format: `Calibration: CAL 1,a,b,g 2,a,b,g ...etc... 9,a,b,g 10,a,b,g`
+          * The readout of action flags (see below) should be 0.
         * `CAL m` will be used to readout the calibration values stored in non-volatile memory, with the same format as CAL r
       * The device must respond to a CAL message with a response indicating success or failure:
         * `CAL x success` (where x could be a p number, w, r, or m)
         * `CAL x failed` (where x could be a p number, w, r, or m)
-      * LOG: Will change the output string channels between different configurations. Used to implement debugging output channels which are not desired in general purpose usage
-        * Format: `LOG pX` where X is a different output configuration. 0 is always the default general purpose configuration.
-        * For differing LOG configurations, the OutputDef printout must match the currently active configuration
+        * In the case of multiple calibrations sent in a single line, a response must be printed for each CAL:
+          * Example response when sending CAL 1,0.0 2,NAN 3,0.0:
+          ```
+          CAL 1 success
+          CAL 2 failed
+          CAL 3 success
+          ```
+      * In some CAL cases, a parameter may be used as an "action flag". For example, alpha = an offset, and beta is an "action flag" specifying how to calibrate alpha. If beta = 0, then the offset should be set based on the `CAL 0.1,0` command (e.g. 0.1). If beta = 1, the offset should be measured from sensor data.
+        * action flag parameters should be read out as 0 when using `CAL r` or similar.
+    * LOG: Will change the output string channels between different configurations. Used to implement debugging output channels which are not desired in general purpose usage
+      * Format: `LOG pX` where X is a different output configuration. 0 is always the default general purpose configuration.
+      * For differing LOG configurations, the OutputDef printout must match the currently active configuration
 
   
 
