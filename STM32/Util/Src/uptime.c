@@ -12,7 +12,11 @@
 
 #include "CAProtocol.h"
 #include "CAProtocolStm.h"
-#include "FLASH_readwrite.h"
+#if defined(STM32H753xx)
+    #include "FLASH_H7_interface.h"
+#else
+    #include "FLASH_readwrite.h"
+#endif
 #include "USBprint.h"
 #include "systemInfo.h"
 #include "time32.h"

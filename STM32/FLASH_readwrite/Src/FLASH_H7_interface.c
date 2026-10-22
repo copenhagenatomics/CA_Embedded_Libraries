@@ -133,61 +133,86 @@ void readFromFlashH7(uint32_t startAddress, uint32_t *data, uint16_t size)
 // If this check is not included the compiler will throw an
 // error for projects where CRC module is not enabled
 #ifdef HAL_CRC_MODULE_ENABLED
-uint32_t computeCRCH7(CRC_HandleTypeDef *hcrc, uint32_t *data, uint16_t size)
-{
-    // Convert data to uint32_t as needed for the CRC computation
-	uint32_t crcData[size];
-    memcpy(&crcData, data, size);
 
-    // Compute CRC of stored data
-    uint32_t crcVal = HAL_CRC_Calculate(hcrc, crcData, sizeof(crcData)/sizeof(uint32_t));
-    return crcVal;
+// Number of FLASH words required to hold size bytes
+#define FLASH_WORDS(size) (((size) + FLASH_WORD - 1) / FLASH_WORD)
+
+// Compute the CRC of size bytes of data. The buffer length passed to the
+// HAL depends on the input data format of the CRC handle.
+uint32_t computeCRCH7(CRC_HandleTypeDef *hcrc, uint8_t *data, uint32_t size)
+{
+    uint32_t length = size;
+    if (hcrc->InputDataFormat == CRC_INPUTDATA_FORMAT_WORDS)
+        length = size / sizeof(uint32_t);
+    else if (hcrc->InputDataFormat == CRC_INPUTDATA_FORMAT_HALFWORDS)
+        length = size / sizeof(uint16_t);
+
+    return HAL_CRC_Calculate(hcrc, (uint32_t *) data, length);
 }
 
-// Write data to FLASH_ADDR+indx including CRC.
-uint32_t writeToFlashCRC(CRC_HandleTypeDef *hcrc, uint32_t startAddress, uint32_t *data, uint16_t size)
+// Write size bytes of data to flash_address including CRC. The data is padded
+// to whole FLASH words and the CRC is stored in the following FLASH word.
+// Returns 0 on success and -1 on error.
+int writeToFlashCRC(CRC_HandleTypeDef *hcrc, uint32_t flash_address, uint8_t *data, uint32_t size)
 {
+    uint32_t dataWords = FLASH_WORDS(size);
+    uint32_t flashWord[DATA_ADDRESS_INCREMENT];
+    int ret = 0;
+
     __HAL_RCC_WWDG_CLK_DISABLE();
 
-    // Erase the sector before write
-    if (eraseSectors(startAddress, size) != 0)
-    	return -1;
+    // Erase the sector(s) before write. Size is given in 32-bit words
+    if (eraseSectors(flash_address, (dataWords + 1) * DATA_ADDRESS_INCREMENT) != 0)
+        ret = -1;
 
-    // Save data supplied as input
-    if (programSector(startAddress, data, size) != 0)
-    	return -1;
+    // Save data supplied as input, one FLASH word at a time
+    for (uint32_t i = 0; (ret == 0) && (i < dataWords); i++)
+    {
+        uint32_t offset = i * FLASH_WORD;
+        uint32_t len = ((size - offset) < FLASH_WORD) ? (size - offset) : FLASH_WORD;
 
-    // Compute CRC of data to be saved.
-    uint32_t crcVal = computeCRCH7(hcrc, data, size);
+        memset(flashWord, 0xFF, sizeof(flashWord));
+        memcpy(flashWord, data + offset, len);
+        if (programSector(flash_address + offset, flashWord, 1) != 0)
+            ret = -1;
+    }
+
     // Save CRC value
-    if (programSector(startAddress+size, &crcVal, 1) != 0)
-    	return -1;
+    if (ret == 0)
+    {
+        memset(flashWord, 0xFF, sizeof(flashWord));
+        flashWord[0] = computeCRCH7(hcrc, data, size);
+        if (programSector(flash_address + dataWords * FLASH_WORD, flashWord, 1) != 0)
+            ret = -1;
+    }
 
+    // The FLASH must be locked and the watch dog re-enabled, even if an error occurred
+    HAL_FLASH_Lock();
     __HAL_RCC_WWDG_CLK_ENABLE();
-    return 0;
+    return ret;
 }
 
-
-// Read from flash without checking data integrity if CRC module
-// is not enabled in project.
-void readFromFlashCRC(CRC_HandleTypeDef *hcrc, uint32_t startAddress, uint32_t *data, uint16_t size)
+// Read size bytes from flash_address and verify the data with the stored CRC.
+// Returns 0 on success and -1 on error. *data is unchanged on error.
+int readFromFlashCRC(CRC_HandleTypeDef *hcrc, uint32_t flash_address, uint8_t *data, uint32_t size)
 {
-    // Read data including CRC value
-    for(uint32_t i=0; i<size; i++)
-        *(data + i) = *( (uint32_t *)(startAddress+i) );
+    // Create temporary storage for FLASH data
+    uint8_t dataTmp[size];
+    memcpy(dataTmp, (void *) (uintptr_t) flash_address, size);
 
     // Compute CRC of data read.
-    uint32_t crcVal = computeCRCH7(hcrc, data, size);
+    uint32_t crcVal = computeCRCH7(hcrc, dataTmp, size);
 
     // Retrieve stored CRC value in flash.
     uint32_t crcStored = 0;
-    memcpy(&crcStored, (uint32_t *)(startAddress+size), sizeof(uint32_t));
+    memcpy(&crcStored, (void *) (uintptr_t) (flash_address + FLASH_WORDS(size) * FLASH_WORD), sizeof(uint32_t));
 
-    // If computed and stored CRC value does not match
-    // set data[0]=0xFF which resembles a clean FLASH i.e.
-    // default values are loaded and stored in boards.
+    // If computed and stored CRC value does not match return without setting *data
     if (crcStored != crcVal)
-    	*data = 0xFFFFFFFF;
+        return -1;
+
+    memcpy(data, dataTmp, size);
+    return 0;
 }
 #endif
 #endif
