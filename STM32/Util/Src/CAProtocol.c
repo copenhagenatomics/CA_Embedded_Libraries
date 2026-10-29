@@ -80,15 +80,15 @@ static void calibration(CAProtocolCtx* ctx, const char* input) {
 
     // Going through each calibration
     while (idx != NULL && noOfCalibrations < MAX_NO_CALIBRATION) {
-        int port, noOfValues;
+        int port, ret;
         double alpha, beta, gamma;
         idx++;
 
         // Beta and gamma are optional and therefore only 2 values need to be set.
         // For any board that uses beta/gamma value, noOfValues needs to be checked
-        noOfValues = sscanf(idx, "%d,%lf,%lf,%lf", &port, &alpha, &beta, &gamma);
-        if (noOfValues >= 2) {
-            cal[noOfCalibrations] = (CACalibration){port, alpha, beta, gamma, noOfValues};
+        ret = sscanf(idx, "%d,%lf,%lf,%lf", &port, &alpha, &beta, &gamma);
+        if (ret >= 2) {
+            cal[noOfCalibrations] = (CACalibration){port, alpha, beta, gamma, ret - 1};
             noOfCalibrations++;
         }
 

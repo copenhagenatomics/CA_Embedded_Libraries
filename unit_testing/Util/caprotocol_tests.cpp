@@ -207,9 +207,9 @@ TEST_F(TestCAProtocol, testCalibration)
 {
     reset();
 
-    EXPECT_EQ(testCalibration("CAL 3,0.05,1.56\r", 1, (const CACalibration[]) {{3, 0.05, 1.56}}), 0);
-    EXPECT_EQ(testCalibration("CAL 3,0.05,1.56 2,344,36\n\r", 2, (const CACalibration[]) {{3, 0.05, 1.56},{2, 344, 36}}), 0);
-    EXPECT_EQ(testCalibration("CAL 3,0.05,1.56 2,0.04,.36\n", 2, (const CACalibration[]) {{3, 0.05, 1.56},{2, 0.04, 0.36}}), 0);
+    EXPECT_EQ(testCalibration("CAL 3,0.05,1.56\r", 1, (const CACalibration[]) {{3, 0.05, 1.56, 0, 2}}), 0);
+    EXPECT_EQ(testCalibration("CAL 3,0.05,1.56 2,344,36\n\r", 2, (const CACalibration[]) {{3, 0.05, 1.56, 0, 2},{2, 344, 36, 0, 2}}), 0);
+    EXPECT_EQ(testCalibration("CAL 3,0.05,1.56 2,0.04,.36\n", 2, (const CACalibration[]) {{3, 0.05, 1.56, 0, 2},{2, 0.04, 0.36, 0, 2}}), 0);
 }
 
 TEST_F(TestCAProtocolBoard, testPortCtrl)
