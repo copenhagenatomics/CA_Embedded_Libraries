@@ -231,12 +231,10 @@ void inputCAProtocol(CAProtocolCtx* ctx) {
             parseError = 0;
         }
     }
-    else if (strncmp(input, "OTP", 3) == 0) {
-        if (input[4] == 'r') {
-            if (ctx->otpRead) {
-                ctx->otpRead();
-                parseError = 0;
-            }
+    else if (strncmp(input, "OTP r", 5) == 0) {
+        if (ctx->otpRead) {
+            ctx->otpRead();
+            parseError = 0;
         }
     }
     else if (strncmp(input, "uptime", 6) == 0) {
