@@ -35,7 +35,6 @@ typedef struct CAProtocolData {
 
 static void calibration(CAProtocolCtx* ctx, const char* input);
 static void logging(CAProtocolCtx* ctx, const char* input);
-static void otp_write(CAProtocolCtx* ctx, const char* input);
 static int CAgetMsg(CAProtocolCtx* ctx);
 
 /***************************************************************************************************
@@ -47,31 +46,54 @@ static void calibration(CAProtocolCtx* ctx, const char* input) {
     CACalibration cal[MAX_NO_CALIBRATION];
     int noOfCalibrations = 0;
 
+    // Incorrect format
     if (!idx) {
-        ctx->undefined(input);  // arguments.
+        ctx->undefined(input);
         return;
     }
-    if (idx[1] == 'w' || idx[1] == 'r') {
-        if (ctx->calibrationRW) {
-            ctx->calibrationRW(idx[1] == 'w');
+
+    // Single-letter subcommands
+    if (idx[2] == '\0') {
+        void (*fn)(void) = NULL;
+
+        // Prints calibration stored in RAM
+        if (idx[1] == 'r') {
+            fn = ctx->readCalibrationFromRAM;
+        }
+        // Prints calibration stored in flash
+        else if (idx[1] == 'm') {
+            fn = ctx->readCalibrationFromFlash;
+        }
+        // Write calibration stored in RAM into flash
+        else if (idx[1] == 'w') {
+            fn = ctx->writeCalibrationToFlash;
+        }
+
+        if (fn) {
+            fn();
+        }
+        else {
+            ctx->undefined(input);
         }
         return;
     }
 
-    // Next follow a port,alpha,beta entry
+    // Going through each calibration
     while (idx != NULL && noOfCalibrations < MAX_NO_CALIBRATION) {
-        int port;
-        double alpha, beta;
-        int threshold;
+        int port, noOfValues;
+        double alpha, beta, gamma;
         idx++;
-        // Threshold is optional and therefore only 3 values need to be set.
-        // For any board that uses the threshold value an additional check should
-        // be made before using for any calibration.
-        if (sscanf(idx, "%d,%lf,%lf,%d", &port, &alpha, &beta, &threshold) >= 3) {
-            cal[noOfCalibrations] = (CACalibration){port, alpha, beta, threshold};
+
+        // Beta and gamma are optional and therefore only 2 values need to be set.
+        // For any board that uses beta/gamma value, noOfValues needs to be checked
+        noOfValues = sscanf(idx, "%d,%lf,%lf,%lf", &port, &alpha, &beta, &gamma);
+        if (noOfValues >= 2) {
+            cal[noOfCalibrations] = (CACalibration){port, alpha, beta, gamma, noOfValues};
             noOfCalibrations++;
         }
-        idx = strchr(idx, ' ');  // get the next space.
+
+        // Get the next space.
+        idx = strchr(idx, ' ');
     }
 
     if (noOfCalibrations != 0) {
@@ -103,55 +125,6 @@ static void logging(CAProtocolCtx* ctx, const char* input) {
 #if (OTP_VERSION != OTP_VERSION_2)
 #error "Update of CAProtocol required"
 #endif
-static void otp_write(CAProtocolCtx* ctx, const char* input) {
-    uint32_t OTPVersion;
-    uint32_t BoardType;
-    uint32_t SubBoardType;
-    uint32_t PCBversion[2];
-    uint32_t date;
-
-    // Check for supported version.
-    if (sscanf(input, "OTP w %02" PRIu32, &OTPVersion) != 1) {
-        return;  // Parse failure, Invalid format of version field.
-    }
-    if (OTPVersion > OTP_VERSION || OTPVersion == 0) {
-        return;  // Not supported version of the OTP data.
-    }
-
-    BoardInfo info;
-    memset(info.data, 0, sizeof(info.data));
-
-    switch (OTPVersion) {
-        case OTP_VERSION_1:
-            break;
-
-        case OTP_VERSION_2:
-            // During write only the current version is supported.
-            if (sscanf(input,
-                       "OTP w %02" PRIu32 " %02" PRIu32 " %02" PRIu32 " %02" PRIu32 ".%02" PRIu32
-                       " %" PRIu32,
-                       &OTPVersion, &BoardType, &SubBoardType, &PCBversion[1], &PCBversion[0],
-                       &date) == 6) {
-                if (BoardType < 0xFF && PCBversion[1] <= 0xFF && PCBversion[0] <= 0xFF) {
-                    info.v2.otpVersion       = OTP_VERSION_2;
-                    info.v2.boardType        = BoardType & 0xFF;
-                    info.v2.subBoardType     = SubBoardType & 0xFF;
-                    info.v2.pcbVersion.major = PCBversion[1] & 0xFF;
-                    info.v2.pcbVersion.minor = PCBversion[0] & 0xFF;
-                    info.v2.productionDate   = date;
-                    ctx->otpWrite(&info);
-                    return;
-                }
-            }
-            break;
-
-        default:
-            break;
-    }
-
-    // Invalid input format.
-    ctx->undefined(input);
-}
 
 static int CAgetMsg(CAProtocolCtx* ctx) {
     CAProtocolData* protocolData = ctx->data;
@@ -262,12 +235,6 @@ void inputCAProtocol(CAProtocolCtx* ctx) {
         if (input[4] == 'r') {
             if (ctx->otpRead) {
                 ctx->otpRead();
-                parseError = 0;
-            }
-        }
-        else if (input[4] == 'w') {
-            if (ctx->otpWrite) {
-                otp_write(ctx, input);
                 parseError = 0;
             }
         }

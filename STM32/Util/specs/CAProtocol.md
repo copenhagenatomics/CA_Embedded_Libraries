@@ -114,7 +114,7 @@ This document contains the specification for the Copenhagen Atomics (CA) general
         * `CAL m` will be used to readout the calibration values stored in non-volatile memory, with the same format as CAL r
       * The device must respond to a CAL message with a response indicating success or failure:
         * `CAL x success` (where x could be a p number or w)
-        * `CAL x failed` (where x could be a p number or w)
+        * `CAL x failed` (where x could be a p number or w or m)
           * Note: readout of the CAL values implicitly passes `CAL r` or `CAL m`
         * In the case of multiple calibrations sent in a single line, a response must be printed for each CAL:
           * Example response when sending CAL 1,0.0 2,NAN 3,0.0:
