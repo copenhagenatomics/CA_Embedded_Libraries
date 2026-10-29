@@ -54,19 +54,28 @@ void CACalibrationCb(int noOfPorts, const CACalibration *catAr) {
     calData.noOfCalibration = noOfPorts;
     memcpy(calData.cal, catAr, sizeof(calData.cal));
 }
-int calCompare(int noOfPorts, const CACalibration* catAr)
-{
-    if (noOfPorts != calData.noOfCalibration)
+
+int calCompare(int noOfPorts, const CACalibration* catAr) {
+    if (noOfPorts != calData.noOfCalibration) {
         return 1;
-    for (int i=0; i<noOfPorts; i++)
-    {
-        if (calData.cal[i].port  != catAr[i]. port ||
-            calData.cal[i].alpha != catAr[i].alpha ||
-            calData.cal[i].beta  != catAr[i]. beta)
-        { return 2; }
+    }
+    for (int i = 0; i < noOfPorts; i++) {
+        if ((calData.cal[i].port != catAr[i].port) ||
+            (calData.cal[i].noOfValues != catAr[i].noOfValues) || (calData.cal[i].noOfValues < 1)) {
+            return 2;
+        }
+        if (calData.cal[i].alpha != catAr[i].alpha) {
+            return 3;
+        }
+        if ((calData.cal[i].noOfValues >= 2) && (calData.cal[i].beta != catAr[i].beta)) {
+            return 4;
+        }
+        if ((calData.cal[i].noOfValues == 3) && (calData.cal[i].gamma != catAr[i].gamma)) {
+            return 5;
+        }
     }
 
-    return 0; // All good
+    return 0;  // All good
 }
 
 /***************************************************************************************************
