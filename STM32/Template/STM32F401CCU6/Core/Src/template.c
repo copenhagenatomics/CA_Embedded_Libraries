@@ -42,8 +42,11 @@ static void printHeader();
 static void printStatus();
 static void printStatusDef();
 static void printOutputDef();
-static void calibrate(int noOfCalibrations, const CACalibration* calibrations);
-static void calibrateRW(bool write);
+
+static void calibration(int noOfCalibrations, const CACalibration* calibrations);
+static void readCalibrationFromRAM();
+static void readCalibrationFromFlash();
+static void writeCalibrationToFlash();
 static void userInput(const char* input);
 
 static void adcToFloat(int16_t* pData);
@@ -63,18 +66,19 @@ static int16_t ADCBuffer[ADC_CHANNELS * ADC_CHANNEL_BUF_SIZE * 2];
 static FlashCalibration_t cal;
 
 // CA protocol handling
-static CAProtocolCtx caProto = {.undefined        = userInput,
-                                .printHeader      = printHeader,
-                                .printStatus      = printStatus,
-                                .printStatusDef   = printStatusDef,
-                                .printOutputDef   = printOutputDef,
-                                .jumpToBootLoader = HALJumpToBootloader,
-                                .calibration      = calibrate,
-                                .calibrationRW    = calibrateRW,
-                                .logging          = NULL,
-                                .otpRead          = CAotpRead,
-                                .otpWrite         = NULL,
-                                .uptime           = printUptime};
+static CAProtocolCtx caProto = {.undefined                = userInput,
+                                .printHeader              = printHeader,
+                                .printStatus              = printStatus,
+                                .printStatusDef           = printStatusDef,
+                                .printOutputDef           = printOutputDef,
+                                .jumpToBootLoader         = HALJumpToBootloader,
+                                .calibration              = calibration,
+                                .readCalibrationFromRAM   = readCalibrationFromRAM,
+                                .readCalibrationFromFlash = readCalibrationFromFlash,
+                                .writeCalibrationToFlash  = writeCalibrationToFlash,
+                                .logging                  = NULL,
+                                .otpRead                  = CAotpRead,
+                                .uptime                   = printUptime};
 
 /***************************************************************************************************
 ** PRIVATE FUNCTION DEFINITIONS
@@ -92,7 +96,7 @@ static void printUptime(const char* input) {
  */
 static void printHeader() {
     CAPrintHeader();
-    calibrateRW(false);
+    readCalibrationFromRAM();
 }
 
 /*!
@@ -136,16 +140,32 @@ static void printOutputDef() {
  * @param noOfCalibrations Number of calibrations
  * @param calibrations Pointer to the calibration structure
  */
-static void calibrate(int noOfCalibrations, const CACalibration* calibrations) {
-    calibration(noOfCalibrations, calibrations, &cal, sizeof(cal));
+static void calibration(int noOfCalibrations, const CACalibration* calibrations) {
+    calibrate(noOfCalibrations, calibrations, &cal);
 }
 
 /*!
- * @brief Printing of the calibration information when the 'Serial' command is received
- * @param write Write directly into the flash memory
+ * @brief Prints the calibration stored in RAM
+ * @note  Used when "Serial" or "CAL r" is received
  */
-static void calibrateRW(bool write) {
-    calibrationRW(write, &cal, sizeof(cal));
+static void readCalibrationFromRAM() {
+    printCal(&cal);
+}
+
+/*!
+ * @brief Prints the calibration stored in flash
+ * @note  Used when "CAL m" is received
+ */
+static void readCalibrationFromFlash() {
+    readCalFromFlash();
+}
+
+/*!
+ * @brief Write the calibration stored in RAM into flash
+ * @note  Used when "CAL w" is received
+ */
+static void writeCalibrationToFlash() {
+    writeCalToFlash(&cal, sizeof(cal));
 }
 
 /*!
