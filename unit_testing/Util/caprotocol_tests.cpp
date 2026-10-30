@@ -61,7 +61,8 @@ int calCompare(int noOfPorts, const CACalibration* catAr) {
     }
     for (int i = 0; i < noOfPorts; i++) {
         if ((calData.cal[i].port != catAr[i].port) ||
-            (calData.cal[i].noOfValues != catAr[i].noOfValues) || (calData.cal[i].noOfValues < 1)) {
+            (calData.cal[i].noOfValues != catAr[i].noOfValues) || (calData.cal[i].noOfValues < 1) ||
+            (calData.cal[i].noOfValues > 3)) {
             return 2;
         }
         if (calData.cal[i].alpha != catAr[i].alpha) {
@@ -207,9 +208,12 @@ TEST_F(TestCAProtocol, testCalibration)
 {
     reset();
 
+    EXPECT_EQ(testCalibration("CAL 4,-1.65\r", 1, (const CACalibration[]) {{4, -1.65, 0, 0, 1}}), 0);
     EXPECT_EQ(testCalibration("CAL 3,0.05,1.56\r", 1, (const CACalibration[]) {{3, 0.05, 1.56, 0, 2}}), 0);
+    EXPECT_EQ(testCalibration("CAL 3,0.05,1.56,-1.65\r", 1, (const CACalibration[]) {{3, 0.05, 1.56, -1.65, 3}}), 0);
     EXPECT_EQ(testCalibration("CAL 3,0.05,1.56 2,344,36\n\r", 2, (const CACalibration[]) {{3, 0.05, 1.56, 0, 2},{2, 344, 36, 0, 2}}), 0);
     EXPECT_EQ(testCalibration("CAL 3,0.05,1.56 2,0.04,.36\n", 2, (const CACalibration[]) {{3, 0.05, 1.56, 0, 2},{2, 0.04, 0.36, 0, 2}}), 0);
+    EXPECT_EQ(testCalibration("CAL 3,0.05,1.56,-1.65 2,0.04,.36\n", 2, (const CACalibration[]) {{3, 0.05, 1.56, -1.65, 3},{2, 0.04, 0.36, 0, 2}}), 0);
 }
 
 TEST_F(TestCAProtocolBoard, testPortCtrl)

@@ -77,7 +77,6 @@ static CAProtocolCtx caProto = {.undefined                = userInput,
                                 .readCalibrationFromFlash = readCalibrationFromFlash,
                                 .writeCalibrationToFlash  = writeCalibrationToFlash,
                                 .logging                  = NULL,
-                                .otpRead                  = CAotpRead,
                                 .uptime                   = printUptime};
 
 /***************************************************************************************************

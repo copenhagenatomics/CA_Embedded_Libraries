@@ -404,6 +404,8 @@ void uptimeTest(SerialStatusTest& sst, uintptr_t flashAddr) {
  */
 void calibrationTest(SerialStatusTest& sst, const char* default_cal, const char* valid_cal,
                      const char* invalid_cal) {
+    ASSERT_STRNE(default_cal, valid_cal);
+    
     sst.boundInit();
     /* Note: usb RX buffer is flushed during the first loop, so a single loop must be done before
     ** printing anything */

@@ -80,8 +80,12 @@ static void calibration(CAProtocolCtx* ctx, const char* input) {
 
     // Going through each calibration
     while (idx != NULL && noOfCalibrations < MAX_NO_CALIBRATION) {
-        int port, ret;
-        double alpha, beta, gamma;
+        int port     = 0;
+        int ret      = 0;
+        double alpha = 0;
+        double beta  = 0;
+        double gamma = 0;
+
         idx++;
 
         // Beta and gamma are optional and therefore only 2 values need to be set.
@@ -228,12 +232,6 @@ void inputCAProtocol(CAProtocolCtx* ctx) {
     else if (strncmp(input, "LOG", 3) == 0) {
         if (ctx->logging) {
             logging(ctx, input);
-            parseError = 0;
-        }
-    }
-    else if (strncmp(input, "OTP r", 5) == 0) {
-        if (ctx->otpRead) {
-            ctx->otpRead();
             parseError = 0;
         }
     }
