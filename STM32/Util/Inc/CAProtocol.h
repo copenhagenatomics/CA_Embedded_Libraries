@@ -61,7 +61,10 @@ typedef struct {
     // Data logger request on port (range [1:N]), Zero means stop.
     void (*logging)(int port);
 
-    /* Print generic uptime information */
+    // OTP read
+    void (*otpRead)();
+
+    // Print generic uptime information
     void (*uptime)(const char* inputString);
 
     struct CAProtocolData* data;  // Private data for CAProtocol.

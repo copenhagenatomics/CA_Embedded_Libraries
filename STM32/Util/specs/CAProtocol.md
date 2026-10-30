@@ -93,6 +93,12 @@ This document contains the specification for the Copenhagen Atomics (CA) general
       Port 6 measures voltage [0-5V]
       End of board status.
       ```
+    * OTP r: Will print information about the PCBA, in the follwoing order: OTP version, board type, board sub-type, PCB vesion, date (2000 epoch format).
+      * Example format:
+      ```
+      OTP 2 31 0 1.0 846581492
+      ```
+      
   * Optional commands are:
     * CAL: Will send (a) calibration string(s) to the device. 
       * Calibration strings have the format: "p, a, b, g", where:
