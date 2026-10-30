@@ -36,7 +36,7 @@ This document contains the specification for the Copenhagen Atomics (CA) general
   * Boards will accept ASCII text input. Commands will be delineated by CR, LF, or both.
   * Required commands are:
     * DFU: Will reset the device into DFU mode
-    * Serial: will print general board parameters, followed by the CAL string for the device, if applicable. The CAL string will follow the same format as the response to `CAL r`.
+    * Serial: will print general board parameters, followed by the CAL string for the device, if applicable. The CAL string will follow the same format as the response to `CAL r`. The Product Type, the Sub Product Type and the PCB Version should be read from OTP memory.
       * Format:
       ```
       Serial Number: 2A00393235511039393434
@@ -93,6 +93,12 @@ This document contains the specification for the Copenhagen Atomics (CA) general
       Port 6 measures voltage [0-5V]
       End of board status.
       ```
+    * OTP r: Will print information about the PCBA, in the follwoing order: OTP version, board type, board sub-type, PCB vesion, date (2000 epoch format).
+      * Example format:
+      ```
+      OTP 2 31 0 1.0 846581492
+      ```
+      
   * Optional commands are:
     * CAL: Will send (a) calibration string(s) to the device. 
       * Calibration strings have the format: "p, a, b, g", where:
@@ -114,7 +120,7 @@ This document contains the specification for the Copenhagen Atomics (CA) general
         * `CAL m` will be used to readout the calibration values stored in non-volatile memory, with the same format as CAL r
       * The device must respond to a CAL message with a response indicating success or failure:
         * `CAL x success` (where x could be a p number or w)
-        * `CAL x failed` (where x could be a p number or w)
+        * `CAL x failed` (where x could be a p number or w or m)
           * Note: readout of the CAL values implicitly passes `CAL r` or `CAL m`
         * In the case of multiple calibrations sent in a single line, a response must be printed for each CAL:
           * Example response when sending CAL 1,0.0 2,NAN 3,0.0:
@@ -124,7 +130,8 @@ This document contains the specification for the Copenhagen Atomics (CA) general
           CAL 3 success
           ```
       * In some CAL cases, a parameter may be used as an "action flag". For example, alpha = an offset, and beta is an "action flag" specifying how to calibrate alpha. If beta = 0, then the offset should be set based on the `CAL 0.1,0` command (e.g. 0.1). If beta = 1, the offset should be measured from sensor data.
-        * action flag parameters should be read out as 0 when using `CAL r` or similar.
+        * Action flag parameters should be read out as 0 when using `CAL r` or similar.
+        * Every CAL value should be able to be manually editted, even if the primary way to set it is with an action flag.
     * LOG: Will change the output string channels between different configurations. Used to implement debugging output channels which are not desired in general purpose usage
       * Format: `LOG pX` where X is a different output configuration. 0 is always the default general purpose configuration.
       * For differing LOG configurations, the OutputDef printout must match the currently active configuration
