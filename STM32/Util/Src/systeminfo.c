@@ -186,6 +186,10 @@ static const char* productType(uint8_t id) {
             return "DC_BoardCal";
         case AnalogInputDummy:
             return "AnalogInputDummy";
+        case AMBPositionController:
+            return "AMBPositionController";
+        case AMBPositionSensor:
+            return "AMBPositionSensor";
     }
     return "NA";
 }
@@ -358,7 +362,7 @@ const char* outputDefInfo(bool printStart) {
         CA_SNPRINTF(buf, len, "Start of board output definition:\r\n");
     }
     else {
-        CA_SNPRINTF(buf, len, "Status,hex\r\n"); // Status code always at the end
+        CA_SNPRINTF(buf, len, "Status,hex\r\n");  // Status code always at the end
         CA_SNPRINTF(buf, len, "End of board output definition.\r\n");
     }
 

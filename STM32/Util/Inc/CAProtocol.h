@@ -8,8 +8,7 @@
 #ifndef INC_CAPROTOCOL_H_
 #define INC_CAPROTOCOL_H_
 
-#include <stdbool.h>
-#include "HAL_otp.h"
+#include <stdint.h>
 
 /***************************************************************************************************
 ** STRUCTURES
@@ -19,7 +18,8 @@ typedef struct {
     int port;
     double alpha;
     double beta;
-    int threshold;
+    double gamma;
+    int noOfValues;
 } CACalibration;
 
 typedef int (*ReaderFn)(uint8_t* rxBuf);
@@ -48,17 +48,23 @@ typedef struct {
 
     // Calibration request.
     void (*calibration)(int noOfCalibrations, const CACalibration* calibrations);
-    void (*calibrationRW)(bool write);  // Read or write calibration values to flash
+
+    // Prints calibration stored in volatile memory ("CAL r" command)
+    void (*readCalibrationFromRAM)();
+
+    // Prints calibration stored in non-volatile memory ("CAL m" command)
+    void (*readCalibrationFromFlash)();
+
+    // Write the current volatile calibration into non-volatile memory ("CAL w" command)
+    void (*writeCalibrationToFlash)();
 
     // Data logger request on port (range [1:N]), Zero means stop.
     void (*logging)(int port);
 
-    // OTP read/write. Don't enable write of OTP data in application shipped
-    // to customer. The OTP write is a production operation only!
+    // OTP read
     void (*otpRead)();
-    void (*otpWrite)(BoardInfo* boardInfo);
 
-    /* Print generic uptime information */
+    // Print generic uptime information
     void (*uptime)(const char* inputString);
 
     struct CAProtocolData* data;  // Private data for CAProtocol.

@@ -45,6 +45,8 @@ void statusPrintoutTest(SerialStatusTest& sst, std::vector<const char*> pass_str
 void statusDefPrintoutTest(SerialStatusTest& sst, const char* boardErrorsString, std::vector<const char*> boardStatusDefString);
 void outputDefPrintoutTest(SerialStatusTest& sst, std::vector<const char*> pass_string);
 void serialPrintoutTest(SerialStatusTest& sst, const char* boardName, const char* cal_string=nullptr);
+void incorrectCommandTest(SerialStatusTest& sst);
 void uptimeTest(SerialStatusTest& sst, uintptr_t flashAddr);
+void calibrationTest(SerialStatusTest& sst, const char* default_cal, const char* valid_cal, const char* invalid_cal);
 
 #endif /* SERIAL_STATUS_TESTS_H_ */

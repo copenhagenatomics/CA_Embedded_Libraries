@@ -41,9 +41,11 @@ static void setDefaultCal(FlashCalibration_t* cal);
 
 CRC_HandleTypeDef* hcrc_ = NULL;
 
+static char buffer[300];  // Print buffer
+
 // EXAMPLES
-static const calDef_t CAL1_DEF = {1e-9, 1.0e9, 1};
-static const calDef_t CAL2_DEF = {1e-9, 1.0e9, 1};
+static const calDef_t CAL1_DEF = {1e-9, 1e9, 1};
+static const calDef_t CAL2_DEF = {1e-9, 1e9, 1};
 
 /***************************************************************************************************
 ** PRIVATE FUNCTION DEFINITIONS
@@ -57,7 +59,7 @@ static const calDef_t CAL2_DEF = {1e-9, 1.0e9, 1};
  * @return 1 if calibration has been set
  */
 static bool setCal(const calDef_t* calDef, float* calPointer, float newValue) {
-    if ((newValue >= calDef->min) && (newValue < calDef->max)) {
+    if ((newValue >= calDef->min) && (newValue <= calDef->max)) {
         *calPointer = newValue;
         return true;
     }
@@ -82,37 +84,47 @@ static void setDefaultCal(FlashCalibration_t* cal) {
  * @param noOfCalibrations Number of calibrations
  * @param calibrations Pointer to the CA calibration structure
  * @param cal Pointer to the board calibration structure
- * @param size Size of the calibration
  */
-void calibration(int noOfCalibrations, const CACalibration* calibrations, FlashCalibration_t* cal,
-                 uint32_t size) {
+void calibrate(int noOfCalibrations, const CACalibration* calibrations, FlashCalibration_t* cal) {
     /*
         Calibration command:
         -------------------------------------------------------------------------
-        CAL 1,cal1,cal2
+        Sets manually cal1
+        CAL 1,cal1
+
+        Sets manually cal2
+        CAL 2,cal2,0
+
+        Triggers automatic measurement of cal2
+        CAL 2,0,1
         -------------------------------------------------------------------------
     */
 
     for (int i = 0; i < noOfCalibrations; i++) {
-        int port     = calibrations[i].port;
-        double alpha = calibrations[i].alpha;
-        double beta  = calibrations[i].beta;
-        bool calOk   = false;  // Is the calibration valid ?
+        const CACalibration* c = &calibrations[i];
+        bool calOk             = false;  // Is the calibration valid ?
 
-        switch (port) {
+        switch (c->port) {
             case 1:
-                calOk = setCal(&CAL1_DEF, &cal->cal1, alpha);
-                calOk &= setCal(&CAL2_DEF, &cal->cal2, beta);
+                calOk = setCal(&CAL1_DEF, &cal->cal1, c->alpha);
+                break;
+            case 2:
+                if (c->noOfValues >= 2) {
+                    if (c->beta == 0.0) {
+                        calOk = setCal(&CAL2_DEF, &cal->cal2, c->alpha);
+                    }
+                    else if (c->alpha == 0.0) {
+                        // callbackFunction();
+                        calOk = true;
+                    }
+                }
                 break;
 
             default:
                 break;
         }
-        if (!calOk) {
-            USBnprintf("CAL error with port %d\r\n", port);
-        }
+        USBnprintf("CAL %d %s\r\n", c->port, calOk ? "success" : "failed");
     }
-    calibrationRW(true, cal, size);
 }
 
 /*!
@@ -126,28 +138,45 @@ void calibrationInit(CRC_HandleTypeDef* hcrc, FlashCalibration_t* cal, uint32_t 
 
     if (readFromFlashCRC(hcrc, (uint32_t)FLASH_ADDR_CAL, (uint8_t*)cal, size) != 0) {
         setDefaultCal(cal);
+        // Write default calibration to flash if no valid calibration is found
+        writeCalToFlash(cal, size);
     }
 }
 
 /*!
- * @brief Read and write calibration function
- * @param write Write into the flash memory
- * @param cal Pointer to the board calibration structure
- * @param size Size of the calibration
+ * @brief Prints provided calibration
+ * @param cal Pointer to the board calibration
  */
-void calibrationRW(bool write, FlashCalibration_t* cal, uint32_t size) {
-    if (write) {
-        if (writeToFlashCRC(hcrc_, (uint32_t)FLASH_ADDR_CAL, (uint8_t*)cal, size) != 0) {
-            USBnprintf("Calibration was not stored in FLASH\r\n");
-        }
+void printCal(FlashCalibration_t* cal) {
+    int len = 0;
+
+    CA_SNPRINTF(buffer, len, "Calibration: CAL ");
+    CA_SNPRINTF(buffer, len, "1,%.2f ", cal->cal1);
+    CA_SNPRINTF(buffer, len, "2,%.2f,0\r\n", cal->cal2);
+
+    writeUSB(buffer, len);
+}
+
+/*!
+ * @brief Reads calibration from flash
+ */
+void readCalFromFlash() {
+    FlashCalibration_t cal;
+
+    if (readFromFlashCRC(hcrc_, (uint32_t)FLASH_ADDR_CAL, (uint8_t*)&cal, sizeof(cal)) != 0) {
+        USBnprintf("CAL m failed\r\n");
     }
     else {
-        char buffer[300];
-        int len = 0;
-
-        CA_SNPRINTF(buffer, len, "Calibration: CAL");
-        CA_SNPRINTF(buffer, len, " 1,%.2f,%.2f\r\n", cal->cal1, cal->cal2);
-
-        writeUSB(buffer, len);
+        printCal(&cal);
     }
+}
+
+/*!
+ * @brief Writes calibration into flash
+ * @param cal Pointer to the board calibration
+ * @param size Calibration size
+ */
+void writeCalToFlash(FlashCalibration_t* cal, uint32_t size) {
+    int ret = writeToFlashCRC(hcrc_, (uint32_t)FLASH_ADDR_CAL, (uint8_t*)cal, size);
+    USBnprintf("CAL w %s\r\n", (ret == 0) ? "success" : "failed");
 }

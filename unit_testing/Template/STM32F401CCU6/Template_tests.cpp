@@ -8,7 +8,7 @@
 /* Linker script variables */
 #include <inttypes.h>
 extern "C" {
-uint32_t _FlashAddrCal = 0;
+uint32_t _FlashAddrCal    = 0;
 uint32_t _FlashAddrUptime = 0;
 }
 
@@ -34,11 +34,17 @@ uint32_t _FlashAddrUptime = 0;
 using namespace std;
 
 /***************************************************************************************************
-** COMMON DEFAULT OUTPUT STRINGS
+** OUTPUT STRINGS
 ***************************************************************************************************/
 
 // Default flash calibration values, before any CAL command has been sent
-static const string CAL_DEFAULT = "1,1.00,1.00";
+static const string CAL_DEFAULT = "CAL 1,1.00 2,1.00,0\r";
+
+// Calibration string containing only valid calibrations
+static const string CAL_VALID = "CAL 1,2.00 2,2.00,0\r";
+
+// Calibration string containing only invalid calibrations
+static const string CAL_INVALID = "CAL 1,-1.00 2,1.00,0\r";
 
 /***************************************************************************************************
 ** TEST FIXTURES
@@ -92,13 +98,13 @@ TEST_F(TemplateTests, incorrectBoardVersion) {
 }
 
 // clang-format off
-TEST_F(TemplateTests, testGoldenPath) {
+TEST_F(TemplateTests, goldenPath) {
     goldenPathTest(sst,
         "0x00000000\r",
         100);
 }
 
-TEST_F(TemplateTests, testPrintStatus) {
+TEST_F(TemplateTests, printStatus) {
     statusPrintoutTest(sst, {
         "The board is operating normally.\r",
         // "State 1: OFF\r",
@@ -106,14 +112,14 @@ TEST_F(TemplateTests, testPrintStatus) {
     });
 }
 
-TEST_F(TemplateTests, testPrintStatusDef) {
+TEST_F(TemplateTests, printStatusDef) {
     statusDefPrintoutTest(sst, "0x7e000000,System errors\r", {
         // "0x00000001,State 1\r",
         // "0x00000002,State 2\r"
     });
 }
 
-TEST_F(TemplateTests, testPrintOutputDef) {
+TEST_F(TemplateTests, printOutputDef) {
     outputDefPrintoutTest(sst, {
         "Channel 1,Unit1\r",
         "Channel 2,Unit2\r"
@@ -121,11 +127,19 @@ TEST_F(TemplateTests, testPrintOutputDef) {
 }
 // clang-format on
 
-TEST_F(TemplateTests, testPrintSerial) {
-    string calStr = "Calibration: CAL " + CAL_DEFAULT + "\r";
+TEST_F(TemplateTests, printSerial) {
+    string calStr = "Calibration: " + CAL_DEFAULT;
     serialPrintoutTest(sst, "Template", calStr.c_str());
 }
 
-TEST_F(TemplateTests, testUpTime) {
+TEST_F(TemplateTests, incorrectCommand) {
+    incorrectCommandTest(sst);
+}
+
+TEST_F(TemplateTests, upTime) {
     uptimeTest(sst, (uintptr_t)&_FlashAddrUptime);
+}
+
+TEST_F(TemplateTests, calibration) {
+    calibrationTest(sst, CAL_DEFAULT.c_str(), CAL_VALID.c_str(), CAL_INVALID.c_str());
 }

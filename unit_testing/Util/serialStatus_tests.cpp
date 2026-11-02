@@ -23,8 +23,12 @@
 #endif
 
 using namespace std;
-using ::testing::Contains;
 using ::testing::AllOf;
+using ::testing::Contains;
+using ::testing::Each;
+using ::testing::ElementsAre;
+using ::testing::HasSubstr;
+using ::testing::IsEmpty;
 
 /***************************************************************************************************
 ** PRIVATE FUNCTIONS
@@ -321,6 +325,22 @@ void serialPrintoutTest(SerialStatusTest& sst, const char* boardName, const char
     EXPECT_FLUSH_USB(::testing::ElementsAreArray(pass_string));
 }
 
+/*!
+ * @brief Tests that an unknown command produces an error message
+ * @param sst Test data object
+ */
+void incorrectCommandTest(SerialStatusTest& sst) {
+    sst.boundInit();
+    /* Note: usb RX buffer is flushed during the first loop, so a single loop must be done before
+    ** printing anything */
+    sst.testFixture->_loopFunction(sst.testFixture->bootMsg);
+    (void)hostUSBread(true);
+
+    // Unknown command refused
+    sst.testFixture->writeBoardMessage("foobar\n");
+    EXPECT_FLUSH_USB(ElementsAre("MISREAD: foobar\r"));
+}
+
 #ifdef HAL_CRC_MODULE_ENABLED
 /*!
 ** @brief Tests that the uptime counting functionality works correctly
@@ -374,4 +394,70 @@ void uptimeTest(SerialStatusTest& sst, uintptr_t flashAddr) {
     (void)readFromFlash((uint32_t)flashAddr, (uint8_t*)&uptime_test, sizeof(uptime_test));
     EXPECT_EQ(uptime_test.total_uptime_channel.count, 1440);
 }
+
+/*!
+ * @brief Tests that the CA calibration commands are implemented according to the specs
+ * @param sst Test data object
+ * @param default_cal Default calibration string
+ * @param valid_cal Valid calibration string different from default one
+ * @param invalid_cal Calibration string containing only invalid calibrations
+ */
+void calibrationTest(SerialStatusTest& sst, const char* default_cal, const char* valid_cal,
+                     const char* invalid_cal) {
+    ASSERT_STRNE(default_cal, valid_cal);
+    
+    sst.boundInit();
+    /* Note: usb RX buffer is flushed during the first loop, so a single loop must be done before
+    ** printing anything */
+    sst.testFixture->_loopFunction(sst.testFixture->bootMsg);
+    (void)hostUSBread(true);
+
+    // Default calibration stored in flash
+    sst.testFixture->writeBoardMessage("CAL m\n");
+    EXPECT_FLUSH_USB(ElementsAre(HasSubstr(default_cal)));
+
+    // Default calibration stored in RAM
+    sst.testFixture->writeBoardMessage("CAL r\n");
+    EXPECT_FLUSH_USB(ElementsAre(HasSubstr(default_cal)));
+
+    // Each invalid calibration is refused
+    sst.testFixture->writeBoardMessage(invalid_cal);
+    EXPECT_FLUSH_USB(
+        AllOf(Not(IsEmpty()), Each(AllOf(HasSubstr("failed"), Not(HasSubstr("success"))))));
+
+    // Default calibration still stored in flash
+    sst.testFixture->writeBoardMessage("CAL m\n");
+    EXPECT_FLUSH_USB(ElementsAre(HasSubstr(default_cal)));
+
+    // Default calibration still stored in RAM
+    sst.testFixture->writeBoardMessage("CAL r\n");
+    EXPECT_FLUSH_USB(ElementsAre(HasSubstr(default_cal)));
+
+    // Valid calibration accepted
+    sst.testFixture->writeBoardMessage(valid_cal);
+    EXPECT_FLUSH_USB(
+        AllOf(Not(IsEmpty()), Each(AllOf(HasSubstr("success"), Not(HasSubstr("failed"))))));
+    
+    // Default calibration still stored in flash
+    sst.testFixture->writeBoardMessage("CAL m\n");
+    EXPECT_FLUSH_USB(ElementsAre(HasSubstr(default_cal)));
+
+    // New valid calibration stored in RAM
+    sst.testFixture->writeBoardMessage("CAL r\n");
+    EXPECT_FLUSH_USB(ElementsAre(HasSubstr(valid_cal)));
+
+    // Saving new calibration to flash
+    sst.testFixture->writeBoardMessage("CAL w\n");
+    EXPECT_FLUSH_USB(ElementsAre("CAL w success\r"));
+    sst.testFixture->writeBoardMessage("CAL m\n");
+    EXPECT_FLUSH_USB(ElementsAre(HasSubstr(valid_cal)));
+
+    // Default calibration accepted and saved in RAM
+    sst.testFixture->writeBoardMessage(default_cal);
+    EXPECT_FLUSH_USB(
+        AllOf(Not(IsEmpty()), Each(AllOf(HasSubstr("success"), Not(HasSubstr("failed"))))));
+    sst.testFixture->writeBoardMessage("CAL r\n");
+    EXPECT_FLUSH_USB(ElementsAre(HasSubstr(default_cal)));
+}
+
 #endif

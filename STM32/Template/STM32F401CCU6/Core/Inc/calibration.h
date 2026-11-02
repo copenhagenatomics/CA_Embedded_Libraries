@@ -26,9 +26,10 @@ typedef struct FlashCalibration {
 ** PUBLIC FUNCTION DECLARATIONS
 ***************************************************************************************************/
 
-void calibration(int noOfCalibrations, const CACalibration *calibrations, FlashCalibration_t *cal,
-                 uint32_t size);
-void calibrationInit(CRC_HandleTypeDef *hcrc, FlashCalibration_t *cal, uint32_t size);
-void calibrationRW(bool write, FlashCalibration_t *cal, uint32_t size);
+void calibrate(int noOfCalibrations, const CACalibration* calibrations, FlashCalibration_t* cal);
+void calibrationInit(CRC_HandleTypeDef* hcrc, FlashCalibration_t* cal, uint32_t size);
+void printCal(FlashCalibration_t* cal);
+void readCalFromFlash();
+void writeCalToFlash(FlashCalibration_t* cal, uint32_t size);
 
 #endif /* INC_CALIBRATION_H_ */
