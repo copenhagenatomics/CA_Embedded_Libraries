@@ -18,6 +18,6 @@
 #include "ADS1120.h"
 
 void setError(ADS1120Device *dev, int error);
-void setTemp(ADS1120Device *dev, double chA, double chB, double internal);
+void setVoltage(ADS1120Device *dev, double chA, double chB, double internalTemp);
 
 #endif /* __FAKE_ADS1120_H_ */

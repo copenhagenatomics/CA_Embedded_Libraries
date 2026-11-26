@@ -51,11 +51,14 @@ void setError(ADS1120Device *dev, int error) {
     ads->error = error;
 }
 
-void setTemp(ADS1120Device *dev, double chA, double chB, double internal) {
+/*!
+** @brief Sets the voltages [V] read at the input of both channels, and the internal temperature
+*/
+void setVoltage(ADS1120Device *dev, double chA, double chB, double internalTemp) {
     ADS1120_t* ads = getAdsStruct(dev);
     ads->chA = chA;
     ads->chB = chB;
-    ads->internal = internal;
+    ads->internal = internalTemp;
 }
 
 int ADS1120Init(ADS1120Device *dev) {
@@ -64,7 +67,7 @@ int ADS1120Init(ADS1120Device *dev) {
 
 
 
-int ADS1120Loop(ADS1120Device *dev, float *type_calibration) {
+int ADS1120Loop(ADS1120Device *dev) {
     ADS1120_t* ads = getAdsStruct(dev);
 
     if(ads->error) {
