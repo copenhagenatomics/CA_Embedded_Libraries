@@ -27,15 +27,19 @@ jobs:
       with:
         filters: |
           ADCMonitor: STM32/ADCMonitor/**
+          CaCMSISInterface: STM32/CaCMSISInterface/**
           circularBuffer: STM32/circularBuffer/**
+          Crc: STM32/Crc/**
+          Filtering: STM32/Filtering/**
           FLASH_readwrite: STM32/FLASH_readwrite/**
+          Humidity: STM32/Humidity/**
           I2C: STM32/I2C/**
           jumpToBootloader: STM32/jumpToBootloader/**
           Regulation: STM32/Regulation/**
           SPI: STM32/SPI/**
+          Temperature: STM32/Temperature/**
           TransformationFunctions: STM32/TransformationFunctions/**
           USBprint: STM32/USBprint/**
-          Filtering: STM32/Filtering/**
           Util: STM32/Util/**
   run_unittests:
     needs: changes
