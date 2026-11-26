@@ -21,11 +21,6 @@ typedef enum
     INPUT_CALIBRATE // calibration, measure (AVDD-AVSS)/2.
 } ADS1120_input;
 
-typedef enum {
-    ST_THERMOCOUPLE = 0, // Thermocouple
-    ST_RTD               // RTD
-} ADC1120_SensorType;
-
 typedef struct ADS1120Data {
     double chA;
     double chB;
@@ -44,8 +39,6 @@ typedef struct ADS1120Device {
 
     // Data acquired from device and state information.
     ADS1120Data data;
-
-    ADC1120_SensorType sensor_type;
 } ADS1120Device;
 
 /* Description: Configure a single ADS1120 device. Configuration is fixed
@@ -56,9 +49,9 @@ typedef struct ADS1120Device {
 int ADS1120Init(ADS1120Device *dev);
 
 // Loop to update the next input. Note, ADS1120Init must be called
-// called before this function. It will not break bu result is undefined.
+// called before this function. It will not break but result is undefined.
 // Device will run in a loop { calibrate, temperature, CHA, CHB }
-int ADS1120Loop(ADS1120Device *dev, float *type_calibration);
+int ADS1120Loop(ADS1120Device *dev);
 
 #ifdef __cplusplus
     }

@@ -1,0 +1,53 @@
+####################################################################################################
+## Required to install gtest dependency
+####################################################################################################
+
+cmake_minimum_required(VERSION 3.14)
+project(unit_testing)
+
+# GoogleTest requires at least C++17
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+# Set timestamp policy to avoid warning (default value)
+if(POLICY CMP0135)
+	cmake_policy(SET CMP0135 NEW)
+	set(CMAKE_POLICY_DEFAULT_CMP0135 NEW)
+endif()
+
+# Include GoogleTest v1.18.0
+include(FetchContent)
+FetchContent_Declare(
+    googletest
+    URL https://github.com/google/googletest/archive/063de7e9578f82b369302001269680b4b1553359.zip
+)
+
+# For Windows: Prevent overriding the parent project's compiler/linker settings
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(googletest)
+
+####################################################################################################
+## Setup source code locations / include locations
+####################################################################################################
+
+set(SRC ../../STM32)
+
+####################################################################################################
+## List of tests to run
+###################################################################################################
+
+enable_testing()
+
+include(GoogleTest)
+
+# Temperature measurement tests
+add_executable(temperatureMeas_test
+    temperatureMeas_tests.cpp
+    ${SRC}/Temperature/Src/temperatureMeas.c)
+
+target_include_directories(temperatureMeas_test PRIVATE
+    ${SRC}/Temperature/Inc)
+
+target_link_libraries(temperatureMeas_test GTest::gtest_main gmock_main)
+target_compile_options(temperatureMeas_test PRIVATE -Wall)
+gtest_discover_tests(temperatureMeas_test)

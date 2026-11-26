@@ -6,6 +6,7 @@
  *
  * The implementation is not generic since some logic is defined by the actual PCB layout.
  */
+#include <math.h>
 #include <stdint.h>
 #include <string.h>
 #include "ADS1120.h"
@@ -65,8 +66,8 @@ typedef union ADS1120Cmd {
 
 static HAL_StatusTypeDef readRegisters(ADS1120Device *dev, ADS1120_RegConfig* regs);
 static ADS1120_input nextInput(ADS1120_input current);
-static double adc2Temp(int16_t adcValue, int16_t calibration, float internalTemp, float delta, float cj_delta);
-static double rtd2Temp(int16_t adcValue, int16_t calibration, float bias_resistor, float lead_compensation);
+static double adc2Volt(int16_t adcValue, int16_t calibration);
+static double filterInput(double filtered, double newValue, int mAvgTime);
 static bool isDataReady(ADS1120Device *dev);
 static HAL_StatusTypeDef verifyTransmission(ADS1120Device *dev, const ADS1120_RegConfig *result);
 static HAL_StatusTypeDef reset(ADS1120Device *dev);
@@ -94,43 +95,38 @@ static ADS1120_input nextInput(ADS1120_input current)
 }
 
 
-static double adc2Temp(int16_t adcValue, int16_t calibration, float internalTemp, float delta, float cj_delta)
+/*!
+** @brief  Convert an ADC value into the voltage at the input of the ADS1120.
+**
+** @param adcValue    ADC value from the ADS1120.
+** @param calibration Offset calibration value from last cal cycle
+** @return Voltage in millivolts, NAN if nothing is connected to the port.
+*/
+static double adc2Volt(int16_t adcValue, int16_t calibration)
 {
-    if (adcValue == 0x7fff)
-        return 10000; // Nothing in port, send 10000 to set an invalid value.
-    // TODO: How to detect a short?
+    // Nothing in port
+    if (adcValue == 0x7fff) {
+        return NAN;
+    }
 
     adcValue -= calibration;
-    // Voltage across thermocouple
-    float vTC = (float) adcValue/(QUANTIZATION / 2) *INTERVAL_VOLTAGE_REF/GAIN;
-    // Voltage across cold-junction
-    float vCJ = internalTemp*cj_delta;
-    // return temperature
-    return (vTC + vCJ)/delta;
+    return (double) adcValue / (QUANTIZATION / 2) * INTERVAL_VOLTAGE_REF / GAIN;
 }
 
 /*!
-** @brief  Convert RTD ADC value to temperature.
+** @brief  Moving average of a voltage, that is reset when a port is disconnected/connected.
 **
-** @param adcValue ADC value from the ADS1120.
-** @param calibration Offset calibration value from last cal cycle
-** @param bias_resistor Bias resistor value in Ohms.
-** @param lead_compensation Lead compensation value in Ohms.
-** @return Temperature in degrees Celsius.
+** @param filtered   Current filtered value
+** @param newValue   New measurement
+** @param mAvgTime   Moving average time
+** @return Updated filtered value.
 */
-static double rtd2Temp(int16_t adcValue, int16_t calibration, float bias_resistor, float lead_compensation) {
-    // Nothing in port, send 10000 to set an invalid value.
-    if (adcValue == 0x7fff) {
-        return 10000;
+static double filterInput(double filtered, double newValue, int mAvgTime)
+{
+    if (isnan(newValue) || isnan(filtered)) {
+        return newValue;
     }
-    
-    adcValue -= calibration;
-    // Temperature of RTD
-    double vRTD = (adcValue * INTERVAL_VOLTAGE_REF) / (GAIN * (QUANTIZATION / 2));
-    double rRTD = (2 * bias_resistor * vRTD) / (3.3 - vRTD) - lead_compensation;
-    
-    // Polynomial fit for PT100, res -> temp degC
-    return 1.0128e-3 * rRTD * rRTD + 2.3554 * rRTD - 2.4567e2;
+    return filtered + (newValue - filtered) / mAvgTime;
 }
 
 // Helper function to test if device has new data.
@@ -322,7 +318,7 @@ int ADS1120Init(ADS1120Device *dev)
     return ret;
 }
 
-int ADS1120Loop(ADS1120Device *dev, float *type_calibration) {
+int ADS1120Loop(ADS1120Device *dev) {
     int ret = 0;
     // Moving average time, see https://en.wikipedia.org/wiki/Moving_average.
     const int mAvgTime = 6; 
@@ -357,7 +353,6 @@ int ADS1120Loop(ADS1120Device *dev, float *type_calibration) {
     }
     else {
         // The smallest possible State machine
-        double temp;
         switch (data->currentInput) {
             case INPUT_TEMP:
                 data->internalTemp +=
@@ -365,37 +360,13 @@ int ADS1120Loop(ADS1120Device *dev, float *type_calibration) {
                 break;
 
             case INPUT_CHA:
-                if (dev->sensor_type == ST_THERMOCOUPLE) {
-                    temp = adc2Temp(((int16_t)adcValue), data->calibration, data->internalTemp,
-                                    *type_calibration, *(type_calibration + 1));
-                }
-                else {
-                    temp = rtd2Temp(((int16_t)adcValue), data->calibration, *type_calibration,
-                                    *(type_calibration + 1));
-                }
-                if (temp == 10000 || data->chA == 10000) {
-                    data->chA = temp;
-                }
-                else {
-                    data->chA += (temp - data->chA) / mAvgTime;
-                }
+                data->chA = filterInput(data->chA, adc2Volt((int16_t)adcValue, data->calibration),
+                                        mAvgTime);
                 break;
 
             case INPUT_CHB:
-                if (dev->sensor_type == ST_THERMOCOUPLE) {
-                    temp = adc2Temp(((int16_t)adcValue), data->calibration, data->internalTemp,
-                                    *type_calibration, *(type_calibration + 1));
-                }
-                else {
-                    temp = rtd2Temp(((int16_t)adcValue), data->calibration, *type_calibration,
-                                    *(type_calibration + 1));
-                }
-                if (temp == 10000 || data->chB == 10000) {
-                    data->chB = temp;
-                }
-                else {
-                    data->chB += (temp - data->chB) / mAvgTime;
-                }
+                data->chB = filterInput(data->chB, adc2Volt((int16_t)adcValue, data->calibration),
+                                        mAvgTime);
                 break;
 
             case INPUT_CALIBRATE:
