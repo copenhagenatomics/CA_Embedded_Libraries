@@ -364,7 +364,6 @@ static float getRtdR0(int sensorType) {
 
 /*!
  * @brief Callendar-Van Dusen equation, giving the ratio R(t) / R0
- * @details Coefficients A, B and C are those of IEC 60751 (alpha = 0.00385)
  * @see https://en.wikipedia.org/wiki/Callendar%E2%80%93Van_Dusen_equation
  * @param t      Temperature [degC]
  * @param slope  If not NULL, receives the derivative of the ratio [1/degC]
@@ -392,11 +391,16 @@ static float rtdRatio(float t, float* slope) {
  * @return Temperature [degC]
  */
 static float rtdTemperature(float ratio) {
-    /* Closed form of the quadratic, in a form that does not lose precision around 0 degC */
+    // Closed form of the quadratic, in a form that does not lose precision around 0 degC
+    // t = (-A + √(A² + 4Bx)) / (2B)
+    // Multiplying top and by bottom by A + √(A² + 4Bx):
+    // t = (A² + 4Bx - A²) / (2B * (A + √(A² + 4Bx)))
+    // t = 2x / (A + √(A² + 4Bx))
     float x = ratio - 1.0f;
     float t = 2.0f * x / (RTD_A + sqrtf(RTD_A * RTD_A + 4.0f * RTD_B * x));
+
+    // Below 0 degC, C matters, so using a few iterations of Newton's method
     if (t < 0.0f) {
-        /* The cubic term cannot be neglected below 0 degC */
         for (int32_t i = 0; i < RTD_NEWTON_ROUNDS; i++) {
             float slope;
             float error = rtdRatio(t, &slope) - ratio;
